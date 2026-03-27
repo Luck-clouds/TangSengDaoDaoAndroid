@@ -1,4 +1,4 @@
-package com.test.demo2
+package com.qinghangim.app
 
 import org.junit.Test
 

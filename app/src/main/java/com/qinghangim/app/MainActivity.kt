@@ -1,4 +1,4 @@
-package com.test.demo2
+package com.qinghangim.app
 
 import android.content.Intent
 import android.text.Spannable
@@ -17,8 +17,8 @@ import com.chat.base.utils.WKDialogUtils
 import com.chat.login.ui.PerfectUserInfoActivity
 import com.chat.login.ui.WKLoginActivity
 import com.chat.uikit.TabActivity
-import com.test.ts.R
-import com.test.ts.databinding.ActivityMainBinding
+import com.qinghangim.app.R
+import com.qinghangim.app.databinding.ActivityMainBinding
 import com.xinbida.wukongim.WKIM
 
 class MainActivity : WKBaseActivity<ActivityMainBinding>() {

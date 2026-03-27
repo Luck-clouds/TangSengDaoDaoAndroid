@@ -1,4 +1,4 @@
-package com.test.demo2
+package com.qinghangim.app
 
 import android.app.Activity
 import android.app.ActivityManager
@@ -35,7 +35,7 @@ import com.chat.uikit.TabActivity
 import com.chat.uikit.WKUIKitApplication
 import com.chat.uikit.chat.manager.WKIMUtils
 import com.chat.uikit.user.service.UserModel
-import com.test.ts.R
+import com.qinghangim.app.R
 import kotlin.system.exitProcess
 
 class TSApplication : MultiDexApplication() {
@@ -109,7 +109,7 @@ class TSApplication : MultiDexApplication() {
     private fun initApi() {
         var apiURL = WKSharedPreferencesUtil.getInstance().getSP("api_base_url")
         if (TextUtils.isEmpty(apiURL)) {
-            apiURL = "https://api.botgate.cn"
+            apiURL = "http://192.168.110.104:8090"
             WKApiConfig.initBaseURL(apiURL)
         } else {
             WKApiConfig.initBaseURLIncludeIP(apiURL)

@@ -36,6 +36,12 @@ allprojects {
         resolutionStrategy.force "androidx.camera:camera-lifecycle:$camerax_version"
         resolutionStrategy.force "androidx.camera:camera-view:$camerax_version"
     }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
 }
 
 project.ext {
