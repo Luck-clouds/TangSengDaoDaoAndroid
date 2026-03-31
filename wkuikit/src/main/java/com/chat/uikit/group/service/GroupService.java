@@ -3,6 +3,7 @@ package com.chat.uikit.group.service;
 import com.alibaba.fastjson.JSONObject;
 import com.chat.base.net.entity.CommonResponse;
 import com.chat.uikit.group.GroupEntity;
+import com.chat.uikit.group.service.entity.GroupForbiddenTime;
 import com.chat.uikit.group.service.entity.GroupMember;
 import com.chat.uikit.group.service.entity.GroupQr;
 import com.chat.uikit.group.service.entity.H5ConfirmUrl;
@@ -17,6 +18,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import com.alibaba.fastjson.JSONArray;
 
 /**
  * 2020-07-20 21:22
@@ -52,6 +54,27 @@ public interface GroupService {
 
     @PUT("groups/{groupNo}/members/{uid}")
     Observable<CommonResponse> updateGroupMemberInfo(@Path("groupNo") String groupNo, @Path("uid") String uid, @Body JSONObject jsonObject);
+
+    @GET("group/forbidden_times")
+    Observable<List<GroupForbiddenTime>> getForbiddenTimes();
+
+    @POST("groups/{groupNo}/forbidden_with_member")
+    Observable<CommonResponse> updateMemberForbidden(@Path("groupNo") String groupNo, @Body JSONObject jsonObject);
+
+    @POST("groups/{groupNo}/managers")
+    Observable<CommonResponse> addGroupManagers(@Path("groupNo") String groupNo, @Body JSONArray jsonArray);
+
+    @HTTP(method = "DELETE", path = "groups/{groupNo}/managers", hasBody = true)
+    Observable<CommonResponse> removeGroupManagers(@Path("groupNo") String groupNo, @Body JSONArray jsonArray);
+
+    @POST("groups/{groupNo}/blacklist/add")
+    Observable<CommonResponse> addBlacklist(@Path("groupNo") String groupNo, @Body JSONObject jsonObject);
+
+    @POST("groups/{groupNo}/blacklist/remove")
+    Observable<CommonResponse> removeBlacklist(@Path("groupNo") String groupNo, @Body JSONObject jsonObject);
+
+    @POST("groups/{groupNo}/transfer/{uid}")
+    Observable<CommonResponse> transferOwner(@Path("groupNo") String groupNo, @Path("uid") String uid);
 
     @GET("groups/{groupNo}/qrcode")
     Observable<GroupQr> getGroupQr(@Path("groupNo") String groupNo);

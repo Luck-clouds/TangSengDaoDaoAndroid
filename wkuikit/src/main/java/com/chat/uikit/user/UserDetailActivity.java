@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -43,6 +44,7 @@ import com.chat.uikit.chat.manager.WKIMUtils;
 import com.chat.uikit.contacts.service.FriendModel;
 import com.chat.uikit.databinding.ActUserDetailLayoutBinding;
 import com.chat.uikit.db.WKContactsDB;
+import com.chat.uikit.group.manage.GroupManageConstants;
 import com.chat.uikit.message.MsgModel;
 import com.chat.uikit.user.service.UserModel;
 import com.xinbida.wukongim.WKIM;
@@ -173,6 +175,10 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
         wkVBinding.refreshLayout.setEnableOverScrollDrag(true);
         wkVBinding.refreshLayout.setEnableLoadMore(false);
         wkVBinding.refreshLayout.setEnableRefresh(false);
+        renderOtherViews();
+    }
+
+    private void renderOtherViews() {
         wkVBinding.otherLayout.removeAllViews();
         List<View> list = EndpointManager.getInstance().invokes(EndpointCategory.wkUserDetailView, new UserDetailViewMenu(this, wkVBinding.otherLayout, uid, groupID));
         if (WKReader.isNotEmpty(list)) {
@@ -365,6 +371,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
                         }), index, index + userInfo.join_group_invite_name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         wkVBinding.joinGroupWayTv.setText(span);
                     }
+                    renderOtherViews();
                 }
             } else {
                 showToast(msg);
@@ -397,6 +404,15 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
             getUserInfo();
         }
     });
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == GroupManageConstants.REQUEST_MEMBER_FORBIDDEN) {
+            renderOtherViews();
+            getUserInfo();
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     private void setonLongClick(View view, TextView textView) {

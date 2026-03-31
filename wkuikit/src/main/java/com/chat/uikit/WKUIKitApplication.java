@@ -3,6 +3,7 @@ package com.chat.uikit;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.app.Dialog;
 import android.content.ClipData;
@@ -35,12 +36,14 @@ import com.chat.base.config.WKBinder;
 import com.chat.base.config.WKConfig;
 import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.config.WKSystemAccount;
+import com.chat.base.common.WKCommonModel;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.EndpointSID;
 import com.chat.base.endpoint.entity.ChatChooseContacts;
 import com.chat.base.endpoint.entity.ChatFunctionMenu;
 import com.chat.base.endpoint.entity.ChatItemPopupMenu;
+import com.chat.base.endpoint.entity.ChatSettingCellMenu;
 import com.chat.base.endpoint.entity.ChatToolBarMenu;
 import com.chat.base.endpoint.entity.ChatViewMenu;
 import com.chat.base.endpoint.entity.ChooseChatMenu;
@@ -53,6 +56,7 @@ import com.chat.base.endpoint.entity.PersonalInfoMenu;
 import com.chat.base.endpoint.entity.ScanResultMenu;
 import com.chat.base.endpoint.entity.SearchChatContentMenu;
 import com.chat.base.endpoint.entity.UserDetailMenu;
+import com.chat.base.endpoint.entity.UserDetailViewMenu;
 import com.chat.base.endpoint.entity.WKMsg2UiMsgMenu;
 import com.chat.base.endpoint.entity.WithdrawMsgMenu;
 import com.chat.base.entity.PopupMenuItem;
@@ -64,6 +68,7 @@ import com.chat.base.glide.GlideUtils;
 import com.chat.base.msg.IConversationContext;
 import com.chat.base.msg.model.WKGifContent;
 import com.chat.base.msgitem.WKContentType;
+import com.chat.base.msgitem.WKChannelMemberRole;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.base.net.HttpResponseCode;
 import com.chat.base.ui.components.AlertDialog;
@@ -72,6 +77,7 @@ import com.chat.base.utils.ActManagerUtils;
 import com.chat.base.utils.ImageUtils;
 import com.chat.base.utils.LayoutHelper;
 import com.chat.base.utils.WKDeviceUtils;
+import com.chat.base.utils.WKDialogUtils;
 import com.chat.base.utils.WKFileUtils;
 import com.chat.base.utils.WKMediaFileUtils;
 import com.chat.base.utils.WKPermissions;
@@ -84,6 +90,7 @@ import com.chat.uikit.chat.manager.WKIMUtils;
 import com.chat.uikit.chat.msgmodel.WKCardContent;
 import com.chat.uikit.chat.msgmodel.WKMultiForwardContent;
 import com.chat.uikit.chat.provider.LoadingProvider;
+import com.chat.uikit.chat.provider.ApproveGroupMemberProvider;
 import com.chat.uikit.chat.provider.WKCardProvider;
 import com.chat.uikit.chat.provider.WKEmptyProvider;
 import com.chat.uikit.chat.provider.WKImageProvider;
@@ -101,6 +108,12 @@ import com.chat.uikit.contacts.NewFriendsActivity;
 import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
+import com.chat.uikit.group.manage.GroupAvatarActivity;
+import com.chat.uikit.group.manage.GroupForbiddenDurationActivity;
+import com.chat.uikit.group.manage.GroupManageConstants;
+import com.chat.uikit.group.manage.GroupManageUtils;
+import com.chat.uikit.group.manage.GroupManagerActivity;
+import com.chat.uikit.group.service.GroupModel;
 import com.chat.uikit.message.MsgModel;
 import com.chat.uikit.message.ProhibitWordModel;
 import com.chat.uikit.search.AddFriendsActivity;
@@ -109,6 +122,7 @@ import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
+import com.xinbida.wukongim.entity.WKChannelMember;
 import com.xinbida.wukongim.entity.WKChannelType;
 import com.xinbida.wukongim.entity.WKMsg;
 import com.xinbida.wukongim.msgmodel.WKImageContent;
@@ -212,6 +226,7 @@ public class WKUIKitApplication {
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_CARD, new WKCardProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_MULTIPLE_FORWARD, new WKMultiForwardProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.loading, new LoadingProvider());
+        WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.approveGroupMember, new ApproveGroupMemberProvider());
         // 设置消息长按选项
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_TEXT, object -> new MsgConfig(true));
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_IMAGE, object -> new MsgConfig(true));
@@ -525,6 +540,97 @@ public class WKUIKitApplication {
             return null;
         });
 
+        EndpointManager.getInstance().setMethod("group_avatar_view", object -> {
+            if (!(object instanceof ChatSettingCellMenu menu) || menu.getChannelType() != WKChannelType.GROUP) {
+                return null;
+            }
+            WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(menu.getChannelID(), WKChannelType.GROUP, WKConfig.getInstance().getUid());
+            if (member == null || member.role == WKChannelMemberRole.normal) {
+                return null;
+            }
+            View view = createSettingEntryView(menu.getParentLayout().getContext(), mContext.get().getString(R.string.group_avatar), null);
+            view.setOnClickListener(v -> {
+                Intent intent = new Intent(menu.getParentLayout().getContext(), GroupAvatarActivity.class);
+                intent.putExtra(GroupManageConstants.EXTRA_GROUP_ID, menu.getChannelID());
+                menu.getParentLayout().getContext().startActivity(intent);
+            });
+            return view;
+        });
+
+        EndpointManager.getInstance().setMethod("group_manager_view", object -> {
+            if (!(object instanceof ChatSettingCellMenu menu) || menu.getChannelType() != WKChannelType.GROUP) {
+                return null;
+            }
+            WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(menu.getChannelID(), WKChannelType.GROUP, WKConfig.getInstance().getUid());
+            if (member == null || member.role == WKChannelMemberRole.normal) {
+                return null;
+            }
+            View view = createSettingEntryView(menu.getParentLayout().getContext(), mContext.get().getString(R.string.group_manage), null);
+            view.setOnClickListener(v -> {
+                Intent intent = new Intent(menu.getParentLayout().getContext(), GroupManagerActivity.class);
+                intent.putExtra(GroupManageConstants.EXTRA_GROUP_ID, menu.getChannelID());
+                menu.getParentLayout().getContext().startActivity(intent);
+            });
+            return view;
+        });
+
+        EndpointManager.getInstance().setMethod("group_member_forbidden_view", EndpointCategory.wkUserDetailView, 100, object -> {
+            if (!(object instanceof UserDetailViewMenu menu) || menu.context.get() == null || TextUtils.isEmpty(menu.groupNo)) {
+                return null;
+            }
+            Context context = menu.context.get();
+            WKChannelMember loginMember = WKIM.getInstance().getChannelMembersManager().getMember(menu.groupNo, WKChannelType.GROUP, WKConfig.getInstance().getUid());
+            WKChannelMember targetMember = WKIM.getInstance().getChannelMembersManager().getMember(menu.groupNo, WKChannelType.GROUP, menu.uid);
+            if (loginMember == null || targetMember == null || loginMember.role == WKChannelMemberRole.normal || menu.uid.equals(WKConfig.getInstance().getUid())) {
+                return null;
+            }
+            if (loginMember.role == WKChannelMemberRole.manager && targetMember.role != WKChannelMemberRole.normal) {
+                return null;
+            }
+            View view = createSettingEntryView(context, context.getString(R.string.group_forbidden_setting), GroupManageUtils.getForbiddenStatusText(context, targetMember.forbiddenExpirationTime));
+            view.setOnClickListener(v -> {
+                if (GroupManageUtils.isForbidden(targetMember.forbiddenExpirationTime)) {
+                    WKDialogUtils.getInstance().showDialog(context, context.getString(R.string.group_unforbidden_confirm_title), context.getString(R.string.group_unforbidden_confirm_desc), true, context.getString(R.string.cancel), context.getString(R.string.sure), 0, 0, index -> {
+                        if (index != 1) {
+                            return;
+                        }
+                        GroupModel.getInstance().updateMemberForbidden(menu.groupNo, menu.uid, 0, 0, (code, msg) -> {
+                            if (code != HttpResponseCode.success) {
+                                WKToastUtils.getInstance().showToastFail(msg);
+                                return;
+                            }
+                            GroupModel.getInstance().groupMembersSync(menu.groupNo, (syncCode, syncMsg) -> WKCommonModel.getInstance().getChannel(menu.groupNo, WKChannelType.GROUP, null));
+                        });
+                    });
+                    return;
+                }
+                Intent intent = new Intent(context, GroupForbiddenDurationActivity.class);
+                intent.putExtra(GroupManageConstants.EXTRA_GROUP_ID, menu.groupNo);
+                intent.putExtra(GroupManageConstants.EXTRA_UID, menu.uid);
+                if (context instanceof Activity) {
+                    ((Activity) context).startActivityForResult(intent, GroupManageConstants.REQUEST_MEMBER_FORBIDDEN);
+                } else {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            });
+            return view;
+        });
+
+    }
+
+    private View createSettingEntryView(@NonNull Context context, @NonNull String title, String subtitle) {
+        View view = LayoutInflater.from(context).inflate(R.layout.view_group_manage_entry_layout, null, false);
+        TextView titleTv = view.findViewById(R.id.titleTv);
+        TextView subtitleTv = view.findViewById(R.id.subtitleTv);
+        titleTv.setText(title);
+        if (!TextUtils.isEmpty(subtitle)) {
+            subtitleTv.setVisibility(View.VISIBLE);
+            subtitleTv.setText(subtitle);
+        } else {
+            subtitleTv.setVisibility(View.GONE);
+        }
+        return view;
     }
 
     public void sendChooseChatBack(List<WKChannel> list) {

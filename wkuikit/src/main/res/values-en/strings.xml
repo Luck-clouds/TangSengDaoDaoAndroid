@@ -298,5 +298,8 @@
     <string name="uikit_search_for_date">Date</string>
     <string name="uikit_go_to_chat_item">Go to chat</string>
     <string name="uikit_search_for_image">Image</string>
+    <string name="group_invite_go_review">Review</string>
+    <string name="group_invite_open_review_failed">Failed to open the review page</string>
+    <string name="group_invite_missing_review_info">Missing review information</string>
 </resources>
 

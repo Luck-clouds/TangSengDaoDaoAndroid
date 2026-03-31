@@ -6,14 +6,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.chat.base.base.WKBaseModel;
 import com.chat.base.common.WKCommonModel;
+import com.chat.base.config.WKApiConfig;
 import com.chat.base.config.WKConfig;
 import com.chat.base.net.HttpResponseCode;
 import com.chat.base.net.ICommonListener;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
+import com.chat.base.net.ud.WKUploader;
 import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.WKReader;
+import com.chat.base.utils.WKTimeUtils;
 import com.chat.uikit.group.GroupEntity;
+import com.chat.uikit.group.service.entity.GroupForbiddenTime;
 import com.chat.uikit.group.service.entity.GroupMember;
 import com.chat.uikit.group.service.entity.GroupQr;
 import com.xinbida.wukongim.WKIM;
@@ -26,12 +30,14 @@ import com.xinbida.wukongim.interfaces.IChannelMemberListResult;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 2019-11-30 10:25
  * 群相关处理
  */
 public class GroupModel extends WKBaseModel {
+    private final Map<String, HashMap<String, WKChannelMember>> allGroupMemberCache = new HashMap<>();
 
     private GroupModel() {
     }
@@ -173,12 +179,21 @@ public class GroupModel extends WKBaseModel {
      */
     public synchronized void groupMembersSync(String groupNo, final ICommonListener iCommonListener) {
         long version = WKIM.getInstance().getChannelMembersManager().getMaxVersion(groupNo, WKChannelType.GROUP);
+        groupMembersSync(groupNo, version, iCommonListener);
+    }
+
+    public synchronized void groupMembersFullSync(String groupNo, final ICommonListener iCommonListener) {
+        groupMembersSync(groupNo, 0, iCommonListener);
+    }
+
+    private synchronized void groupMembersSync(String groupNo, long version, final ICommonListener iCommonListener) {
         request(createService(GroupService.class).syncGroupMembers(groupNo, 1000, version), new IRequestResultListener<>() {
             @Override
             public void onSuccess(List<GroupMember> list) {
                 if (WKReader.isNotEmpty(list)) {
                     List<WKChannelMember> members = serialize(list);
                     WKIM.getInstance().getChannelMembersManager().save(members);
+                    mergeGroupMembers(groupNo, members);
                     AndroidUtilities.runOnUIThread(() -> groupMembersSync(groupNo, iCommonListener), 500);
                 } else {
                     if (iCommonListener != null)
@@ -192,6 +207,90 @@ public class GroupModel extends WKBaseModel {
             }
         });
 
+    }
+
+    public synchronized List<WKChannelMember> getAllGroupMembers(String groupNo) {
+        HashMap<String, WKChannelMember> memberMap = allGroupMemberCache.get(groupNo);
+        if (memberMap == null) {
+            memberMap = new HashMap<>();
+            allGroupMemberCache.put(groupNo, memberMap);
+        }
+        List<WKChannelMember> localMembers = WKIM.getInstance().getChannelMembersManager().getMembers(groupNo, WKChannelType.GROUP);
+        if (WKReader.isNotEmpty(localMembers)) {
+            for (WKChannelMember member : localMembers) {
+                if (member != null && !TextUtils.isEmpty(member.memberUID)) {
+                    memberMap.put(member.memberUID, member);
+                }
+            }
+        }
+        return new ArrayList<>(memberMap.values());
+    }
+
+    private synchronized void mergeGroupMembers(String groupNo, List<WKChannelMember> members) {
+        if (TextUtils.isEmpty(groupNo) || WKReader.isEmpty(members)) {
+            return;
+        }
+        HashMap<String, WKChannelMember> memberMap = allGroupMemberCache.get(groupNo);
+        if (memberMap == null) {
+            memberMap = new HashMap<>();
+            allGroupMemberCache.put(groupNo, memberMap);
+        }
+        for (WKChannelMember member : members) {
+            if (member != null && !TextUtils.isEmpty(member.memberUID)) {
+                memberMap.put(member.memberUID, member);
+            }
+        }
+    }
+
+    private String findInviteNo(org.json.JSONObject jsonObject) {
+        if (jsonObject == null) {
+            return "";
+        }
+        String inviteNo = jsonObject.optString("invite_no");
+        if (!TextUtils.isEmpty(inviteNo)) {
+            return inviteNo;
+        }
+        Object contentObject = jsonObject.opt("content");
+        if (contentObject instanceof org.json.JSONObject) {
+            inviteNo = findInviteNo((org.json.JSONObject) contentObject);
+            if (!TextUtils.isEmpty(inviteNo)) {
+                return inviteNo;
+            }
+        }
+        Object paramObject = jsonObject.opt("param");
+        if (paramObject instanceof org.json.JSONObject) {
+            inviteNo = findInviteNo((org.json.JSONObject) paramObject);
+            if (!TextUtils.isEmpty(inviteNo)) {
+                return inviteNo;
+            }
+        }
+        Object dataObject = jsonObject.opt("data");
+        if (dataObject instanceof org.json.JSONObject) {
+            inviteNo = findInviteNo((org.json.JSONObject) dataObject);
+            if (!TextUtils.isEmpty(inviteNo)) {
+                return inviteNo;
+            }
+        }
+        return "";
+    }
+
+    private String findInviteNo(Map<?, ?> data) {
+        if (data == null || data.isEmpty()) {
+            return "";
+        }
+        Object inviteNo = data.get("invite_no");
+        if (inviteNo instanceof String && !TextUtils.isEmpty((String) inviteNo)) {
+            return (String) inviteNo;
+        }
+        for (Object value : data.values()) {
+            if (value instanceof Map) {
+                String nestedInviteNo = findInviteNo((Map<?, ?>) value);
+                if (!TextUtils.isEmpty(nestedInviteNo)) {
+                    return nestedInviteNo;
+                }
+            }
+        }
+        return "";
     }
 
     private List<WKChannelMember> serialize(List<GroupMember> list) {
@@ -355,6 +454,207 @@ public class GroupModel extends WKBaseModel {
                 iCommonListener.onResult(code, msg);
             }
         });
+    }
+
+    public interface IGetH5ConfirmUrl {
+        void onResult(int code, String msg, String url);
+    }
+
+    public void getH5ConfirmUrl(String groupNo, String inviteNo, final IGetH5ConfirmUrl iGetH5ConfirmUrl) {
+        if (TextUtils.isEmpty(groupNo) || TextUtils.isEmpty(inviteNo)) {
+            if (iGetH5ConfirmUrl != null) {
+                iGetH5ConfirmUrl.onResult(HttpResponseCode.error, "invite_no is empty", null);
+            }
+            return;
+        }
+        request(createService(GroupService.class).getH5confirmUrl(groupNo, inviteNo), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(com.chat.uikit.group.service.entity.H5ConfirmUrl result) {
+                if (iGetH5ConfirmUrl != null) {
+                    iGetH5ConfirmUrl.onResult(HttpResponseCode.success, "", result == null ? null : result.url);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iGetH5ConfirmUrl != null) {
+                    iGetH5ConfirmUrl.onResult(code, msg, null);
+                }
+            }
+        });
+    }
+
+    public String getInviteNoFromMessageContent(String contentJson) {
+        if (TextUtils.isEmpty(contentJson)) {
+            return "";
+        }
+        try {
+            org.json.JSONObject jsonObject = new org.json.JSONObject(contentJson);
+            return findInviteNo(jsonObject);
+        } catch (Exception ignored) {
+        }
+        return "";
+    }
+
+    public String getInviteNoFromMap(Map<?, ?> data) {
+        return findInviteNo(data);
+    }
+
+    public void updateGroupMemberInfo(String groupNo, String uid, String key, long value, final ICommonListener iCommonListener) {
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put(key, value);
+        request(createService(GroupService.class).updateGroupMemberInfo(groupNo, uid, jsonObject1), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void getForbiddenTimes(final IGetForbiddenTimes iGetForbiddenTimes) {
+        request(createService(GroupService.class).getForbiddenTimes(), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(List<GroupForbiddenTime> result) {
+                if (iGetForbiddenTimes != null) {
+                    iGetForbiddenTimes.onResult(HttpResponseCode.success, "", result);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iGetForbiddenTimes != null) {
+                    iGetForbiddenTimes.onResult(code, msg, null);
+                }
+            }
+        });
+    }
+
+    public void updateMemberForbidden(String groupNo, String uid, int action, int key, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("member_uid", uid);
+        jsonObject.put("action", action);
+        jsonObject.put("key", key);
+        request(createService(GroupService.class).updateMemberForbidden(groupNo, jsonObject), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void addGroupManagers(String groupNo, List<String> uidList, final ICommonListener iCommonListener) {
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(uidList);
+        request(createService(GroupService.class).addGroupManagers(groupNo, jsonArray), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void removeGroupManagers(String groupNo, List<String> uidList, final ICommonListener iCommonListener) {
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(uidList);
+        request(createService(GroupService.class).removeGroupManagers(groupNo, jsonArray), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void addBlacklist(String groupNo, List<String> uidList, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(uidList);
+        jsonObject.put("uids", jsonArray);
+        request(createService(GroupService.class).addBlacklist(groupNo, jsonObject), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void removeBlacklist(String groupNo, List<String> uidList, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(uidList);
+        jsonObject.put("uids", jsonArray);
+        request(createService(GroupService.class).removeBlacklist(groupNo, jsonObject), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void transferOwner(String groupNo, String uid, final ICommonListener iCommonListener) {
+        request(createService(GroupService.class).transferOwner(groupNo, uid), new IRequestResultListener<>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                iCommonListener.onResult(result.status, result.msg);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void uploadGroupAvatar(String groupNo, String filePath, final IUploadBack iUploadBack) {
+        String url = WKApiConfig.getGroupUrl(groupNo) + "?uuid=" + WKTimeUtils.getInstance().getCurrentMills();
+        WKUploader.getInstance().upload(url, filePath, new WKUploader.IUploadBack() {
+            @Override
+            public void onSuccess(String url) {
+                iUploadBack.onResult(HttpResponseCode.success);
+            }
+
+            @Override
+            public void onError() {
+                iUploadBack.onResult(HttpResponseCode.error);
+            }
+        });
+    }
+
+    public interface IUploadBack {
+        void onResult(int code);
+    }
+
+    public interface IGetForbiddenTimes {
+        void onResult(int code, String msg, List<GroupForbiddenTime> list);
     }
 
     /**

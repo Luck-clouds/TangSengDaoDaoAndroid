@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@color/white"
+                android:orientation="vertical">
+
+                <LinearLayout style="@style/layoutBgPaddingSmall">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/group_invite_confirm" />
+
+                    <com.chat.base.ui.components.SwitchView
+                        android:id="@+id/inviteSwitchView"
+                        android:layout_width="45dp"
+                        android:layout_height="40dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/inviteDescTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/group_invite_confirm_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/transferOwnerLayout"
+                    style="@style/layoutBg">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_weight="1"
+                        android:text="@string/group_owner_transfer" />
+
+                    <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/layoutBgPaddingSmall">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/group_forbidden_all" />
+
+                    <com.chat.base.ui.components.SwitchView
+                        android:id="@+id/forbiddenSwitchView"
+                        android:layout_width="45dp"
+                        android:layout_height="40dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/group_forbidden_all_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="12sp" />
+
+                <LinearLayout style="@style/layoutBgPaddingSmall">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/group_forbidden_add_friend" />
+
+                    <com.chat.base.ui.components.SwitchView
+                        android:id="@+id/forbiddenAddFriendSwitchView"
+                        android:layout_width="45dp"
+                        android:layout_height="40dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/group_forbidden_add_friend_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="12sp" />
+
+                <LinearLayout style="@style/layoutBgPaddingSmall">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/group_allow_view_history" />
+
+                    <com.chat.base.ui.components.SwitchView
+                        android:id="@+id/allowViewHistorySwitchView"
+                        android:layout_width="45dp"
+                        android:layout_height="40dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="12dp"
+                    android:text="@string/group_allow_view_history_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/addManagerLayout"
+                    style="@style/layoutBg"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_weight="1"
+                        android:text="@string/group_add_manager" />
+
+                    <TextView
+                        android:id="@+id/managerCountTv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="@color/color999"
+                        android:textSize="13sp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/blacklistLayout"
+                    style="@style/layoutBg">
+
+                    <TextView
+                        style="@style/leftTextView"
+                        android:layout_weight="1"
+                        android:text="@string/group_blacklist" />
+
+                    <TextView
+                        android:id="@+id/blacklistCountTv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="@color/color999"
+                        android:textSize="13sp" />
+
+                    <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@color/white"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingTop="15dp"
+                    android:paddingEnd="15dp"
+                    android:text="@string/group_manager_list"
+                    android:textColor="@color/color999"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/managerContainerLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

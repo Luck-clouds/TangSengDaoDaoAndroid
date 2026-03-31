@@ -8,6 +8,11 @@
     <application>
 
         <activity android:name=".group.DeleteGroupMemberActivity" />
+        <activity android:name=".group.manage.GroupAvatarActivity" />
+        <activity android:name=".group.manage.GroupBlacklistActivity" />
+        <activity android:name=".group.manage.GroupForbiddenDurationActivity" />
+        <activity android:name=".group.manage.GroupManageMemberSelectActivity" />
+        <activity android:name=".group.manage.GroupManagerActivity" />
         <activity
             android:name=".group.GroupNoticeActivity"
             android:windowSoftInputMode="adjustResize" />

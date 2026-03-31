@@ -522,10 +522,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         WKDialogUtils.getInstance().setViewLongClickPopup(wkVBinding.chatUnreadLayout.groupApproveLayout, getGroupApprovePopupItems());
         wkVBinding.chatUnreadLayout.groupApproveLayout.setOnClickListener(view -> {
             if (WKReader.isNotEmpty(groupApproveList)) {
-                WKMsg msg = WKIM.getInstance().getMsgManager().getWithMessageID(groupApproveList.get(0).messageID);
-                if (msg != null && !TextUtils.isEmpty(msg.clientMsgNO)) {
-                    tipsMsg(msg.clientMsgNO);
-                }
+                openGroupApprovePage(groupApproveList.get(0));
             }
         });
         WKDialogUtils.getInstance().setViewLongClickPopup(wkVBinding.chatUnreadLayout.remindLayout, getRemindPopupItems());
@@ -1230,7 +1227,11 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                         tempList.add(msg);
                     }
                 }
-                showData(tempList, pullMode, isSetNewData, isScrollToEnd);
+                List<WKMsg> visibleList = filterHistoryMessagesIfNeeded(tempList);
+                if (pullMode == 0 && WKReader.isNotEmpty(tempList) && WKReader.isEmpty(visibleList) && shouldFilterGroupHistory()) {
+                    isCanRefresh = false;
+                }
+                showData(visibleList, pullMode, isSetNewData, isScrollToEnd);
                 wkVBinding.chatUnreadLayout.progress.setVisibility(View.GONE);
                 wkVBinding.chatUnreadLayout.msgDownIv.setVisibility(View.VISIBLE);
 
@@ -2046,6 +2047,103 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             }
         }
 
+    }
+
+    private void openGroupApprovePage(WKReminder reminder) {
+        if (reminder == null) {
+            return;
+        }
+        String inviteNo = "";
+        if (reminder.data != null) {
+            inviteNo = GroupModel.getInstance().getInviteNoFromMap(reminder.data);
+        }
+        WKMsg msg = null;
+        if (TextUtils.isEmpty(inviteNo) && !TextUtils.isEmpty(reminder.messageID)) {
+            msg = WKIM.getInstance().getMsgManager().getWithMessageID(reminder.messageID);
+            if (msg != null) {
+                inviteNo = GroupModel.getInstance().getInviteNoFromMessageContent(msg.content);
+            }
+        }
+        if (!TextUtils.isEmpty(inviteNo)) {
+            WKMsg finalMsg = msg;
+            GroupModel.getInstance().getH5ConfirmUrl(channelId, inviteNo, (code, msg1, url) -> {
+                if (code == HttpResponseCode.success && !TextUtils.isEmpty(url)) {
+                    Intent intent = new Intent(ChatActivity.this, com.chat.base.act.WKWebViewActivity.class);
+                    intent.putExtra("url", url);
+                    startActivity(intent);
+                } else {
+                    if (!TextUtils.isEmpty(msg1)) {
+                        WKToastUtils.getInstance().showToast(msg1);
+                    } else {
+                        showToast(R.string.group_invite_open_review_failed);
+                    }
+                    locateGroupApproveMessage(reminder, finalMsg);
+                }
+            });
+            return;
+        }
+        locateGroupApproveMessage(reminder, msg);
+    }
+
+    private void locateGroupApproveMessage(WKReminder reminder, WKMsg msg) {
+        if (msg == null && reminder != null && !TextUtils.isEmpty(reminder.messageID)) {
+            msg = WKIM.getInstance().getMsgManager().getWithMessageID(reminder.messageID);
+        }
+        if (msg != null && !TextUtils.isEmpty(msg.clientMsgNO)) {
+            tipsMsg(msg.clientMsgNO);
+        }
+    }
+
+    private List<WKMsg> filterHistoryMessagesIfNeeded(List<WKMsg> source) {
+        if (!shouldFilterGroupHistory() || WKReader.isEmpty(source)) {
+            return source;
+        }
+        long visibleStartTime = getGroupHistoryVisibleStartTime();
+        if (visibleStartTime <= 0) {
+            return source;
+        }
+        List<WKMsg> result = new ArrayList<>();
+        for (WKMsg msg : source) {
+            if (msg == null || msg.timestamp == 0 || msg.timestamp >= visibleStartTime) {
+                result.add(msg);
+            }
+        }
+        return result;
+    }
+
+    private boolean shouldFilterGroupHistory() {
+        if (channelType != WKChannelType.GROUP) {
+            return false;
+        }
+        Object allowViewHistory = getChatChannelInfo().remoteExtraMap == null ? null : getChatChannelInfo().remoteExtraMap.get("allow_view_history_msg");
+        if (allowViewHistory == null) {
+            return false;
+        }
+        int value = 1;
+        if (allowViewHistory instanceof Number) {
+            value = ((Number) allowViewHistory).intValue();
+        } else if (allowViewHistory instanceof String && !TextUtils.isEmpty((String) allowViewHistory)) {
+            try {
+                value = Integer.parseInt((String) allowViewHistory);
+            } catch (Exception ignored) {
+                value = 1;
+            }
+        } else if (allowViewHistory instanceof Boolean) {
+            value = (Boolean) allowViewHistory ? 1 : 0;
+        }
+        return value == 0;
+    }
+
+    private long getGroupHistoryVisibleStartTime() {
+        WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
+        if (member == null || TextUtils.isEmpty(member.createdAt)) {
+            return 0;
+        }
+        long visibleStartTime = WKTimeUtils.getInstance().date2TimeStamp(member.createdAt, "yyyy-MM-dd HH:mm:ss");
+        if (visibleStartTime <= 0) {
+            visibleStartTime = WKTimeUtils.getInstance().date2TimeStamp(member.createdAt, "yyyy-MM-dd");
+        }
+        return visibleStartTime;
     }
 
     @Override
