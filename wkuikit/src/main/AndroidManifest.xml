@@ -45,6 +45,8 @@
         <activity android:name=".chat.PreviewNewImgActivity" />
         <activity android:name=".search.SearchMsgResultActivity" />
         <activity android:name=".chat.ChatMultiForwardDetailActivity" />
+        <activity android:name=".chat.file.RecentFileActivity" />
+        <activity android:name=".chat.file.FileDetailActivity" />
         <activity android:name=".setting.WKThemeSettingActivity" />
         <activity android:name=".setting.WKLanguageActivity" />
         <activity android:name=".group.WKAllMembersActivity" />

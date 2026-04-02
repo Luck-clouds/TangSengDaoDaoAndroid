@@ -2146,7 +2146,8 @@ class ChatPanelManager(
                                     if ((chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_TEXT
                                                 ) || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_IMAGE
                                                 ) || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_GIF)
-                                    ) list.add(chatAdapter.getItem(i).wkMsg.baseContentMsgModel) else {
+                                                || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_FILE)
+                                      ) list.add(chatAdapter.getItem(i).wkMsg.baseContentMsgModel) else {
                                         val textContent =
                                             WKTextContent(chatAdapter.getItem(i).wkMsg.baseContentMsgModel.displayContent)
                                         list.add(textContent)

@@ -245,29 +245,44 @@ public class WKFileUtils {
     }
 
     public String getChooseFileResultPath(Context context, Uri uri) {
-        String chooseFilePath = null;
-        if ("file".equalsIgnoreCase(uri.getScheme())) {//使用第三方应用打开
-            chooseFilePath = uri.getPath();
-            return chooseFilePath;
+        try {
+            String chooseFilePath = null;
+            if ("file".equalsIgnoreCase(uri.getScheme())) {//使用第三方应用打开
+                chooseFilePath = uri.getPath();
+                return getReadablePath(chooseFilePath);
+            }
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
+                chooseFilePath = getPath(context, uri);
+            } else {//4.4以下下系统调用方法
+                chooseFilePath = getRealPathFromURI(context, uri);
+            }
+            if (!TextUtils.isEmpty(chooseFilePath)) {
+                return chooseFilePath;
+            }
+            String localPath = copyUriToLocalFile(context, uri);
+            if (TextUtils.isEmpty(localPath)) {
+                WKToastUtils.getInstance().showToastNormal(context.getString(R.string.file_read_failed));
+            }
+            return localPath;
+        } catch (Exception e) {
+            WKToastUtils.getInstance().showToastNormal(context.getString(R.string.file_read_failed));
+            Log.e("获取文件路径异常", e.getLocalizedMessage());
+            return null;
         }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {//4.4以后
-            chooseFilePath = getPath(context, uri);
-        } else {//4.4以下下系统调用方法
-            chooseFilePath = getRealPathFromURI(context, uri);
-        }
-        return chooseFilePath;
     }
 
     private String getRealPathFromURI(Context context, Uri contentUri) {
         String res = null;
         String[] proj = {MediaStore.Images.Media.DATA};
         Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-        if (null != cursor && cursor.moveToFirst()) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
+        if (null != cursor) {
+            if (cursor.moveToFirst()) {
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                res = cursor.getString(column_index);
+            }
             cursor.close();
         }
-        return res;
+        return getReadablePath(res);
     }
 
     /**
@@ -287,7 +302,7 @@ public class WKFileUtils {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                    return getReadablePath(Environment.getExternalStorageDirectory() + "/" + split[1]);
                 }
             }
             // DownloadsProvider
@@ -304,7 +319,7 @@ public class WKFileUtils {
 //                return getDataColumn(context, contentUri, null, null);
                 final String id = DocumentsContract.getDocumentId(uri);
                 if (id != null && id.startsWith("raw:")) {
-                    return id.substring(4);
+                    return getReadablePath(id.substring(4));
                 }
                 String[] contentUriPrefixesToTry = new String[]{
                         "content://downloads/public_downloads",
@@ -322,17 +337,7 @@ public class WKFileUtils {
                         Log.e("获取文件路径异常", Objects.requireNonNull(e.getLocalizedMessage()));
                     }
                 }
-
-                String fileName = getFileName(context, uri);
-                File file = generateFileName(fileName);
-                String destinationPath = null;
-                if (file != null) {
-                    destinationPath = file.getAbsolutePath();
-                    saveFileFromUri(context, uri, destinationPath);
-                } else {
-                    Log.e("危机为空", "-->");
-                }
-                return destinationPath;
+                return null;
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
@@ -348,14 +353,7 @@ public class WKFileUtils {
                 } else if ("audio".equals(type)) {
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 } else {
-                    String fileName = getFileName(context, uri);
-                    File file = generateFileName(fileName);
-                    String destinationPath = null;
-                    if (file != null) {
-                        destinationPath = file.getAbsolutePath();
-                        saveFileFromUri(context, uri, destinationPath);
-                    }
-                    return destinationPath;
+                    return null;
                 }
 
                 final String selection = "_id=?";
@@ -372,7 +370,7 @@ public class WKFileUtils {
         // File
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
 
-            return uri.getPath();
+            return getReadablePath(uri.getPath());
 
         }
         return null;
@@ -387,10 +385,13 @@ public class WKFileUtils {
             if (cursor != null && cursor.moveToFirst()) {
                 final int column_index = cursor.getColumnIndexOrThrow(column);
                 String value = cursor.getString(column_index);
+                if (TextUtils.isEmpty(value)) {
+                    return null;
+                }
                 if (value.startsWith("content://") || !value.startsWith("/") && !value.startsWith("file://")) {
                     return null;
                 }
-                return value;
+                return getReadablePath(value);
             }
         } catch (Exception e) {
             Log.e("获取文件路径异常", e.getMessage());
@@ -581,6 +582,7 @@ public class WKFileUtils {
             return true;
         }
         if (fileSize == 0) {
+            WKLogUtils.d("这里是检查文件大小方法", "文件大小：" + fileSize);
             WKToastUtils.getInstance().showToastNormal(context.getString(R.string.min_file_size));
             return true;
         }
@@ -894,27 +896,28 @@ public class WKFileUtils {
     }
 
     public String getFileName(@NonNull Context context, Uri uri) {
-        String mimeType = context.getContentResolver().getType(uri);
         String filename = null;
-        if (mimeType == null) {
+        Cursor returnCursor = context.getContentResolver().query(uri, null,
+                null, null, null);
+        if (returnCursor != null) {
+            if (returnCursor.moveToFirst()) {
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (nameIndex >= 0) {
+                    filename = returnCursor.getString(nameIndex);
+                }
+            }
+            returnCursor.close();
+        }
+        if (TextUtils.isEmpty(filename)) {
             String path = getPath(context, uri);
-            if (path == null) {
-                filename = getName(uri.toString());
-            } else {
+            if (!TextUtils.isEmpty(path)) {
                 File file = new File(path);
                 filename = file.getName();
             }
-        } else {
-            Cursor returnCursor = context.getContentResolver().query(uri, null,
-                    null, null, null);
-            if (returnCursor != null) {
-                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                returnCursor.moveToFirst();
-                filename = returnCursor.getString(nameIndex);
-                returnCursor.close();
-            }
         }
-
+        if (TextUtils.isEmpty(filename)) {
+            filename = getName(uri.toString());
+        }
         return filename;
     }
 
@@ -951,29 +954,62 @@ public class WKFileUtils {
         return file;
     }
 
-    private void saveFileFromUri(Context context, Uri uri, String destinationPath) {
-        InputStream is = null;
-        BufferedOutputStream bos = null;
-        try {
-            is = context.getContentResolver().openInputStream(uri);
-            bos = new BufferedOutputStream(new FileOutputStream(destinationPath, false));
-            byte[] buf = new byte[1024];
-            is.read(buf);
-            do {
-                bos.write(buf);
-            } while (is.read(buf) != -1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (is != null) is.close();
-                if (bos != null) bos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    private boolean saveFileFromUri(Context context, Uri uri, String destinationPath) {
+        try (InputStream is = context.getContentResolver().openInputStream(uri);
+             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(destinationPath, false))) {
+            if (is == null) {
+                return false;
             }
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = is.read(buf)) != -1) {
+                bos.write(buf, 0, len);
+            }
+            bos.flush();
+            return true;
+        } catch (IOException e) {
+            WKToastUtils.getInstance().showToastNormal(context.getString(R.string.file_read_failed));
+            e.printStackTrace();
+            return false;
         }
+    }
 
+    @Nullable
+    private String copyUriToLocalFile(@NonNull Context context, @NonNull Uri uri) {
+        String fileName = getFileName(context, uri);
+        if (TextUtils.isEmpty(fileName)) {
+            fileName = System.currentTimeMillis() + "";
+        }
+        File file = generateFileName(fileName);
+        if (file == null) {
+            Log.e("危机为空", "-->");
+            return null;
+        }
+        if (!saveFileFromUri(context, uri, file.getAbsolutePath())) {
+            if (file.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
+            return null;
+        }
+        return getReadablePath(file.getAbsolutePath());
+    }
 
+    @Nullable
+    private String getReadablePath(@Nullable String path) {
+        if (TextUtils.isEmpty(path)) {
+            return null;
+        }
+        File file = new File(path);
+        if (!file.exists() || !file.isFile()) {
+            return null;
+        }
+        try (FileInputStream ignored = new FileInputStream(file)) {
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            Log.e("获取文件路径异常", e.getLocalizedMessage());
+            return null;
+        }
     }
 
 

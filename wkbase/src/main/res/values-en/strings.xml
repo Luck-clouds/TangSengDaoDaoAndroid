@@ -46,6 +46,7 @@
     <string name="nodata">No Data</string>
     <string name="you">You </string>
     <string name="download_err">Download fail</string>
+    <string name="file_read_failed">Failed to read file, please reselect it</string>
     <string name="is_new_version">is latest version</string>
     <string name="version_desc">Version description</string>
     <string name="find_new_version">New version found</string>

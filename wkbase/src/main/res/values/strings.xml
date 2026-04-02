@@ -45,6 +45,7 @@
     <string name="nodata">暂无数据</string>
     <string name="you">你</string>
     <string name="download_err">下载失败</string>
+    <string name="file_read_failed">读取文件失败，请重新选择文件</string>
     <string name="is_new_version">当前已是最新版本</string>
     <string name="version_desc">更新说明</string>
     <string name="find_new_version">发现新版本</string>

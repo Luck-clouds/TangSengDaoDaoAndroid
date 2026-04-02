@@ -266,6 +266,14 @@
     <string name="delete_chat">删除聊天</string>
     <string name="clear_history">清除聊天记录</string>
     <string name="clear_history_tip">您确定要清空 %s 的消息记录吗？</string>
+    <string name="file">文件</string>
+    <string name="recent_file">最近文件</string>
+    <string name="choose_system_file">选择系统文件</string>
+    <string name="open_now">打开文件</string>
+    <string name="file_not_exists">文件不存在</string>
+    <string name="file_open_failed">没有可用应用打开该文件</string>
+    <string name="downloading_file">下载中…</string>
+    <string name="no_recent_file">暂无最近文件</string>
     <string name="all_staff">全员</string>
     <string name="department">部门</string>
     <string name="community">社区</string>

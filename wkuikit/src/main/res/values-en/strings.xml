@@ -266,6 +266,14 @@
     <string name="delete_chat">Delete chat</string>
     <string name="clear_history">Clear history</string>
     <string name="clear_history_tip">Are you sure you want to clear your chat history with %s?</string>
+    <string name="file">File</string>
+    <string name="recent_file">Recent Files</string>
+    <string name="choose_system_file">Choose System File</string>
+    <string name="open_now">Open File</string>
+    <string name="file_not_exists">File does not exist</string>
+    <string name="file_open_failed">No app can open this file</string>
+    <string name="downloading_file">Downloading…</string>
+    <string name="no_recent_file">No recent files</string>
     <string name="all_staff">All Staff</string>
     <string name="department">Department</string>
     <string name="community">Community</string>

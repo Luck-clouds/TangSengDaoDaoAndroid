@@ -85,14 +85,17 @@ import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.uikit.chat.ChooseChatActivity;
 import com.chat.uikit.chat.face.WKVoiceViewManager;
+import com.chat.uikit.chat.file.RecentFileActivity;
 import com.chat.uikit.chat.manager.FaceManger;
 import com.chat.uikit.chat.manager.WKIMUtils;
 import com.chat.uikit.chat.msgmodel.WKCardContent;
+import com.chat.uikit.chat.msgmodel.WKFileContent;
 import com.chat.uikit.chat.msgmodel.WKMultiForwardContent;
 import com.chat.uikit.chat.provider.LoadingProvider;
 import com.chat.uikit.chat.provider.ApproveGroupMemberProvider;
 import com.chat.uikit.chat.provider.WKCardProvider;
 import com.chat.uikit.chat.provider.WKEmptyProvider;
+import com.chat.uikit.chat.provider.WKFileProvider;
 import com.chat.uikit.chat.provider.WKImageProvider;
 import com.chat.uikit.chat.provider.WKMultiForwardProvider;
 import com.chat.uikit.chat.provider.WKNoRelationProvider;
@@ -211,6 +214,7 @@ public class WKUIKitApplication {
     private void initKitModuleListener() {
         // 注册消息model到sdk
         WKIM.getInstance().getMsgManager().registerContentMsg(WKCardContent.class);
+        WKIM.getInstance().getMsgManager().registerContentMsg(WKFileContent.class);
 
 
         WKIM.getInstance().getMsgManager().registerContentMsg(WKMultiForwardContent.class);
@@ -220,6 +224,7 @@ public class WKUIKitApplication {
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.msgPromptNewMsg, new WKPromptNewMsgProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_TEXT, new WKTextProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_IMAGE, new WKImageProvider());
+        WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_FILE, new WKFileProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.emptyView, new WKEmptyProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.spanEmptyView, new WKSpanEmptyProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_VOICE, new WKVoiceProvider());
@@ -230,6 +235,7 @@ public class WKUIKitApplication {
         // 设置消息长按选项
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_TEXT, object -> new MsgConfig(true));
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_IMAGE, object -> new MsgConfig(true));
+        EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_FILE, object -> new MsgConfig(true));
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_CARD, object -> new MsgConfig(true));
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_VOICE, object -> new MsgConfig(true));
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_MULTIPLE_FORWARD, object -> new MsgConfig(true));
@@ -317,7 +323,9 @@ public class WKUIKitApplication {
         });
         //添加聊天功能面板
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseImg", EndpointCategory.chatFunction, 100, object -> new ChatFunctionMenu("chooseImg", R.mipmap.icon_func_album, mContext.get().getString(R.string.image), this::chooseIMG));
+        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseFile", EndpointCategory.chatFunction, 98, object -> new ChatFunctionMenu("chooseFile", R.mipmap.icon_func_file, mContext.get().getString(R.string.file), this::chooseFile));
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseCard", EndpointCategory.chatFunction, 95, object -> new ChatFunctionMenu("chooseCard", R.mipmap.icon_func_card, mContext.get().getString(R.string.card), IConversationContext::sendCardMsg));
+
 
         //添加tab页
         EndpointManager.getInstance().setMethod(EndpointCategory.tabMenus + "_start_chat", EndpointCategory.tabMenus, 200, object -> new PopupMenuItem(mContext.get().getString(R.string.start_group_chat), R.mipmap.menu_chats, () -> {
@@ -746,6 +754,13 @@ public class WKUIKitApplication {
             public void clickResult(boolean isCancel) {
             }
         }, iConversationContext.getChatActivity(), desc, permissionStr);
+    }
+
+    private void chooseFile(IConversationContext iConversationContext) {
+        Intent intent = new Intent(iConversationContext.getChatActivity(), RecentFileActivity.class);
+        intent.putExtra("channelId", iConversationContext.getChatChannelInfo().channelID);
+        intent.putExtra("channelType", iConversationContext.getChatChannelInfo().channelType);
+        iConversationContext.getChatActivity().startActivity(intent);
     }
 
     public interface IShowChatConfirm {
