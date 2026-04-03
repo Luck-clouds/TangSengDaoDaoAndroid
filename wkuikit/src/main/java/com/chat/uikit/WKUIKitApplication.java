@@ -55,6 +55,7 @@ import com.chat.base.endpoint.entity.MsgConfig;
 import com.chat.base.endpoint.entity.PersonalInfoMenu;
 import com.chat.base.endpoint.entity.ScanResultMenu;
 import com.chat.base.endpoint.entity.SearchChatContentMenu;
+import com.chat.base.endpoint.entity.SaveLabelMenu;
 import com.chat.base.endpoint.entity.UserDetailMenu;
 import com.chat.base.endpoint.entity.UserDetailViewMenu;
 import com.chat.base.endpoint.entity.WKMsg2UiMsgMenu;
@@ -108,6 +109,8 @@ import com.chat.uikit.chat.search.date.SearchWithDateActivity;
 import com.chat.uikit.chat.search.image.SearchWithImgActivity;
 import com.chat.uikit.contacts.ChooseContactsActivity;
 import com.chat.uikit.contacts.NewFriendsActivity;
+import com.chat.uikit.contacts.label.LabelEditActivity;
+import com.chat.uikit.contacts.label.LabelListActivity;
 import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
@@ -286,6 +289,11 @@ public class WKUIKitApplication {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
+        EndpointManager.getInstance().setMethod(EndpointCategory.mailList + "_labels", EndpointCategory.mailList, 80, object -> new ContactsMenu("label", R.mipmap.icon_labels, mContext.get().getString(R.string.label_title), () -> {
+            Intent intent = new Intent(mContext.get(), LabelListActivity.class);
+            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+            mContext.get().startActivity(intent);
+        }));
 
         // 添加聊天工具栏菜单语音
         EndpointManager.getInstance().setMethod(EndpointCategory.wkChatToolBar + "_voice", EndpointCategory.wkChatToolBar, 97, object -> {
@@ -425,6 +433,16 @@ public class WKUIKitApplication {
             }
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("save_label", object -> {
+            SaveLabelMenu saveLabelMenu = (SaveLabelMenu) object;
+            if (saveLabelMenu == null) {
+                return null;
+            }
+            Intent intent = new Intent(saveLabelMenu.getContext(), LabelEditActivity.class);
+            intent.putParcelableArrayListExtra(LabelEditActivity.EXTRA_MEMBERS, new ArrayList<>(saveLabelMenu.getList()));
+            saveLabelMenu.getContext().startActivity(intent);
             return null;
         });
         EndpointManager.getInstance().setMethod("exit_login", object -> {

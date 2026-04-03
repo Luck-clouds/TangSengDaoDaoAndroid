@@ -348,5 +348,16 @@
     <string name="group_transfer_owner_confirm">确定将群主转让给“%s”吗？</string>
     <string name="group_manager_role_desc">管理员</string>
     <string name="group_owner_role_desc">群主</string>
+    <string name="label_title">标签</string>
+    <string name="label_new">新建</string>
+    <string name="label_empty">暂无标签</string>
+    <string name="label_name">标签名字</string>
+    <string name="label_name_hint">例如家人、朋友</string>
+    <string name="label_members">成员</string>
+    <string name="label_member_add">增加</string>
+    <string name="label_member_delete">删除</string>
+    <string name="label_save_title">保存为标签</string>
+    <string name="label_delete">删除标签</string>
+    <string name="label_delete_confirm">标签中的联系人不会被删除，是否删除标签？</string>
 </resources>
 

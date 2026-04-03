@@ -29,6 +29,8 @@
             android:windowSoftInputMode="adjustPan|stateHidden" />
 
         <activity android:name=".contacts.NewFriendsActivity" />
+        <activity android:name=".contacts.label.LabelListActivity" />
+        <activity android:name=".contacts.label.LabelEditActivity" />
         <activity android:name=".setting.SettingActivity" />
         <activity android:name=".group.GroupQrActivity" />
         <activity android:name=".search.SearchAllActivity" />

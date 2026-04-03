@@ -309,5 +309,16 @@
     <string name="group_invite_go_review">Review</string>
     <string name="group_invite_open_review_failed">Failed to open the review page</string>
     <string name="group_invite_missing_review_info">Missing review information</string>
+    <string name="label_title">Tags</string>
+    <string name="label_new">New</string>
+    <string name="label_empty">No tags</string>
+    <string name="label_name">Tag Name</string>
+    <string name="label_name_hint">For example Family, Friends</string>
+    <string name="label_members">Members</string>
+    <string name="label_member_add">Add</string>
+    <string name="label_member_delete">Delete</string>
+    <string name="label_save_title">Save as Tag</string>
+    <string name="label_delete">Delete Tag</string>
+    <string name="label_delete_confirm">Contacts in the tag will not be deleted. Delete this tag?</string>
 </resources>
 
