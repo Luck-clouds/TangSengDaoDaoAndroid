@@ -112,6 +112,8 @@ import com.chat.uikit.contacts.NewFriendsActivity;
 import com.chat.uikit.contacts.label.LabelEditActivity;
 import com.chat.uikit.contacts.label.LabelListActivity;
 import com.chat.uikit.enity.SensitiveWords;
+import com.chat.uikit.favorite.FavoriteListActivity;
+import com.chat.uikit.favorite.FavoriteModel;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
 import com.chat.uikit.group.manage.GroupAvatarActivity;
@@ -264,18 +266,74 @@ public class WKUIKitApplication {
             }
             return null;
         });
+        EndpointManager.getInstance().setMethod("favorite_item", EndpointCategory.wkChatPopupItem, 80, object -> {
+            WKMsg wkMsg = (WKMsg) object;
+            if (wkMsg.type != WKContentType.WK_TEXT) {
+                return null;
+            }
+            return new ChatItemPopupMenu(R.mipmap.msg_fave, getContext().getString(R.string.favorite), (msg, iConversationContext) -> {
+                try {
+                    FavoriteModel.getInstance().addFavorite(iConversationContext.getChatActivity(), msg, null);
+                } catch (Exception e) {
+                    WKToastUtils.getInstance().showToastNormal(iConversationContext.getChatActivity().getString(R.string.favorite_add_failed));
+                }
+            });
+        });
+        EndpointManager.getInstance().setMethod("favorite_image_popup", EndpointCategory.wkChatPopupItem, 79, object -> {
+            WKMsg wkMsg = (WKMsg) object;
+            if (wkMsg.type != WKContentType.WK_IMAGE) {
+                return null;
+            }
+            return new ChatItemPopupMenu(R.mipmap.msg_fave, getContext().getString(R.string.favorite), (msg, iConversationContext) -> {
+                try {
+                    FavoriteModel.getInstance().addFavorite(iConversationContext.getChatActivity(), msg, null);
+                } catch (Exception e) {
+                    WKToastUtils.getInstance().showToastNormal(iConversationContext.getChatActivity().getString(R.string.favorite_add_failed));
+                }
+            });
+        });
+        EndpointManager.getInstance().setMethod("favorite_add", object -> {
+                try {
+                    if (object instanceof WKMsg) {
+                        Activity topActivity = ActManagerUtils.getInstance().getCurrentActivity();
+                        if (topActivity != null) {
+                            FavoriteModel.getInstance().addFavorite(topActivity, (WKMsg) object, null);
+                        } else if (getContext() != null) {
+                            FavoriteModel.getInstance().addFavorite(getContext(), (WKMsg) object, null);
+                        }
+                    } else if (object instanceof java.util.HashMap<?, ?>) {
+                        java.util.HashMap<String, Object> map = (java.util.HashMap<String, Object>) object;
+                        Object activity = map.get("activity");
+                        if (activity instanceof Context) {
+                            FavoriteModel.getInstance().addFavorite((Context) activity, map, null);
+                        }
+                    }
+                } catch (Exception e) {
+                    Context context = getContext();
+                    if (context != null) {
+                    WKToastUtils.getInstance().showToastNormal(context.getString(R.string.favorite_add_failed));
+                }
+            }
+            return null;
+        });
 
         //添加个人中心
-        EndpointManager.getInstance().setMethod("personal_center_currency", EndpointCategory.personalCenter, 2, object -> new PersonalInfoMenu(R.mipmap.icon_setting, mContext.get().getString(R.string.currency), () -> {
-            Intent intent = new Intent(mContext.get(), SettingActivity.class);
+        EndpointManager.getInstance().setMethod("personal_center_collect", EndpointCategory.personalCenter, 3, object -> new PersonalInfoMenu(R.mipmap.icon_collect, mContext.get().getString(R.string.wk_kit_collect), () -> {
+            Intent intent = new Intent(mContext.get(), FavoriteListActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_new_msg_notice", EndpointCategory.personalCenter, 3, object -> new PersonalInfoMenu(R.mipmap.icon_notice, mContext.get().getString(R.string.new_msg_notice), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_new_msg_notice", EndpointCategory.personalCenter, 2, object -> new PersonalInfoMenu(R.mipmap.icon_notice, mContext.get().getString(R.string.new_msg_notice), () -> {
             Intent intent = new Intent(mContext.get(), MsgNoticesSettingActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
+        EndpointManager.getInstance().setMethod("personal_center_currency", EndpointCategory.personalCenter, 1, object -> new PersonalInfoMenu(R.mipmap.icon_setting, mContext.get().getString(R.string.currency), () -> {
+            Intent intent = new Intent(mContext.get(), SettingActivity.class);
+            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+            mContext.get().startActivity(intent);
+        }));
+
         EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login), () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get())));
 
         //添加通讯录

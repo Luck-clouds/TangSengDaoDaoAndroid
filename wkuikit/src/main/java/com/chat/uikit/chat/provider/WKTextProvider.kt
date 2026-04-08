@@ -252,32 +252,19 @@ open class WKTextProvider : WKChatBaseProvider() {
 //                R.drawable.shape_color_4c4c4c_radius_8 /*操作弹窗背*/, R.mipmap.ic_arrow /*箭头图片*/
 //            ) // 设置操作弹窗背景色、箭头图片
         if (favoritePopupMenu != null) {
-            builder.addItem(
-                favoritePopupMenu.imageResource,
-                favoritePopupMenu.text,
-                object : SelectTextHelper.Builder.onSeparateItemClickListener {
-                    override fun onClick() {
-                        EndpointManager.getInstance().invoke("chat_activity_touch", null)
-
-                        if (!TextUtils.isEmpty(selectText)) {
-                            val mMsg = WKMsg()
-                            mMsg.type = WKContentType.WK_TEXT
-                            mMsg.baseContentMsgModel = WKTextContent(selectText)
-                            mMsg.from = uiChatMsgItemEntity.wkMsg.from
-                            mMsg.channelID = uiChatMsgItemEntity.wkMsg.channelID
-                            mMsg.channelType = uiChatMsgItemEntity.wkMsg.channelType
-                            if (uiChatMsgItemEntity.wkMsg.remoteExtra != null && uiChatMsgItemEntity.wkMsg.remoteExtra.contentEditMsgModel != null) {
-                                mMsg.remoteExtra.contentEditMsgModel = WKTextContent(selectText)
-                            }
+                builder.addItem(
+                    favoritePopupMenu.imageResource,
+                    favoritePopupMenu.text,
+                    object : SelectTextHelper.Builder.onSeparateItemClickListener {
+                        override fun onClick() {
+                            EndpointManager.getInstance().invoke("chat_activity_touch", null)
                             val chatAdapter = getAdapter() as ChatAdapter
-                            uiChatMsgItemEntity.wkMsg.baseContentMsgModel.content = selectText
                             favoritePopupMenu.iPopupItemClick.onClick(
-                                mMsg,
+                                uiChatMsgItemEntity.wkMsg,
                                 chatAdapter.conversationContext
                             )
                         }
-                    }
-                })
+                    })
         }
 
         mSelectableTextHelper!!.setSelectListener(object : SelectTextHelper.OnSelectListener {

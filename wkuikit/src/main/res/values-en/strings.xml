@@ -113,7 +113,7 @@
     <string name="probably_send_img">Send photo：</string>
     <string name="preview">Preview</string>
     <string name="network_error_tips">Network unavailable</string>
-    <string name="wk_kit_collect">Favorites</string>
+    <string name="wk_kit_collect">My Favorites</string>
     <string name="unsetting">Not set</string>
     <string name="exit_group_tips">After logging out, other members in the group chat will not be notified, and the group chat messages will no longer be accepted</string>
     <string name="download_open">Download and Open</string>
@@ -320,5 +320,16 @@
     <string name="label_save_title">Save as Tag</string>
     <string name="label_delete">Delete Tag</string>
     <string name="label_delete_confirm">Contacts in the tag will not be deleted. Delete this tag?</string>
+    <string name="favorite_title">My Favorites</string>
+    <string name="favorite_detail_title">Detail</string>
+    <string name="favorite_empty">No favorites</string>
+    <string name="favorite_add_success">Added to favorites</string>
+    <string name="favorite_add_failed">Failed to favorite</string>
+    <string name="favorite_delete_success">Favorite deleted</string>
+    <string name="favorite_delete_failed">Failed to delete favorite</string>
+    <string name="favorite_delete_confirm">Delete this favorite?</string>
+    <string name="favorite_message_invalid">This message cannot be favorited right now</string>
+    <string name="favorite_forward_failed">This favorite cannot be forwarded right now</string>
+    <string name="favorite_view_now">View now</string>
 </resources>
 

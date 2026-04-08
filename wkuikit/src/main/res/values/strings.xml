@@ -113,7 +113,7 @@
     <string name="probably_send_img">你可能要发送的照片：</string>
     <string name="preview">预览</string>
     <string name="network_error_tips">网络异常</string>
-    <string name="wk_kit_collect">收藏</string>
+    <string name="wk_kit_collect">我的收藏</string>
     <string name="unsetting">未设置</string>
     <string name="exit_group_tips">退出后不会通知群聊中其他成员，且不会再接受此群聊消息</string>
     <string name="download_open">下载并打开</string>
@@ -359,5 +359,16 @@
     <string name="label_save_title">保存为标签</string>
     <string name="label_delete">删除标签</string>
     <string name="label_delete_confirm">标签中的联系人不会被删除，是否删除标签？</string>
+    <string name="favorite_title">我的收藏</string>
+    <string name="favorite_detail_title">详情</string>
+    <string name="favorite_empty">暂无收藏</string>
+    <string name="favorite_add_success">已收藏</string>
+    <string name="favorite_add_failed">收藏失败</string>
+    <string name="favorite_delete_success">已删除收藏</string>
+    <string name="favorite_delete_failed">删除收藏失败</string>
+    <string name="favorite_delete_confirm">确定删除这条收藏吗？</string>
+    <string name="favorite_message_invalid">当前消息暂不支持收藏</string>
+    <string name="favorite_forward_failed">当前收藏暂时无法发送给朋友</string>
+    <string name="favorite_view_now">立即查看</string>
 </resources>
 
