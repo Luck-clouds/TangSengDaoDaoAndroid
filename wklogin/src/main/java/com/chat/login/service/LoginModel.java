@@ -2,6 +2,7 @@ package com.chat.login.service;
 
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
 import com.chat.base.base.WKBaseModel;
@@ -252,6 +253,13 @@ public class LoginModel extends WKBaseModel {
     }
 
     public void sendLoginAuthVerifCode(String uid, final ICommonListener iCommonListener) {
+
+//        测试用绕过点击按钮发送验证码环节
+//        if (iCommonListener != null) {
+//            iCommonListener.onResult(HttpResponseCode.success, "我是消息");
+//
+//        }
+//        return;
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("uid", uid);
         request(createService(LoginService.class).sendLoginAuthVerifCode(jsonObject), new IRequestResultListener<>() {

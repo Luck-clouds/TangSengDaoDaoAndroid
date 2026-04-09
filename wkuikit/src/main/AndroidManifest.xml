@@ -33,6 +33,11 @@
         <activity android:name=".contacts.label.LabelEditActivity" />
         <activity android:name=".favorite.FavoriteListActivity" />
         <activity android:name=".favorite.FavoriteDetailActivity" />
+        <activity android:name=".setting.SecurityPrivacyActivity" />
+        <activity android:name=".setting.DeviceLockActivity" />
+        <activity android:name=".setting.BlacklistActivity" />
+        <activity android:name=".setting.DestroyAccountActivity" />
+        <activity android:name=".setting.DestroyAccountVerifyActivity" />
         <activity android:name=".setting.SettingActivity" />
         <activity android:name=".group.GroupQrActivity" />
         <activity android:name=".search.SearchAllActivity" />

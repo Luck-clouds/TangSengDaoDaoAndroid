@@ -125,6 +125,7 @@ import com.chat.uikit.group.service.GroupModel;
 import com.chat.uikit.message.MsgModel;
 import com.chat.uikit.message.ProhibitWordModel;
 import com.chat.uikit.search.AddFriendsActivity;
+import com.chat.uikit.setting.SecurityPrivacyActivity;
 import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
@@ -217,6 +218,7 @@ public class WKUIKitApplication {
     }
 
     private void initKitModuleListener() {
+        EndpointManager.getInstance().setMethod("add_security_module", object -> true);
         // 注册消息model到sdk
         WKIM.getInstance().getMsgManager().registerContentMsg(WKCardContent.class);
         WKIM.getInstance().getMsgManager().registerContentMsg(WKFileContent.class);
@@ -318,8 +320,13 @@ public class WKUIKitApplication {
         });
 
         //添加个人中心
-        EndpointManager.getInstance().setMethod("personal_center_collect", EndpointCategory.personalCenter, 3, object -> new PersonalInfoMenu(R.mipmap.icon_collect, mContext.get().getString(R.string.wk_kit_collect), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_collect", EndpointCategory.personalCenter, 4, object -> new PersonalInfoMenu(R.mipmap.icon_collect, mContext.get().getString(R.string.wk_kit_collect), () -> {
             Intent intent = new Intent(mContext.get(), FavoriteListActivity.class);
+            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+            mContext.get().startActivity(intent);
+        }));
+        EndpointManager.getInstance().setMethod("personal_center_security_privacy", EndpointCategory.personalCenter, 3, object -> new PersonalInfoMenu(R.mipmap.icon_security_privacy, mContext.get().getString(R.string.security_privacy), () -> {
+            Intent intent = new Intent(mContext.get(), SecurityPrivacyActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));

@@ -13,4 +13,5 @@ public class UserInfoSetting {
     public int shock_on; //通知震动
     public int device_lock; //是否开启登录设备验证
     public int offline_protection;//离线保护，断网屏保
+    public int mute_of_app; // Web/PC登录时app静音
 }

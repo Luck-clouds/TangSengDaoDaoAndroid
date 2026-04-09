@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingTop="18dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/security_search_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="@dimen/font_size_12" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        style="@style/layoutBgPaddingSmall">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/security_search_by_phone" />
+
+                        <com.chat.base.ui.components.SwitchView
+                            android:id="@+id/searchByPhoneSwitch"
+                            android:layout_width="45dp"
+                            android:layout_height="40dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/searchByShortLayout"
+                        style="@style/layoutBgPaddingSmall">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/security_search_by_short" />
+
+                        <com.chat.base.ui.components.SwitchView
+                            android:id="@+id/searchByShortSwitch"
+                            android:layout_width="45dp"
+                            android:layout_height="40dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="14dp"
+                    android:text="@string/security_search_close_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="@dimen/font_size_12" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/loginPwdLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/security_login_password" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/chatPwdLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/chat_pwd" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:background="@color/homeColor" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/lockScreenPwdLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/security_lock_screen_password" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/offlineProtectionLayout"
+                        style="@style/layoutBgPaddingSmall">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/security_offline_protection" />
+
+                        <com.chat.base.ui.components.SwitchView
+                            android:id="@+id/offlineProtectionSwitch"
+                            android:layout_width="45dp"
+                            android:layout_height="40dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        style="@style/layoutBgPaddingSmall">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/security_disable_screenshot" />
+
+                        <com.chat.base.ui.components.SwitchView
+                            android:id="@+id/disableScreenshotSwitch"
+                            android:layout_width="45dp"
+                            android:layout_height="40dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="15dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="14dp"
+                    android:text="@string/security_disable_screenshot_desc"
+                    android:textColor="@color/color999"
+                    android:textSize="@dimen/font_size_12" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/deviceLockLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/security_device_lock" />
+
+                        <TextView
+                            android:id="@+id/deviceLockStatusTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="10dp"
+                            android:textColor="@color/color999"
+                            android:textSize="@dimen/font_size_14" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/blacklistLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/security_blacklist" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/destroyAccountLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/security_destroy_account" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+</LinearLayout>

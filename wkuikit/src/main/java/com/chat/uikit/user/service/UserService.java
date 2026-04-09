@@ -4,6 +4,8 @@ package com.chat.uikit.user.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.chat.base.net.entity.CommonResponse;
+import com.chat.base.entity.UserInfoSetting;
+import com.chat.uikit.enity.BlacklistUser;
 import com.chat.uikit.enity.Device;
 import com.chat.uikit.enity.MailListEntity;
 import com.chat.uikit.enity.OnlineUser;
@@ -45,6 +47,9 @@ public interface UserService {
     @DELETE("user/blacklist/{uid}")
     Observable<CommonResponse> removeBlackList(@Path("uid") String uid);
 
+    @GET("user/blacklists")
+    Observable<List<BlacklistUser>> getBlacklists();
+
     @GET("user/online")
     Observable<OnlineUserAndDevice> onlineUsers();
 
@@ -53,6 +58,9 @@ public interface UserService {
 
     @PUT("user/my/setting")
     Observable<CommonResponse> setting(@Body JSONObject jsonObject);
+
+    @GET("user/my/setting")
+    Observable<UserInfoSetting> getMySetting();
 
     @GET("user/qrcode")
     Observable<UserQr> userQr();
@@ -68,6 +76,15 @@ public interface UserService {
 
     @POST("user/quit")
     Observable<CommonResponse> quit();
+
+    @POST("user/sms/destroy")
+    Observable<CommonResponse> sendDestroySms();
+
+    @DELETE("user/destroy/{code}")
+    Observable<CommonResponse> destroy(@Path("code") String code);
+
+    @GET("user/devices")
+    Observable<List<Device>> getDevices();
 
     @GET("user/devices/{device_id}")
     Observable<Device> device(@Path("device_id") String device_id);

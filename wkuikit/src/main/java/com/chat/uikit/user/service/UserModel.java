@@ -12,6 +12,7 @@ import com.chat.base.config.WKApiConfig;
 import com.chat.base.config.WKConfig;
 import com.chat.base.config.WKConstants;
 import com.chat.base.config.WKSharedPreferencesUtil;
+import com.chat.base.entity.UserInfoSetting;
 import com.chat.base.net.HttpResponseCode;
 import com.chat.base.net.ICommonListener;
 import com.chat.base.net.IRequestResultListener;
@@ -20,6 +21,7 @@ import com.chat.base.net.ud.WKUploader;
 import com.chat.base.utils.WKDeviceUtils;
 import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKTimeUtils;
+import com.chat.uikit.enity.BlacklistUser;
 import com.chat.uikit.enity.Device;
 import com.chat.uikit.enity.MailListEntity;
 import com.chat.uikit.enity.OnlineUser;
@@ -82,6 +84,46 @@ public class UserModel extends WKBaseModel {
         });
     }
 
+    public void getMySetting(final IGetUserSetting listener) {
+        request(createService(UserService.class).getMySetting(), new IRequestResultListener<UserInfoSetting>() {
+            @Override
+            public void onSuccess(UserInfoSetting result) {
+                listener.onResult(HttpResponseCode.success, "", result);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                listener.onResult(code, msg, null);
+            }
+        });
+    }
+
+    public interface IGetUserSetting {
+        void onResult(int code, String msg, UserInfoSetting setting);
+    }
+
+    public void getDevices(final IGetDevicesListener listener) {
+        request(createService(UserService.class).getDevices(), new IRequestResultListener<List<Device>>() {
+            @Override
+            public void onSuccess(List<Device> result) {
+                if (listener != null) {
+                    listener.onResult(HttpResponseCode.success, "", result);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (listener != null) {
+                    listener.onResult(code, msg, null);
+                }
+            }
+        });
+    }
+
+    public interface IGetDevicesListener {
+        void onResult(int code, String msg, List<Device> list);
+    }
+
     public void updateUserRemark(String uid, String remark, final ICommonListener iCommonListener) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("uid", uid);
@@ -141,6 +183,24 @@ public class UserModel extends WKBaseModel {
                 iCommonListener.onResult(code, msg);
             }
         });
+    }
+
+    public void getBlacklists(final IGetBlacklists listener) {
+        request(createService(UserService.class).getBlacklists(), new IRequestResultListener<List<BlacklistUser>>() {
+            @Override
+            public void onSuccess(List<BlacklistUser> result) {
+                listener.onResult(HttpResponseCode.success, "", result);
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                listener.onResult(code, msg, new ArrayList<>());
+            }
+        });
+    }
+
+    public interface IGetBlacklists {
+        void onResult(int code, String msg, List<BlacklistUser> list);
     }
 
 
@@ -391,6 +451,42 @@ public class UserModel extends WKBaseModel {
             public void onFail(int code, String msg) {
                 if (iCommonListener != null)
                     iCommonListener.onResult(code, msg);
+            }
+        });
+    }
+
+    public void sendDestroySms(ICommonListener iCommonListener) {
+        request(createService(UserService.class).sendDestroySms(), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
+    public void destroyAccount(String code, ICommonListener iCommonListener) {
+        request(createService(UserService.class).destroy(code), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
             }
         });
     }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:background="@color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="15dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="10dp">
+
+        <EditText
+            android:id="@+id/codeEt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/security_input_verify_code"
+            android:inputType="number"
+            android:maxLength="6"
+            android:padding="0dp"
+            android:textColor="@color/colorDark"
+            android:textColorHint="@color/color999"
+            android:textSize="@dimen/font_size_16" />
+
+        <TextView
+            android:id="@+id/resendCodeTv"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/shape_security_light_btn"
+            android:gravity="center"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:text="@string/security_resend_code"
+            android:textColor="@color/white"
+            android:textSize="@dimen/font_size_13" />
+    </LinearLayout>
+</LinearLayout>

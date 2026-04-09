@@ -171,5 +171,4 @@ public class InputLoginAuthVerificationCodeActivity extends WKBaseActivity<ActIn
     public Context getContext() {
         return this;
     }
-
 }

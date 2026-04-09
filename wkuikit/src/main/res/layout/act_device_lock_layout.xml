@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <TextView
+        android:id="@+id/deviceLockDescTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="15dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="12dp"
+        android:text="@string/security_device_lock_desc"
+        android:textColor="@color/color999"
+        android:textSize="@dimen/font_size_12" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+        <LinearLayout
+            style="@style/layoutBgPaddingSmall">
+
+            <TextView
+                style="@style/leftTextView"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/security_device_lock" />
+
+            <com.chat.base.ui.components.SwitchView
+                android:id="@+id/deviceLockSwitch"
+                android:layout_width="45dp"
+                android:layout_height="40dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/deviceListTitleTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="15dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="12dp"
+        android:text="@string/security_device_list_title"
+        android:textColor="@color/color999"
+        android:textSize="@dimen/font_size_12"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/deviceListContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/deviceListLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical" />
+    </LinearLayout>
+</LinearLayout>
