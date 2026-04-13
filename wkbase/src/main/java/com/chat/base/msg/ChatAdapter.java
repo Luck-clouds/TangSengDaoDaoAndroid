@@ -365,8 +365,9 @@ public class ChatAdapter extends BaseProviderMultiAdapter<WKUIChatMsgItemEntity>
                                 reactionsView,
                                 from,
                                 this,
-                                reactionList)
-                );
+                                reactionList,
+                                entity.wkMsg)
+                  );
                 AvatarView avatarView = view.findViewById(R.id.avatarView);
                 if (avatarView != null) {
                     baseItemProvider.setAvatarLayoutParams(entity, from, avatarView);

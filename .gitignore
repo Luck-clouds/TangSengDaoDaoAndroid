@@ -16,6 +16,7 @@
 /wkscan/build
 /wkpush/build
 /wkuikit/build
+/wkflagship/build
 /captures
 .externalNativeBuild
 .cxx

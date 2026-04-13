@@ -1,0 +1,31 @@
+<resources>
+    <string name="flagship_msg_remind_setting">消息提醒设置</string>
+    <string name="flagship_screenshot_notify">截屏通知</string>
+    <string name="flagship_screenshot_notify_desc">开启后，用户截屏时会在当前聊天中显示截屏系统通知。</string>
+    <string name="flagship_screenshot_notice_summary">截屏通知</string>
+    <string name="flagship_screenshot_notice_self">你在聊天中截屏了</string>
+    <string name="flagship_screenshot_notice_other">%1$s 在聊天中截屏了</string>
+    <string name="flagship_screenshot_notice_other_fallback">对方</string>
+    <string name="flagship_revoke_notify">撤回通知</string>
+    <string name="flagship_revoke_notify_desc">开启后，撤回消息时会在当前聊天中显示撤回消息通知。</string>
+    <string name="flagship_reaction_title">消息回应</string>
+    <string name="flagship_reaction_list_title">点赞列表</string>
+    <string name="flagship_reaction_list_empty">暂无点赞记录</string>
+    <string name="flagship_reaction_action_failed">点赞操作失败</string>
+    <string name="flagship_reaction_sync_failed">刷新点赞状态失败</string>
+    <string name="flagship_picture_editor_title">图片编辑</string>
+    <string name="flagship_picture_edit_callback_expired">编辑结果回调已失效</string>
+    <string name="flagship_picture_tool_text">文字</string>
+    <string name="flagship_picture_tool_graffiti">涂鸦</string>
+    <string name="flagship_picture_tool_mosaic">马赛克</string>
+    <string name="flagship_picture_tool_clip">裁剪</string>
+    <string name="flagship_picture_tool_undo">撤销</string>
+    <string name="flagship_picture_tool_rotate">旋转</string>
+    <string name="flagship_picture_text_hint">输入文字</string>
+    <string name="flagship_picture_complete">完成</string>
+    <string name="flagship_picture_delete">删除</string>
+    <string name="flagship_picture_save_local">保存至本地</string>
+    <string name="flagship_picture_forward_friend">转发给朋友</string>
+    <string name="flagship_picture_forward_done">已转发</string>
+    <string name="flagship_picture_editor_export_failed">图片导出失败</string>
+</resources>

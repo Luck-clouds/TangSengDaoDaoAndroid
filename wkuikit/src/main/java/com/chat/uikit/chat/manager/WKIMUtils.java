@@ -486,7 +486,7 @@ public class WKIMUtils {
                 if (revokeRemind == 1) {
                     // todo 同步消息接口
                     MsgModel.getInstance().syncExtraMsg(channelID, channelType);
-//                    WKIM.getInstance().getMsgManager().updateMsgRevokeWithMessageID(messageId, 1);
+  //                    WKIM.getInstance().getMsgManager().updateMsgRevokeWithMessageID(messageId, 1);
                 } else {
                     // todo 删除服务器消息
                     WKMsg wkMsg = WKIM.getInstance().getMsgManager().getWithMessageID(messageId);
@@ -511,7 +511,6 @@ public class WKIMUtils {
             }
         }
     }
-
 
     /**
      * 显示聊天

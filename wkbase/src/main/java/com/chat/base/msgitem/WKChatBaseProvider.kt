@@ -103,7 +103,8 @@ abstract class WKChatBaseProvider : BaseItemProvider<WKUIChatMsgItemEntity>() {
                     helper.getView(R.id.reactionsView),
                     from,
                     (Objects.requireNonNull(getAdapter()) as ChatAdapter),
-                    msgItemEntity.wkMsg.reactionList
+                    msgItemEntity.wkMsg.reactionList,
+                    msgItemEntity.wkMsg
                 )
             )
         }
@@ -387,7 +388,8 @@ abstract class WKChatBaseProvider : BaseItemProvider<WKUIChatMsgItemEntity>() {
                     baseViewHolder.getView(R.id.reactionsView),
                     from,
                     (Objects.requireNonNull(getAdapter()) as ChatAdapter),
-                    msgItemEntity.wkMsg.reactionList
+                    msgItemEntity.wkMsg.reactionList,
+                    msgItemEntity.wkMsg
                 )
             )
             msgItemEntity.isUpdateStatus = false

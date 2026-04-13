@@ -128,6 +128,7 @@ import com.xinbida.wukongim.msgmodel.WKMsgEntity;
 import com.xinbida.wukongim.msgmodel.WKReply;
 
 import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -764,17 +765,18 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                         }
                     }
                 }
-                case "sync_channel_state" -> {
-                    String sourceChannelId = wkCmd.paramJsonObject.optString("channel_id");
-                    int sourceChannelType = wkCmd.paramJsonObject.optInt("channel_type");
-                    if (sourceChannelId.equals(channelId) && sourceChannelType == channelType) {
-                        getChannelState();
-                    }
-                }
-            }
-        });
+                  case "sync_channel_state" -> {
+                      String sourceChannelId = wkCmd.paramJsonObject.optString("channel_id");
+                      int sourceChannelType = wkCmd.paramJsonObject.optInt("channel_type");
+                      if (sourceChannelId.equals(channelId) && sourceChannelType == channelType) {
+                          getChannelState();
+                      }
+                  }
+                  case "messageDeleted" -> handleMessageDeletedCmd(wkCmd);
+              }
+          });
 
-        //监听消息刷新
+          //监听消息刷新
         WKIM.getInstance().getMsgManager().addOnRefreshMsgListener(channelId, (wkMsg, left) -> {
             if (wkMsg.remoteExtra.isMutualDeleted == 1) {
                 removeMsg(wkMsg);
@@ -1552,8 +1554,10 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
     private void removeMsg(WKMsg msg) {
         EndpointManager.getInstance().invoke("stop_reaction_animation", null);
         int tempIndex = 0;
+        boolean isMatched = false;
         for (int i = 0, size = chatAdapter.getData().size(); i < size; i++) {
             if (chatAdapter.getData().get(i).wkMsg != null && (chatAdapter.getData().get(i).wkMsg.clientSeq == msg.clientSeq || chatAdapter.getData().get(i).wkMsg.clientMsgNO.equals(msg.clientMsgNO))) {
+                isMatched = true;
                 tempIndex = i;
                 if (i - 1 >= 0) {
                     if (i + 1 <= chatAdapter.getData().size() - 1) {
@@ -1571,6 +1575,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 break;
             }
         }
+        if (!isMatched) return;
 
         int timeIndex = tempIndex - 1;
         if (timeIndex < 0) return;
@@ -1589,6 +1594,72 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                     if (timeIndex - 1 >= 0) {
                         chatAdapter.getData().get(timeIndex + 1).previousMsg = chatAdapter.getData().get(timeIndex - 1).wkMsg;
                     } else chatAdapter.getData().get(timeIndex + 1).previousMsg = null;
+                }
+                chatAdapter.removeAt(timeIndex);
+            }
+        }
+    }
+
+    private void handleMessageDeletedCmd(WKCMD wkCmd) {
+        if (wkCmd.paramJsonObject == null) return;
+        JSONArray messages = wkCmd.paramJsonObject.optJSONArray("messages");
+        if (messages == null || messages.length() == 0) return;
+        for (int i = 0, size = messages.length(); i < size; i++) {
+            JSONObject item = messages.optJSONObject(i);
+            if (item == null) continue;
+            String sourceChannelId = item.optString("channel_id");
+            int sourceChannelType = item.optInt("channel_type");
+            if (!TextUtils.equals(sourceChannelId, channelId) || sourceChannelType != channelType) {
+                continue;
+            }
+            String messageId = item.optString("message_id");
+            if (TextUtils.isEmpty(messageId)) continue;
+            removeMsgByMessageId(messageId);
+        }
+    }
+
+    private void removeMsgByMessageId(String messageId) {
+        EndpointManager.getInstance().invoke("stop_reaction_animation", null);
+        int tempIndex = -1;
+        for (int i = 0, size = chatAdapter.getData().size(); i < size; i++) {
+            if (chatAdapter.getData().get(i).wkMsg != null && TextUtils.equals(chatAdapter.getData().get(i).wkMsg.messageID, messageId)) {
+                tempIndex = i;
+                if (i - 1 >= 0) {
+                    if (i + 1 <= chatAdapter.getData().size() - 1) {
+                        chatAdapter.getData().get(i - 1).nextMsg = chatAdapter.getData().get(i + 1).wkMsg;
+                    } else {
+                        chatAdapter.getData().get(i - 1).nextMsg = null;
+                    }
+                }
+                if (i + 1 <= chatAdapter.getData().size() - 1) {
+                    if (i - 1 >= 0) {
+                        chatAdapter.getData().get(i + 1).previousMsg = chatAdapter.getData().get(i - 1).wkMsg;
+                    } else {
+                        chatAdapter.getData().get(i + 1).previousMsg = null;
+                    }
+                }
+                chatAdapter.removeAt(i);
+                break;
+            }
+        }
+        if (tempIndex < 0) return;
+        int timeIndex = tempIndex - 1;
+        if (timeIndex < 0) return;
+        if (chatAdapter.getData().size() >= timeIndex) {
+            if (chatAdapter.getData().get(timeIndex).wkMsg.type == WKContentType.msgPromptTime) {
+                if (timeIndex - 1 >= 0) {
+                    if (timeIndex + 1 <= chatAdapter.getData().size() - 1) {
+                        chatAdapter.getData().get(timeIndex - 1).nextMsg = chatAdapter.getData().get(timeIndex + 1).wkMsg;
+                    } else {
+                        chatAdapter.getData().get(timeIndex - 1).nextMsg = null;
+                    }
+                }
+                if (timeIndex + 1 <= chatAdapter.getData().size() - 1) {
+                    if (timeIndex - 1 >= 0) {
+                        chatAdapter.getData().get(timeIndex + 1).previousMsg = chatAdapter.getData().get(timeIndex - 1).wkMsg;
+                    } else {
+                        chatAdapter.getData().get(timeIndex + 1).previousMsg = null;
+                    }
                 }
                 chatAdapter.removeAt(timeIndex);
             }
