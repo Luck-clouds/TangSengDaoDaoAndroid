@@ -36,6 +36,7 @@ import com.chat.uikit.TabActivity
 import com.chat.uikit.WKUIKitApplication
 import com.chat.uikit.chat.manager.WKIMUtils
 import com.chat.uikit.user.service.UserModel
+import com.chat.video.WKVideoApplication
 import com.qinghangim.app.R
 import kotlin.system.exitProcess
 
@@ -103,6 +104,7 @@ class TSApplication : MultiDexApplication() {
         WKScanApplication.getInstance().init(this)
         WKUIKitApplication.getInstance().init(this)
         WKFlagshipApplication.getInstance().init(this)
+        WKVideoApplication.getInstance().init(this)
         WKPushApplication.getInstance().init(getAppPackageName(), this)
         addAppFrontBack()
         addListener()

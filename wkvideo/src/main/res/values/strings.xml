@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_capture">小视频</string>
+    <string name="video_capture_permission_desc">在设置-应用-%1$s-权限中开启相机与麦克风权限，以正常使用小视频拍摄与录制。</string>
+    <string name="video_capture_tips">轻触拍照，长按录制</string>
+    <string name="video_capture_retry">重拍</string>
+    <string name="video_capture_send">发送</string>
+    <string name="video_capture_failed">拍摄失败，请重试</string>
+    <string name="video_record_failed">录制失败，请重试</string>
+    <string name="video_record_too_short">拍摄时长过短</string>
+    <string name="video_download_failed">视频下载失败</string>
+    <string name="video_preview_missing">文件不存在或已失效</string>
+    <string name="video_waiting_upload">录制中…</string>
+</resources>

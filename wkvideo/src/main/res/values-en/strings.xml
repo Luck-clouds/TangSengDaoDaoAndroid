@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_capture">Short Video</string>
+    <string name="video_capture_permission_desc">Enable camera and microphone permissions in Settings > Apps > %1$s > Permissions to use short video capture and recording.</string>
+    <string name="video_capture_tips">Tap to take a photo, hold to record</string>
+    <string name="video_capture_retry">Retake</string>
+    <string name="video_capture_send">Send</string>
+    <string name="video_capture_failed">Capture failed, please try again</string>
+    <string name="video_record_failed">Recording failed, please try again</string>
+    <string name="video_record_too_short">Recording is too short</string>
+    <string name="video_download_failed">Video download failed</string>
+    <string name="video_preview_missing">The file does not exist or is no longer available</string>
+    <string name="video_waiting_upload">Recording…</string>
+</resources>

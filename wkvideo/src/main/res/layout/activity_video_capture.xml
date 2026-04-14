@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/backIv"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/video_capture_top_action_bg"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:tint="@android:color/white" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/flashIv"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/video_capture_top_action_bg"
+            android:padding="8dp"
+            android:src="@drawable/video_flash_off" />
+
+        <ImageView
+            android:id="@+id/switchCameraIv"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/video_capture_top_action_bg"
+            android:padding="8dp"
+            android:src="@drawable/video_switch_camera" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingBottom="38dp">
+
+        <TextView
+            android:id="@+id/recordHintTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:alpha="0"
+            android:text="@string/video_record_too_short"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:visibility="invisible" />
+
+        <TextView
+            android:id="@+id/tipsTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:text="@string/video_capture_tips"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <FrameLayout
+            android:id="@+id/captureBtn"
+            android:layout_width="92dp"
+            android:layout_height="92dp"
+            android:foregroundGravity="center">
+
+            <View
+                android:layout_width="92dp"
+                android:layout_height="92dp"
+                android:background="@drawable/video_capture_progress_track" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/recordProgress"
+                android:layout_width="92dp"
+                android:layout_height="92dp"
+                android:indeterminate="false"
+                android:max="15000"
+                app:indicatorColor="#FFF65835"
+                app:indicatorSize="92dp"
+                app:indicatorInset="0dp"
+                app:trackColor="@android:color/transparent"
+                app:trackThickness="4dp" />
+
+            <View
+                android:id="@+id/captureCenterView"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center"
+                android:background="@drawable/video_capture_center_bg" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>
