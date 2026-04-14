@@ -10,6 +10,7 @@ import com.xinbida.wukongim.msgmodel.WKVideoContent
 import java.lang.ref.WeakReference
 
 object VideoSendSession {
+    // 仅聊天模式使用，保存当前会话上下文，预览页确认后继续往这个会话发送消息。
     private var conversationRef: WeakReference<IConversationContext>? = null
 
     fun openCapture(conversationContext: IConversationContext) {

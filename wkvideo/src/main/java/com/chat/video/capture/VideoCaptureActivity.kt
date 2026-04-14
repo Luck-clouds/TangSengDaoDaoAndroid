@@ -56,6 +56,8 @@ class VideoCaptureActivity : AppCompatActivity() {
     private var outputMode = OUTPUT_MODE_CHAT
     private var requestTag: String? = null
     private val uiHandler = Handler(Looper.getMainLooper())
+    // 预览页始终以结果回传的形式返回到拍摄页:
+    // CHAT 模式下发送成功后结束拍摄页，RESULT 模式下继续把结果回抛给外部调用方。
     private val previewLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
@@ -106,6 +108,7 @@ class VideoCaptureActivity : AppCompatActivity() {
         super.onPause()
         uiHandler.removeCallbacks(hideRecordHintRunnable)
         if (recording != null) {
+            // 页面离开时统一请求结束录制，避免后台持有 CameraX 录制状态。
             requestStopRecording()
         }
     }
@@ -113,6 +116,7 @@ class VideoCaptureActivity : AppCompatActivity() {
     private fun initListeners() {
         binding.backIv.setOnClickListener { finish() }
         binding.switchCameraIv.setOnClickListener {
+            // CameraX 在录制中切换镜头会让录制源失活，这里直接禁用该操作。
             if (recording != null || pressStartedRecording) {
                 return@setOnClickListener
             }
@@ -197,6 +201,7 @@ class VideoCaptureActivity : AppCompatActivity() {
             val selector = CameraSelector.Builder()
                 .requireLensFacing(lensFacing)
                 .build()
+            // 重新绑定相机时统一使用 Preview + ImageCapture + VideoCapture 三件套。
             provider.unbindAll()
             camera = provider.bindToLifecycle(this, selector, preview, imageCapture, videoCapture)
             applyFlashState()
@@ -223,6 +228,7 @@ class VideoCaptureActivity : AppCompatActivity() {
         }
         var preparedRecording = pendingRecording
         if (canRecordAudio()) {
+            // 有麦克风权限时优先录制有声视频；若个别机型打开音频失败，则回退为纯视频。
             preparedRecording = try {
                 currentMinRecordMs = AUDIO_MIN_RECORD_MS
                 preparedRecording.withAudioEnabled()
@@ -243,6 +249,7 @@ class VideoCaptureActivity : AppCompatActivity() {
                         hasRecordingStarted = true
                         recordingStartedAtMs = SystemClock.elapsedRealtime()
                         binding.recordProgress.progress = 0
+                        // 处理“刚开始录制就松手”的竞争场景。
                         if (pendingStopAfterStart) {
                             requestStopRecording()
                         }
@@ -289,6 +296,7 @@ class VideoCaptureActivity : AppCompatActivity() {
                             return@start
                         }
                         try {
+                            // 录制收尾成功后再进入预览页，保持拍摄页和预览页是两个独立页面。
                             openPreview(VideoPreviewActivity.MODE_VIDEO, outputFile)
                         } catch (_: Exception) {
                             WKToastUtils.getInstance().showToastNormal(getString(R.string.video_record_failed))
@@ -317,11 +325,13 @@ class VideoCaptureActivity : AppCompatActivity() {
         val activeRecording = recording ?: return
         if (isStopRequested) return
         if (!hasRecordingStarted) {
+            // Recorder 还没真正进入 Start 回调时不能直接 stop，先打标记等 Start 后再停。
             pendingStopAfterStart = true
             return
         }
         val recordDuration = SystemClock.elapsedRealtime() - recordingStartedAtMs
         if (recordDuration in 1 until currentMinRecordMs) {
+            // 过短录制统一在 Finalize 阶段丢弃文件并提示，不进入预览页。
             discardRecordingOnFinalize = true
         }
         isStopRequested = true
@@ -374,6 +384,7 @@ class VideoCaptureActivity : AppCompatActivity() {
         intent.putExtra(VideoPreviewActivity.EXTRA_PATH, path)
         intent.putExtra(VideoPreviewActivity.EXTRA_OUTPUT_MODE, outputMode)
         intent.putExtra(VideoPreviewActivity.EXTRA_REQUEST_TAG, requestTag)
+        // 无论聊天还是外部调用，拍摄页都等待预览页回传结果。
         previewLauncher.launch(intent)
     }
 
@@ -440,6 +451,8 @@ class VideoCaptureActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_OUTPUT_MODE = "extra_output_mode"
         const val EXTRA_REQUEST_TAG = "extra_request_tag"
+        // CHAT: 预览确认后直接发送到聊天
+        // RESULT: 预览确认后把媒体结果回传给调用方
         const val OUTPUT_MODE_CHAT = "chat"
         const val OUTPUT_MODE_RESULT = "result"
         private const val MAX_RECORD_MS = 15_000

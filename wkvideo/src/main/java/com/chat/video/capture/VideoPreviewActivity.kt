@@ -72,6 +72,7 @@ class VideoPreviewActivity : AppCompatActivity() {
             binding.videoView.setVideoURI(Uri.fromFile(File(path)))
             binding.videoView.setOnPreparedListener { mediaPlayer ->
                 mediaPlayer.isLooping = true
+                // 预览页里的视频按全屏铺满显示，只作用在这里，不影响聊天正式播放器。
                 updateVideoLayout(mediaPlayer.videoWidth, mediaPlayer.videoHeight)
                 binding.videoView.start()
                 updateVideoToggle(true)
@@ -88,6 +89,7 @@ class VideoPreviewActivity : AppCompatActivity() {
         binding.backIv.setOnClickListener { finish() }
         binding.retryLayout.setOnClickListener {
             if (outputMode == VideoCaptureActivity.OUTPUT_MODE_RESULT) {
+                // 外部调用方需要知道用户选择了重拍，便于保留自己的页面状态。
                 setResult(RESULT_CANCELED, Intent().putExtra(EXTRA_RESULT_ACTION, RESULT_ACTION_RETAKE))
             }
             finish()
@@ -138,6 +140,7 @@ class VideoPreviewActivity : AppCompatActivity() {
             val containerRatio = containerWidth.toFloat() / containerHeight.toFloat()
             val videoRatio = videoWidth.toFloat() / videoHeight.toFloat()
             val layoutParams = binding.videoView.layoutParams as FrameLayout.LayoutParams
+            // 通过裁切而不是留黑边的方式铺满预览页。
             if (videoRatio > containerRatio) {
                 layoutParams.height = containerHeight
                 layoutParams.width = (containerHeight * videoRatio).toInt()
@@ -184,6 +187,7 @@ class VideoPreviewActivity : AppCompatActivity() {
         }
         val meta = VideoUiUtils.readVideoMeta(path)
         if (outputMode == VideoCaptureActivity.OUTPUT_MODE_RESULT) {
+            // 外部调用方直接拿到本地文件路径和媒体元数据，后续由调用方自己处理上传或编辑。
             finishWithCaptureResult(
                 VideoCaptureResult(
                     mode = VideoCaptureResult.MODE_VIDEO,
@@ -198,6 +202,7 @@ class VideoPreviewActivity : AppCompatActivity() {
             )
             return
         }
+        // 聊天模式继续复用现有 WKVideoContent 发送链路。
         val videoContent = WKVideoContent().apply {
             localPath = path
             coverLocalPath = WKMediaFileUtils.getInstance().getVideoCover(path)
@@ -248,6 +253,7 @@ class VideoPreviewActivity : AppCompatActivity() {
         const val EXTRA_PATH = "extra_path"
         const val EXTRA_OUTPUT_MODE = "extra_output_mode"
         const val EXTRA_REQUEST_TAG = "extra_request_tag"
+        // 预览页只用结果动作告诉拍摄页或外部调用方发生了什么，不直接暴露内部页面状态。
         const val EXTRA_RESULT_ACTION = "extra_result_action"
         const val RESULT_ACTION_RETAKE = "retake"
         const val RESULT_ACTION_SENT = "sent"

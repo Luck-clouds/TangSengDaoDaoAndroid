@@ -62,6 +62,7 @@ class WKVideoProvider : WKChatBaseProvider() {
         contentLayout.gravity = if (from == WKChatIteMsgFromType.RECEIVED) Gravity.START else Gravity.END
         progressView.setProgColor(Theme.colorAccount)
 
+        // 视频气泡尺寸在原始分辨率基础上做一次温和放大，让它和图片消息更接近。
         val bubbleSize = scaleBubbleSize(VideoUiUtils.resolveBubbleSize(videoContent.width, videoContent.height))
         coverIv.layoutParams = (coverIv.layoutParams as FrameLayout.LayoutParams).apply {
             width = bubbleSize[0]
@@ -102,6 +103,7 @@ class WKVideoProvider : WKChatBaseProvider() {
 
             else -> {
                 val downloadUrl = getDownloadUrl(videoContent)
+                // 正在下载中的消息重新绑定时，要把进度状态接回来。
                 if (downloadUrl.isNotEmpty() && VideoDownloadRegistry.isDownloading(downloadUrl)) {
                     registerDownloadProgress(
                         uiChatMsgItemEntity,
@@ -169,6 +171,7 @@ class WKVideoProvider : WKChatBaseProvider() {
         if (!localPath.isNullOrEmpty()) {
             val file = File(localPath)
             if (file.exists() && file.length() > 0L) {
+                // 本地已有视频文件时直接进播放器，避免重复下载。
                 openPlayer(entity.wkMsg, coverIv, localPath, getCoverPath(content))
                 return
             }
@@ -194,6 +197,7 @@ class WKVideoProvider : WKChatBaseProvider() {
         if (showUrl.isEmpty()) {
             return
         }
+        // 同一条消息只允许一个下载任务，避免重复点击触发多次下载。
         if (!VideoDownloadRegistry.markDownloading(showUrl)) {
             return
         }
@@ -243,6 +247,7 @@ class WKVideoProvider : WKChatBaseProvider() {
                                 content,
                                 false
                             )
+                            // 用户是通过点击触发下载时，下载完成后直接拉起播放器。
                             if (needPlayWhenReady) {
                                 openPlayer(entity.wkMsg, coverIv, path, getCoverPath(content))
                             }
@@ -268,6 +273,7 @@ class WKVideoProvider : WKChatBaseProvider() {
             activity,
             Pair(coverView, "coverIv")
         )
+        // 聊天视频仍然复用 wkbase 的正式播放器页，预览页全屏裁切逻辑不会影响这里。
         val intent = Intent(activity, PlayVideoActivity::class.java)
         intent.putExtra("coverImg", coverPath)
         intent.putExtra("url", playPath)
@@ -322,6 +328,7 @@ class WKVideoProvider : WKChatBaseProvider() {
         uiChatMsgItemEntity: WKUIChatMsgItemEntity,
         coverIv: FilterImageView
     ) {
+        // 圆角规则和图片消息保持一致，确保连续消息时视觉连接自然。
         coverIv.strokeWidth = 0f
         val bgType = getMsgBgType(
             uiChatMsgItemEntity.previousMsg,

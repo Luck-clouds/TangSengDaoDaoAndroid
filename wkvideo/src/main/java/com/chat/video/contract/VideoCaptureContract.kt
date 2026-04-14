@@ -10,6 +10,7 @@ data class VideoCaptureRequest(
     val requestTag: String? = null
 )
 
+// 对外暴露标准 ActivityResultContract，调用方只关心输入配置和输出结果。
 class VideoCaptureContract : ActivityResultContract<VideoCaptureRequest?, VideoCaptureResult?>() {
     override fun createIntent(context: Context, input: VideoCaptureRequest?): Intent {
         return VideoCaptureActivity.createIntent(

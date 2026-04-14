@@ -34,9 +34,13 @@ public class WKVideoApplication {
 
     public void init(Application application) {
         applicationRef = new WeakReference<>(application);
+        // 注册视频消息气泡，让聊天页真正认识 WK_VIDEO。
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.WK_VIDEO, new WKVideoProvider());
+        // 视频消息继续复用通用消息菜单能力，因此这里保持 MsgConfig 开启。
         EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.WK_VIDEO, object -> new MsgConfig(true));
+        // 打开原项目相册选择视频的预留开关。
         EndpointManager.getInstance().setMethod("is_register_video", object -> true);
+        // 聊天工具栏入口。
         EndpointManager.getInstance().setMethod(
                 EndpointCategory.wkChatToolBar + "_video_capture",
                 EndpointCategory.wkChatToolBar,
@@ -49,6 +53,7 @@ public class WKVideoApplication {
                         (isSelected, conversationContext) -> openCapture(conversationContext)
                 )
         );
+        // 功能面板入口。
         EndpointManager.getInstance().setMethod(
                 EndpointCategory.chatFunction + "_video_capture",
                 EndpointCategory.chatFunction,
@@ -83,6 +88,7 @@ public class WKVideoApplication {
         if (application == null) return;
         CharSequence appName = application.getApplicationInfo().loadLabel(application.getPackageManager());
         String desc = application.getString(R.string.video_capture_permission_desc, appName);
+        // 小视频默认会尝试录制有声视频，所以这里一次性申请相机和麦克风。
         WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
