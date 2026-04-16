@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="320dp">
+
+    <ImageView
+        android:id="@+id/coverIv"
+        android:layout_width="match_parent"
+        android:layout_height="244dp"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="244dp"
+        android:background="@drawable/bg_moment_cover_scrim" />
+
+    <ImageView
+        android:id="@+id/headerCameraIv"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/icon_moment_camera_white" />
+
+    <com.chat.base.ui.components.AvatarView
+        android:id="@+id/avatarView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="176dp"
+        android:layout_marginEnd="16dp" />
+
+    <TextView
+        android:id="@+id/nameTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="202dp"
+        android:layout_marginEnd="116dp"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+</FrameLayout>

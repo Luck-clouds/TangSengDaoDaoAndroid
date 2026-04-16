@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#3F3F3F">
+
+        <!-- 下拉时露出的灰色承载层，加载图只在刷新时显示 -->
+        <FrameLayout
+            android:id="@+id/pullRefreshBgLayout"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:background="#3F3F3F"
+            android:clipChildren="true"
+            android:clipToPadding="true"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/pullRefreshLoadingIv"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|start"
+                android:layout_marginStart="54dp"
+                android:layout_marginTop="54dp"
+                android:alpha="0"
+                android:src="@drawable/icon_moment_refresh_loading" />
+        </FrameLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:clipToPadding="false" />
+
+        <com.scwang.smart.refresh.footer.ClassicsFooter
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:srlTextNothing="@string/refresh_footer" />
+    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+
+    <include layout="@layout/view_moment_timeline_title_bar" />
+
+</FrameLayout>

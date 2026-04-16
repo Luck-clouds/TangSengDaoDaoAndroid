@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name=".ui.MomentTimelineActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentComposeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentNoticeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentVisibilityActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentMentionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentLabelPickerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MomentUserStateActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -30,6 +30,7 @@ import com.chat.base.utils.WKTimeUtils
 import com.chat.base.utils.language.WKMultiLanguageUtil
 import com.chat.flagship.WKFlagshipApplication
 import com.chat.login.WKLoginApplication
+import com.chat.moments.WKMomentsApplication
 import com.chat.push.WKPushApplication
 import com.chat.scan.WKScanApplication
 import com.chat.uikit.TabActivity
@@ -105,6 +106,7 @@ class TSApplication : MultiDexApplication() {
         WKUIKitApplication.getInstance().init(this)
         WKFlagshipApplication.getInstance().init(this)
         WKVideoApplication.getInstance().init(this)
+        WKMomentsApplication.getInstance().init(this)
         WKPushApplication.getInstance().init(getAppPackageName(), this)
         addAppFrontBack()
         addListener()

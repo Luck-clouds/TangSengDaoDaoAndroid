@@ -120,4 +120,5 @@ dependencies {
     implementation project(path: ':wkpush')
     implementation project(path: ':wkflagship')
     implementation project(path: ':wkvideo')
+    implementation project(path: ':wkmoments')
 }

@@ -18,6 +18,7 @@
 /wkuikit/build
 /wkflagship/build
 /wkvideo/build
+/wkmoments/build
 /captures
 .externalNativeBuild
 .cxx

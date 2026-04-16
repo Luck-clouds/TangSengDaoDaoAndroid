@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <RadioGroup
+        android:id="@+id/visibilityGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/publicRb"
+            style="@style/Widget.AppCompat.CompoundButton.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/colorAccent"
+            android:padding="18dp"
+            android:text="@string/moment_visibility_public_desc"
+            android:textColor="@color/colorDark"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/privateRb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/colorAccent"
+            android:padding="18dp"
+            android:text="@string/moment_visibility_private_desc"
+            android:textColor="@color/colorDark"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/partialRb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/colorAccent"
+            android:padding="18dp"
+            android:text="@string/moment_visibility_partial_desc"
+            android:textColor="@color/colorDark"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/excludeRb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/colorAccent"
+            android:padding="18dp"
+            android:text="@string/moment_visibility_exclude_desc"
+            android:textColor="@color/colorDark"
+            android:textSize="18sp" />
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/selectionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/selectContactsTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="18dp"
+            android:text="@string/moment_select_contacts"
+            android:textColor="#556C94"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/selectTagsTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="18dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="18dp"
+            android:text="@string/moment_select_tags"
+            android:textColor="#556C94"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/selectionSummaryTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="18dp"
+            android:textColor="@color/color999"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
