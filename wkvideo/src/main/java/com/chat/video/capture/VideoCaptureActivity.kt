@@ -1,5 +1,10 @@
 package com.chat.video.capture
 
+/**
+ * 小视频拍摄页
+ * Created by Luckclouds.
+ */
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager

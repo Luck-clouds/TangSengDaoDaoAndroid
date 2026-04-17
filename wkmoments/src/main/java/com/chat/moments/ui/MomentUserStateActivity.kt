@@ -1,5 +1,10 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈状态设置页
+ * Created by Luckclouds.
+ */
+
 import android.widget.TextView
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.net.HttpResponseCode

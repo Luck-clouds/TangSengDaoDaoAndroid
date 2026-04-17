@@ -1,5 +1,10 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈消息通知页
+ * Created by Luckclouds.
+ */
+
 import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager

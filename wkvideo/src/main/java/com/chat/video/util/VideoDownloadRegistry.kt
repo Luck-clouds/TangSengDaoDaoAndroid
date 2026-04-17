@@ -1,5 +1,10 @@
 package com.chat.video.util
 
+/**
+ * 小视频下载状态注册器
+ * Created by Luckclouds.
+ */
+
 import java.util.concurrent.ConcurrentHashMap
 
 object VideoDownloadRegistry {

@@ -1,5 +1,10 @@
 package com.chat.video.contract
 
+/**
+ * 小视频拍摄能力入口
+ * Created by Luckclouds.
+ */
+
 // 给非聊天模块使用的公开门面，避免外部直接依赖拍摄页 Activity 细节。
 object WKVideoCapture {
     @JvmStatic

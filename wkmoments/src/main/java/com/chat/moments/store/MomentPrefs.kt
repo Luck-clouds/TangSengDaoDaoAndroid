@@ -1,5 +1,10 @@
 package com.chat.moments.store
 
+/**
+ * 朋友圈本地状态缓存
+ * Created by Luckclouds.
+ */
+
 import com.chat.base.config.WKConfig
 import com.chat.base.config.WKSharedPreferencesUtil
 

@@ -1,5 +1,10 @@
 package com.chat.video.provider
 
+/**
+ * 小视频消息气泡提供器
+ * Created by Luckclouds.
+ */
+
 import android.content.Intent
 import android.text.TextUtils
 import android.view.Gravity

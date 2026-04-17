@@ -1,5 +1,10 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈标签选择页
+ * Created by Luckclouds.
+ */
+
 import android.content.Intent
 import android.view.View
 import android.widget.TextView

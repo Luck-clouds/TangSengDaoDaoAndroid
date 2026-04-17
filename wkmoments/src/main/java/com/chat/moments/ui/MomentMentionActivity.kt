@@ -1,5 +1,10 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈提醒谁看页面
+ * Created by Luckclouds.
+ */
+
 import android.content.Intent
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts

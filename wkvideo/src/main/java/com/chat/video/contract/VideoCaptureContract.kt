@@ -1,5 +1,10 @@
 package com.chat.video.contract
 
+/**
+ * 小视频拍摄 ActivityResult 契约
+ * Created by Luckclouds.
+ */
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent

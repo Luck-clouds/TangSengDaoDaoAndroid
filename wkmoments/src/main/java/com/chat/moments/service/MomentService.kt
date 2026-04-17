@@ -1,5 +1,10 @@
 package com.chat.moments.service
 
+/**
+ * 朋友圈接口定义
+ * Created by Luckclouds.
+ */
+
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import io.reactivex.rxjava3.core.Observable
@@ -45,6 +50,12 @@ interface MomentService {
 
     @DELETE("moment/posts/{post_id}")
     fun deletePost(@Path("post_id") postId: String): Observable<JSONObject>
+
+    @POST("moment/posts/{post_id}/favorite")
+    fun toggleFavorite(
+        @Path("post_id") postId: String,
+        @Body body: JSONObject
+    ): Observable<JSONObject>
 
     @GET("moment/notices/sync")
     fun syncNotices(

@@ -1,5 +1,10 @@
 package com.chat.video;
 
+/**
+ * 小视频模块入口
+ * Created by Luckclouds.
+ */
+
 import android.Manifest;
 import android.app.Application;
 import android.content.res.Configuration;

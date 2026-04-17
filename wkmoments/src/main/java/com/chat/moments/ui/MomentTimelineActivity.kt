@@ -1,16 +1,21 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈主页
+ * Created by Luckclouds.
+ */
+
 import android.Manifest
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.InsetDrawable
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +43,7 @@ import com.chat.moments.R
 import com.chat.moments.WKMomentsApplication
 import com.chat.moments.databinding.ActMomentTimelineLayoutBinding
 import com.chat.moments.entity.MomentComment
+import com.chat.moments.entity.MomentMedia
 import com.chat.moments.entity.MomentComposeMedia
 import com.chat.moments.entity.MomentPost
 import com.chat.moments.service.MomentModel
@@ -67,7 +73,9 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
             onLikeClick = ::toggleLike,
             onCommentClick = ::showCommentInput,
             onDeleteClick = ::deletePost,
-            onMoreClick = ::showActionPopup
+            onMoreClick = ::showActionPopup,
+            onFavoriteTextClick = ::toggleFavoriteText,
+            onFavoriteImageClick = ::toggleFavoriteImage
         )
     }
     private var pageIndex = 1
@@ -310,34 +318,38 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
                 showToast(msg)
                 return@loadTimeline
             }
-            headerAvatarView.showAvatar(headerUid, WKChannelType.PERSONAL)
-            val fallbackName = page.list.firstOrNull()?.user?.name?.takeIf { it.isNotEmpty() }
-                ?: page.uid.takeIf { it.isNotEmpty() }
-                ?: headerUid.orEmpty()
-            val channel = WKIM.getInstance().channelManager.getChannel(headerUid, WKChannelType.PERSONAL)
-            val remarkName = channel?.channelRemark?.takeIf { it.isNotEmpty() }
-            val channelName = channel?.channelName?.takeIf { it.isNotEmpty() }
-            val displayName = headerDisplayName.takeIf { it.isNotEmpty() }
-            headerNameTv.text = if (isSelfTimeline) {
-                channelName
-                    ?: fallbackName.ifEmpty { getString(R.string.moment_title) }
-            } else {
-                remarkName
-                    ?: channelName
-                    ?: displayName
-                    ?: fallbackName.ifEmpty { getString(R.string.moment_title) }
-            }
-            refreshHeaderCoverFromProfile()
-            if (isRefresh) {
-                adapter.setList(page.list)
-            } else {
-                adapter.addData(page.list)
-            }
-            isNoMoreData = page.list.size < pageSize
-            if (isNoMoreData) {
-                wkVBinding.refreshLayout.finishLoadMoreWithNoMoreData()
-            } else {
-                pageIndex += 1
+            try {
+                headerAvatarView.showAvatar(headerUid, WKChannelType.PERSONAL)
+                val fallbackName = page.list.firstOrNull()?.user?.name?.takeIf { it.isNotEmpty() }
+                    ?: page.uid.takeIf { it.isNotEmpty() }
+                    ?: headerUid.orEmpty()
+                val channel = WKIM.getInstance().channelManager.getChannel(headerUid, WKChannelType.PERSONAL)
+                val remarkName = channel?.channelRemark?.takeIf { it.isNotEmpty() }
+                val channelName = channel?.channelName?.takeIf { it.isNotEmpty() }
+                val displayName = headerDisplayName.takeIf { it.isNotEmpty() }
+                headerNameTv.text = if (isSelfTimeline) {
+                    channelName
+                        ?: fallbackName.ifEmpty { getString(R.string.moment_title) }
+                } else {
+                    remarkName
+                        ?: channelName
+                        ?: displayName
+                        ?: fallbackName.ifEmpty { getString(R.string.moment_title) }
+                }
+                // 主页封面现在统一只认 profile 接口，不再使用时间轴返回的 cover。
+                refreshHeaderCoverFromProfile()
+                if (isRefresh) {
+                    adapter.setList(page.list)
+                } else {
+                    adapter.addData(page.list)
+                }
+                isNoMoreData = page.list.size < pageSize
+                if (isNoMoreData) {
+                    wkVBinding.refreshLayout.finishLoadMoreWithNoMoreData()
+                } else {
+                    pageIndex += 1
+                }
+            } catch (_: Exception) {
             }
         }
     }
@@ -433,14 +445,20 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         }
         val bottomSheet = builder.create()
         bottomSheet.show()
-        val iconInset = AndroidUtilities.dp(10f)
-        val innerPadding = AndroidUtilities.dp(6f)
         bottomSheet.itemViews.forEachIndexed { index, cell ->
             val imageView = cell.imageView
             imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            imageView.setPadding(innerPadding, innerPadding, innerPadding, innerPadding)
+            imageView.setPadding(0, 0, 0, 0)
             val drawable = ContextCompat.getDrawable(this, icons[index]) ?: return@forEachIndexed
-            imageView.setImageDrawable(InsetDrawable(drawable, iconInset))
+            imageView.setImageDrawable(drawable)
+            (imageView.layoutParams as? FrameLayout.LayoutParams)?.let { params ->
+                params.width = AndroidUtilities.dp(16f)
+                params.height = AndroidUtilities.dp(16f)
+                params.marginStart = AndroidUtilities.dp(20f)
+                params.topMargin = 0
+                params.bottomMargin = 0
+                imageView.layoutParams = params
+            }
         }
     }
 
@@ -581,40 +599,49 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
             WKToastUtils.getInstance().showToastNormal(getString(R.string.moment_cover_update_success))
             return
         }
-        MomentModel.instance.getProfile(uid) { code, msg, profile ->
-            if (code == HttpResponseCode.success.toInt()) {
-                val targetPath = profile.cover.ifEmpty { fallbackCover }
-                val targetVersion = if (profile.version > 0L) profile.version else System.currentTimeMillis()
-                showHeaderCover(targetPath, targetVersion)
-                WKToastUtils.getInstance().showToastNormal(getString(R.string.moment_cover_update_success))
-            } else {
-                showToast(msg)
+        try {
+            MomentModel.instance.getProfile(uid) { code, msg, profile ->
+                if (code == HttpResponseCode.success.toInt()) {
+                    val targetPath = profile.cover.ifEmpty { fallbackCover }
+                    val targetVersion = if (profile.version > 0L) profile.version else System.currentTimeMillis()
+                    showHeaderCover(targetPath, targetVersion)
+                    WKToastUtils.getInstance().showToastNormal(getString(R.string.moment_cover_update_success))
+                } else {
+                    showToast(msg)
+                }
             }
+        } catch (_: Exception) {
         }
     }
 
     private fun refreshHeaderCoverFromProfile() {
         val uid = headerUid.orEmpty()
         if (uid.isEmpty()) return
-        MomentModel.instance.getProfile(uid) { code, _, profile ->
-            if (code == HttpResponseCode.success.toInt() && profile.cover.isNotEmpty()) {
-                showHeaderCover(profile.cover, profile.version)
+        try {
+            MomentModel.instance.getProfile(uid) { code, _, profile ->
+                if (code == HttpResponseCode.success.toInt() && profile.cover.isNotEmpty()) {
+                    showHeaderCover(profile.cover, profile.version)
+                }
             }
+        } catch (_: Exception) {
         }
     }
 
     private fun showHeaderCover(path: String, version: Long) {
-        if (path.isEmpty()) return
-        currentHeaderCoverPath = path
-        currentHeaderCoverVersion = version
-        MomentUiUtils.showImage(this, MomentUiUtils.buildCacheBustedUrl(path, version), coverIv)
+        try {
+            if (path.isEmpty()) return
+            currentHeaderCoverPath = path
+            currentHeaderCoverVersion = version
+            MomentUiUtils.showImage(this, MomentUiUtils.buildCacheBustedUrl(path, version), coverIv)
+        } catch (_: Exception) {
+        }
     }
 
     private fun showActionPopup(anchor: View, post: MomentPost) {
         val list = arrayListOf(
             PopupMenuItem(
                 getString(if (post.likedByMe) R.string.moment_cancel_action else R.string.moment_like_action),
-                if (post.likedByMe) R.drawable.icon_moment_like_active else R.drawable.icon_moment_like_outline
+                if (post.likedByMe) R.drawable.icon_moment_like_menu_active else R.drawable.icon_moment_like_outline
             ) {
                 toggleLike(post)
             },
@@ -735,6 +762,40 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
                     adapter.removeAt(index)
                 }
             }
+        }
+    }
+
+    private fun toggleFavoriteText(post: MomentPost) {
+        MomentModel.instance.toggleFavorite(post.postId) { code, msg, isFavorite ->
+            if (code != HttpResponseCode.success.toInt()) {
+                showToast(msg)
+                return@toggleFavorite
+            }
+            WKToastUtils.getInstance().showToastNormal(
+                getString(
+                    if (isFavorite) com.chat.uikit.R.string.favorite_add_success
+                    else com.chat.uikit.R.string.favorite_delete_success
+                )
+            )
+        }
+    }
+
+    private fun toggleFavoriteImage(post: MomentPost, media: MomentMedia) {
+        MomentModel.instance.toggleFavorite(
+            post.postId,
+            favoriteType = "image",
+            mediaUrl = media.url.ifEmpty { null }
+        ) { code, msg, isFavorite ->
+            if (code != HttpResponseCode.success.toInt()) {
+                showToast(msg)
+                return@toggleFavorite
+            }
+            WKToastUtils.getInstance().showToastNormal(
+                getString(
+                    if (isFavorite) com.chat.uikit.R.string.favorite_add_success
+                    else com.chat.uikit.R.string.favorite_delete_success
+                )
+            )
         }
     }
 }

@@ -1,6 +1,13 @@
 package com.chat.moments.util
 
+/**
+ * 朋友圈 UI 工具集
+ * Created by Luckclouds.
+ */
+
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -18,6 +25,10 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.chat.base.WKBaseApplication
 import com.chat.base.act.PlayVideoActivity
+import com.chat.base.endpoint.EndpointManager
+import com.chat.base.endpoint.EndpointSID
+import com.chat.base.endpoint.entity.ChatChooseContacts
+import com.chat.base.endpoint.entity.ChooseChatMenu
 import com.chat.base.entity.ImagePopupBottomSheetItem
 import com.chat.base.config.WKApiConfig
 import com.chat.base.glide.GlideUtils
@@ -25,6 +36,7 @@ import com.chat.base.ui.components.AvatarView
 import com.chat.base.utils.AndroidUtilities
 import com.chat.base.utils.WKDialogUtils
 import com.chat.base.utils.WKTimeUtils
+import com.chat.base.utils.WKToastUtils
 import com.chat.moments.R
 import com.chat.moments.entity.MomentComment
 import com.chat.moments.entity.MomentLike
@@ -33,7 +45,12 @@ import com.chat.moments.entity.MomentNotice
 import com.chat.moments.entity.MomentTagChoice
 import com.chat.moments.entity.MomentUserChoice
 import com.chat.moments.entity.MomentVisibilityType
+import com.chat.uikit.R as UIKitR
 import com.chat.uikit.user.UserDetailActivity
+import com.google.android.material.snackbar.Snackbar
+import com.xinbida.wukongim.WKIM
+import com.xinbida.wukongim.entity.WKChannel
+import com.xinbida.wukongim.msgmodel.WKImageContent
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -53,10 +70,14 @@ object MomentUiUtils {
     }
 
     fun showImage(context: Context, path: String?, imageView: ImageView) {
-        val showUrl = resolveUrl(path)
-        if (showUrl.isNotEmpty()) {
-            GlideUtils.getInstance().showImg(context, showUrl, imageView)
-        } else {
+        try {
+            val showUrl = resolveUrl(path)
+            if (showUrl.isNotEmpty()) {
+                GlideUtils.getInstance().showImg(context, showUrl, imageView)
+            } else {
+                imageView.setImageDrawable(null)
+            }
+        } catch (_: Exception) {
             imageView.setImageDrawable(null)
         }
     }
@@ -94,12 +115,78 @@ object MomentUiUtils {
         )
     }
 
+    fun showMomentImagePopup(
+        activity: Activity,
+        imageView: ImageView,
+        medias: List<MomentMedia>,
+        index: Int,
+        onFavorite: (MomentMedia) -> Unit
+    ) {
+        try {
+            val validMedias = medias.filter { !it.type.equals("video", true) && it.url.isNotEmpty() }
+            if (validMedias.isEmpty()) return
+            val resolvedUrls = validMedias.map { resolveUrl(it.url) }
+            val imageViews = ArrayList<ImageView>(resolvedUrls.size)
+            repeat(resolvedUrls.size) {
+                imageViews += imageView
+            }
+            val popupItems = ArrayList<Any>(resolvedUrls.size).apply {
+                addAll(resolvedUrls)
+            }
+            val bottomItems = arrayListOf<ImagePopupBottomSheetItem>(
+                ImagePopupBottomSheetItem(
+                    activity.getString(com.chat.base.R.string.forward),
+                    UIKitR.mipmap.msg_forward,
+                    object : ImagePopupBottomSheetItem.IBottomSheetClick {
+                        override fun onClick(index: Int) {
+                            validMedias.getOrNull(index)?.let { forwardMomentImage(activity, it) }
+                        }
+                    }
+                ),
+                ImagePopupBottomSheetItem(
+                    activity.getString(com.chat.base.R.string.favorite),
+                    UIKitR.mipmap.msg_fave,
+                    object : ImagePopupBottomSheetItem.IBottomSheetClick {
+                        override fun onClick(index: Int) {
+                            validMedias.getOrNull(index)?.let(onFavorite)
+                        }
+                    }
+                )
+            )
+            // 图片查看器这边只扩展朋友圈自己的收藏/转发，
+            // 保存到本地仍然复用底层查看器自动追加的通用能力。
+            WKDialogUtils.getInstance().showImagePopup(
+                activity,
+                popupItems,
+                imageViews,
+                imageView,
+                index.coerceAtMost(resolvedUrls.lastIndex),
+                bottomItems,
+                null,
+                null
+            )
+        } catch (_: Exception) {
+        }
+    }
+
     fun openVideo(context: Context, media: MomentMedia) {
-        val intent = Intent(context, PlayVideoActivity::class.java)
-        intent.putExtra("url", resolveUrl(media.url))
-        intent.putExtra("coverImg", resolveUrl(if (media.coverUrl.isNotEmpty()) media.coverUrl else media.url))
-        intent.putExtra("title", context.getString(R.string.moment_video))
-        context.startActivity(intent)
+        try {
+            val intent = Intent(context, PlayVideoActivity::class.java)
+            intent.putExtra("url", resolveUrl(media.url))
+            intent.putExtra("coverImg", resolveUrl(if (media.coverUrl.isNotEmpty()) media.coverUrl else media.url))
+            intent.putExtra("title", context.getString(R.string.moment_video))
+            context.startActivity(intent)
+        } catch (_: Exception) {
+        }
+    }
+
+    fun copyText(context: Context, text: String) {
+        try {
+            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+            clipboardManager.setPrimaryClip(ClipData.newPlainText("moment_text", text))
+            WKToastUtils.getInstance().showToastNormal(context.getString(com.chat.base.R.string.copyed))
+        } catch (_: Exception) {
+        }
     }
 
     fun openUserCard(context: Context, uid: String?) {
@@ -346,5 +433,31 @@ object MomentUiUtils {
 
     fun setVisible(view: View, isVisible: Boolean) {
         view.visibility = if (isVisible) View.VISIBLE else View.GONE
+    }
+
+    private fun forwardMomentImage(activity: Activity, media: MomentMedia) {
+        try {
+            val imageContent = WKImageContent("")
+            imageContent.url = resolveUrl(media.url)
+            imageContent.width = media.width
+            imageContent.height = media.height
+            EndpointManager.getInstance().invoke(
+                EndpointSID.showChooseChatView,
+                ChooseChatMenu(
+                    ChatChooseContacts { list: List<WKChannel>? ->
+                        if (list.isNullOrEmpty()) return@ChatChooseContacts
+                        for (channel in list) {
+                            WKIM.getInstance().msgManager.send(imageContent, channel)
+                        }
+                        val viewGroup = activity.findViewById<View>(android.R.id.content).rootView as android.view.ViewGroup
+                        Snackbar.make(viewGroup, activity.getString(com.chat.base.R.string.str_forward), 1000)
+                            .setAction("") { }
+                            .show()
+                    },
+                    imageContent
+                )
+            )
+        } catch (_: Exception) {
+        }
     }
 }

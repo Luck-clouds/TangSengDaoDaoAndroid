@@ -1,5 +1,10 @@
 package com.chat.moments.ui
 
+/**
+ * 朋友圈发布编辑页
+ * Created by Luckclouds.
+ */
+
 import android.Manifest
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -8,9 +13,14 @@ import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.endpoint.EndpointManager
 import com.chat.base.endpoint.entity.ChooseContactsMenu
@@ -50,6 +60,100 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     private var mentionSelection = MomentAudienceSelection()
     private var visibilitySelection = MomentAudienceSelection()
     private var textOnlyMode = false
+    private var dragOriginPosition = RecyclerView.NO_POSITION
+    private var dragPreviewTargetPosition = RecyclerView.NO_POSITION
+    private var dragOriginLeft = 0
+    private var dragOriginTop = 0
+    private val mediaTouchHelper by lazy {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT,
+            0
+        ) {
+            override fun isLongPressDragEnabled(): Boolean = true
+
+            override fun getMovementFlags(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                val position = viewHolder.bindingAdapterPosition
+                if (position == RecyclerView.NO_POSITION || position >= medias.size) {
+                    return makeMovementFlags(0, 0)
+                }
+                if (medias[position].type != MomentComposeMedia.TYPE_IMAGE) {
+                    return makeMovementFlags(0, 0)
+                }
+                return super.getMovementFlags(recyclerView, viewHolder)
+            }
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val fromPosition = viewHolder.bindingAdapterPosition
+                val toPosition = target.bindingAdapterPosition
+                if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) return false
+                if (fromPosition >= medias.size || toPosition >= medias.size) return false
+                if (medias[fromPosition].type != MomentComposeMedia.TYPE_IMAGE || medias[toPosition].type != MomentComposeMedia.TYPE_IMAGE) {
+                    return false
+                }
+                if (dragOriginPosition == RecyclerView.NO_POSITION) {
+                    dragOriginPosition = fromPosition
+                }
+                if (dragPreviewTargetPosition == toPosition) {
+                    return true
+                }
+                // 拖动中只做“目标坑位”的视觉预览，不提前改动真实 medias 顺序，
+                // 避免还没松手时列表就被真正重排。
+                resetPreviewTarget()
+                dragPreviewTargetPosition = toPosition
+                applyPreviewTarget(toPosition)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
+
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    dragOriginPosition = viewHolder?.bindingAdapterPosition ?: RecyclerView.NO_POSITION
+                    dragPreviewTargetPosition = RecyclerView.NO_POSITION
+                    dragOriginLeft = viewHolder?.itemView?.left ?: 0
+                    dragOriginTop = viewHolder?.itemView?.top ?: 0
+                    viewHolder?.itemView?.animate()?.scaleX(1.04f)?.scaleY(1.04f)?.alpha(0.92f)?.setDuration(120L)?.start()
+                }
+            }
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+                val finalTarget = dragPreviewTargetPosition
+                resetPreviewTarget()
+                if (dragOriginPosition != RecyclerView.NO_POSITION &&
+                    finalTarget != RecyclerView.NO_POSITION &&
+                    dragOriginPosition < medias.size &&
+                    finalTarget < medias.size &&
+                    dragOriginPosition != finalTarget &&
+                    medias[dragOriginPosition].type == MomentComposeMedia.TYPE_IMAGE &&
+                    medias[finalTarget].type == MomentComposeMedia.TYPE_IMAGE
+                ) {
+                    val temp = medias[dragOriginPosition]
+                    medias[dragOriginPosition] = medias[finalTarget]
+                    medias[finalTarget] = temp
+                    (wkVBinding.mediaRecyclerView.parent as? ViewGroup)?.let { parent ->
+                        TransitionManager.beginDelayedTransition(parent, AutoTransition().apply {
+                            duration = 180L
+                        })
+                    }
+                    renderMediaList()
+                }
+                dragOriginPosition = RecyclerView.NO_POSITION
+                dragPreviewTargetPosition = RecyclerView.NO_POSITION
+                dragOriginLeft = 0
+                dragOriginTop = 0
+                viewHolder.itemView.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(120L).start()
+            }
+        })
+    }
 
     private val mediaAdapter by lazy {
         MomentComposeMediaAdapter(
@@ -102,6 +206,7 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
         textOnlyMode = intent.getBooleanExtra(EXTRA_TEXT_ONLY, false)
         wkVBinding.mediaRecyclerView.layoutManager = GridLayoutManager(this, 3)
         wkVBinding.mediaRecyclerView.adapter = mediaAdapter
+        mediaTouchHelper.attachToRecyclerView(wkVBinding.mediaRecyclerView)
         MomentUiUtils.limitIconInside(wkVBinding.mentionIconIv, R.drawable.icon_moment_mention, insetDp = 2.5f)
         MomentUiUtils.limitIconInside(wkVBinding.visibilityIconIv, R.drawable.icon_moment_visibility, insetDp = 2.5f)
         MomentUiUtils.limitIconInside(wkVBinding.mentionArrowIv, com.chat.base.R.mipmap.ic_arrow_right, insetDp = 2.5f)
@@ -285,18 +390,31 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
 
     private fun buildVideoMedia(path: String): MomentComposeMedia {
         val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(path)
-        val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
-        val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
-        return MomentComposeMedia(
-            type = MomentComposeMedia.TYPE_VIDEO,
-            localPath = path,
-            coverPath = WKMediaFileUtils.getInstance().getVideoCover(path),
-            width = width,
-            height = height,
-            durationMs = WKMediaFileUtils.getInstance().getVideoTime(path),
-            size = WKFileUtils.getInstance().getFileSize(path)
-        )
+        return try {
+            retriever.setDataSource(path)
+            val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+            val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+            MomentComposeMedia(
+                type = MomentComposeMedia.TYPE_VIDEO,
+                localPath = path,
+                coverPath = WKMediaFileUtils.getInstance().getVideoCover(path),
+                width = width,
+                height = height,
+                durationMs = WKMediaFileUtils.getInstance().getVideoTime(path),
+                size = WKFileUtils.getInstance().getFileSize(path)
+            )
+        } catch (_: Exception) {
+            MomentComposeMedia(
+                type = MomentComposeMedia.TYPE_VIDEO,
+                localPath = path,
+                coverPath = path
+            )
+        } finally {
+            try {
+                retriever.release()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun renderMediaList() {
@@ -312,6 +430,43 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
             display += null
         }
         mediaAdapter.setList(display)
+    }
+
+    private fun applyPreviewTarget(targetPosition: Int) {
+        if (dragOriginPosition == RecyclerView.NO_POSITION ||
+            targetPosition == RecyclerView.NO_POSITION ||
+            targetPosition == dragOriginPosition
+        ) {
+            return
+        }
+        try {
+            val targetView = wkVBinding.mediaRecyclerView.findViewHolderForAdapterPosition(targetPosition)?.itemView ?: return
+            val deltaX = (dragOriginLeft - targetView.left).toFloat()
+            val deltaY = (dragOriginTop - targetView.top).toFloat()
+            targetView.animate()
+                .translationX(deltaX)
+                .translationY(deltaY)
+                .scaleX(0.96f)
+                .scaleY(0.96f)
+                .setDuration(140L)
+                .start()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun resetPreviewTarget() {
+        if (dragPreviewTargetPosition == RecyclerView.NO_POSITION) return
+        try {
+            val targetView = wkVBinding.mediaRecyclerView.findViewHolderForAdapterPosition(dragPreviewTargetPosition)?.itemView ?: return
+            targetView.animate()
+                .translationX(0f)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(120L)
+                .start()
+        } catch (_: Exception) {
+        }
     }
 
     private fun updatePublishEnabled() {

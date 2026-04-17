@@ -1,5 +1,10 @@
 package com.chat.video.session
 
+/**
+ * 小视频发送会话上下文
+ * Created by Luckclouds.
+ */
+
 import androidx.appcompat.app.AppCompatActivity
 import com.chat.base.msg.IConversationContext
 import com.chat.base.utils.WKToastUtils

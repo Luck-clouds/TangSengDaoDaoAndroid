@@ -127,8 +127,8 @@
 
                     <ImageView
                         android:id="@+id/likeIv"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:src="@drawable/icon_moment_like_outline" />
 
                 <TextView

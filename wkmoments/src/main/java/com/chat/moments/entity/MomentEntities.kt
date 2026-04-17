@@ -1,5 +1,10 @@
 package com.chat.moments.entity
 
+/**
+ * 朋友圈实体定义
+ * Created by Luckclouds.
+ */
+
 import android.content.Context
 import android.os.Parcelable
 import com.chat.base.WKBaseApplication
@@ -93,6 +98,7 @@ data class MomentPost(
     var createdAt: String = "",
     var canDelete: Boolean = false,
     var likedByMe: Boolean = false,
+    var isContentExpanded: Boolean = false,
     var user: MomentUser = MomentUser(),
     var locationTitle: String = "",
     var mentionUsers: MutableList<MomentUserChoice> = mutableListOf(),

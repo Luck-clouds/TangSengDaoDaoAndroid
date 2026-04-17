@@ -1,5 +1,10 @@
 package com.chat.moments.util
 
+/**
+ * 朋友圈下拉刷新动画辅助
+ * Created by Luckclouds.
+ */
+
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup

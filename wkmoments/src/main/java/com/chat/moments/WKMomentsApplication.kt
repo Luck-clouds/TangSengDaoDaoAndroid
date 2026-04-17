@@ -1,5 +1,10 @@
 package com.chat.moments
 
+/**
+ * 朋友圈模块入口
+ * Created by Luckclouds.
+ */
+
 import android.app.Activity
 import android.app.Application
 import android.content.Context

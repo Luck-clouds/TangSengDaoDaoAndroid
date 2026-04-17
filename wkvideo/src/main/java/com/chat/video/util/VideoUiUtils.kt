@@ -1,5 +1,10 @@
 package com.chat.video.util
 
+/**
+ * 小视频 UI 工具集
+ * Created by Luckclouds.
+ */
+
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever

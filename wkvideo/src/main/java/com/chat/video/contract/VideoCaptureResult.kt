@@ -1,5 +1,10 @@
 package com.chat.video.contract
 
+/**
+ * 小视频拍摄结果实体
+ * Created by Luckclouds.
+ */
+
 import android.content.Intent
 
 // 统一的拍摄结果结构，聊天外的模块可以直接拿它做编辑、上传或发布。

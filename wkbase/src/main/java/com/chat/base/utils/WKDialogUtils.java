@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.InsetDrawable;
 import android.text.InputFilter;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -529,21 +528,25 @@ public class WKDialogUtils {
             PopupMenuItem item = list.get(i);
             ActionBarMenuSubItem subItem = new ActionBarMenuSubItem(view.getContext(), false, i == 0, i == list.size() - 1);
             subItem.setTextAndIcon(item.getText(), item.getIconResourceID());
-            subItem.setTag(R.id.width_tag, 240);
-            subItem.setTag(R.id.min_width_tag, 150);
+            subItem.setTag(R.id.width_tag, 152);
+            subItem.setTag(R.id.min_width_tag, 124);
             if (item.getColor() != 0) {
                 subItem.setTextColor(item.getColor());
                 subItem.setIconColor(item.getColor());
             }
-            subItem.setMultiline();
             ImageView imageView = subItem.getImageView();
             imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            int iconInset = AndroidUtilities.dp(4);
-            int innerPadding = AndroidUtilities.dp(2);
-            imageView.setPadding(innerPadding, innerPadding, innerPadding, innerPadding);
+            if (imageView.getLayoutParams() != null) {
+                imageView.getLayoutParams().width = AndroidUtilities.dp(20);
+                imageView.getLayoutParams().height = AndroidUtilities.dp(20);
+            }
+            imageView.setPadding(0, 0, 0, 0);
             Drawable drawable = ContextCompat.getDrawable(view.getContext(), item.getIconResourceID());
             if (drawable != null) {
-                imageView.setImageDrawable(new InsetDrawable(drawable, iconInset));
+                imageView.setImageDrawable(drawable);
+            }
+            if (item.getColor() == 0) {
+                imageView.clearColorFilter();
             }
             subItem.setOnClickListener(view1 -> {
                 if (scrimPopupWindow != null) {

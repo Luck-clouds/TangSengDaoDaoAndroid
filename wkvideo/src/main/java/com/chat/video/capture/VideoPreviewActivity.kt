@@ -1,5 +1,10 @@
 package com.chat.video.capture
 
+/**
+ * 小视频预览页
+ * Created by Luckclouds.
+ */
+
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri

@@ -1,5 +1,10 @@
 package com.chat.moments.service
 
+/**
+ * 朋友圈数据模型
+ * Created by Luckclouds.
+ */
+
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import com.chat.base.base.WKBaseModel
@@ -281,6 +286,30 @@ class MomentModel private constructor() : WKBaseModel() {
 
             override fun onFail(code: Int, msg: String) {
                 callback(code, msg)
+            }
+        })
+    }
+
+    fun toggleFavorite(
+        postId: String,
+        favoriteType: String? = null,
+        mediaUrl: String? = null,
+        callback: (Int, String, Boolean) -> Unit
+    ) {
+        val body = JSONObject()
+        if (!favoriteType.isNullOrEmpty()) {
+            body["favorite_type"] = favoriteType
+        }
+        if (!mediaUrl.isNullOrEmpty()) {
+            body["media_url"] = mediaUrl
+        }
+        request(service.toggleFavorite(postId, body), object : IRequestResultListener<JSONObject> {
+            override fun onSuccess(result: JSONObject) {
+                callback(successCode, "", unwrapObject(result).getIntValue("is_favorite") == 1)
+            }
+
+            override fun onFail(code: Int, msg: String) {
+                callback(code, msg, false)
             }
         })
     }

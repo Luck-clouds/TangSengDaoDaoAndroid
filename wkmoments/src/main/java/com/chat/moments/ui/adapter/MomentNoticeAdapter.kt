@@ -1,5 +1,10 @@
 package com.chat.moments.ui.adapter
 
+/**
+ * 朋友圈通知适配器
+ * Created by Luckclouds.
+ */
+
 import android.widget.ImageView
 import android.widget.TextView
 import com.chad.library.adapter.base.BaseQuickAdapter

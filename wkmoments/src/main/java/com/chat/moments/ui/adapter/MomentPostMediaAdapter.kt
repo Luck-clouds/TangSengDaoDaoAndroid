@@ -1,5 +1,10 @@
 package com.chat.moments.ui.adapter
 
+/**
+ * 朋友圈动态媒体适配器
+ * Created by Luckclouds.
+ */
+
 import android.view.View
 import android.widget.ImageView
 import com.chat.base.utils.AndroidUtilities
