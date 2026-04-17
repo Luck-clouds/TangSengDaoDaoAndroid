@@ -69,6 +69,18 @@ class MomentModel private constructor() : WKBaseModel() {
         })
     }
 
+    fun getPostDetail(postId: String, callback: (Int, String, MomentPost) -> Unit) {
+        request(service.getPostDetail(postId), object : IRequestResultListener<JSONObject> {
+            override fun onSuccess(result: JSONObject) {
+                callback(successCode, "", parsePost(unwrapObject(result)))
+            }
+
+            override fun onFail(code: Int, msg: String) {
+                callback(code, msg, MomentPost(postId = postId))
+            }
+        })
+    }
+
     fun getStrangerVisibility(callback: (Int, String, String) -> Unit) {
         request(service.getStrangerVisibility(), object : IRequestResultListener<JSONObject> {
             override fun onSuccess(result: JSONObject) {
@@ -274,15 +286,11 @@ class MomentModel private constructor() : WKBaseModel() {
     }
 
     fun syncNotices(version: Long, limit: Int, callback: (Int, String, List<MomentNotice>, Long) -> Unit) {
-        request(service.syncNotices(version, limit), object : IRequestResultListener<JSONObject> {
-            override fun onSuccess(result: JSONObject) {
-                val data = unwrapObject(result)
-                callback(
-                    successCode,
-                    "",
-                    parseNoticeList(data.getJSONArray("list")),
-                    data.getLongValue("version")
-                )
+        request(service.syncNotices(version, limit), object : IRequestResultListener<JSONArray> {
+            override fun onSuccess(result: JSONArray) {
+                val list = parseNoticeList(result).sortedByDescending { it.version }
+                val latestVersion = list.maxOfOrNull { it.version } ?: version
+                callback(successCode, "", list, latestVersion)
             }
 
             override fun onFail(code: Int, msg: String) {
@@ -293,7 +301,7 @@ class MomentModel private constructor() : WKBaseModel() {
 
     fun markNoticesRead(ids: List<Long>, readAll: Boolean, callback: (Int, String) -> Unit) {
         val body = JSONObject()
-        body["read_all"] = readAll
+        body["read_all"] = if (readAll) 1 else 0
         body["ids"] = JSONArray().apply { ids.forEach { add(it) } }
         request(service.markNoticesRead(body), object : IRequestResultListener<JSONObject> {
             override fun onSuccess(result: JSONObject) {
@@ -395,7 +403,11 @@ class MomentModel private constructor() : WKBaseModel() {
     private fun buildMentionBody(selection: MomentAudienceSelection): JSONObject {
         val body = JSONObject()
         body["uids"] = JSONArray().apply { selection.users.forEach { add(it.uid) } }
-        body["tag_ids"] = JSONArray().apply { selection.tags.forEach { add(it.id) } }
+        body["tag_ids"] = JSONArray().apply {
+            selection.tags.forEach { tag ->
+                tag.id.toLongOrNull()?.let { add(it) }
+            }
+        }
         return body
     }
 
@@ -408,7 +420,11 @@ class MomentModel private constructor() : WKBaseModel() {
             else -> MomentVisibilityType.PUBLIC
         }
         body["uids"] = JSONArray().apply { selection.users.forEach { add(it.uid) } }
-        body["tag_ids"] = JSONArray().apply { selection.tags.forEach { add(it.id) } }
+        body["tag_ids"] = JSONArray().apply {
+            selection.tags.forEach { tag ->
+                tag.id.toLongOrNull()?.let { add(it) }
+            }
+        }
         return body
     }
 
@@ -417,6 +433,7 @@ class MomentModel private constructor() : WKBaseModel() {
         val page = MomentFeedPage()
         page.uid = data.getString("uid") ?: ""
         page.cover = data.getString("cover") ?: ""
+        page.coverVersion = data.getLongValue("version")
         parsePostList(data.getJSONArray("list")).forEach { page.list += it }
         return page
     }

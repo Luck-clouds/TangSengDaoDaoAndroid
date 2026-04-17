@@ -32,10 +32,10 @@
     <string name="moment_publish">发送</string>
     <string name="moment_my_timeline">我的朋友圈</string>
     <string name="moment_notice_title">朋友圈消息</string>
+    <string name="moment_cover_title">封面</string>
     <string name="moment_visibility_done">完成</string>
     <string name="moment_select_media_first">先选择图片或视频</string>
     <string name="moment_max_image_count">最多选择9张图片</string>
-    <string name="moment_only_one_video">视频只能选择一个，且不能和图片混发</string>
     <string name="moment_publish_success">发布成功</string>
     <string name="moment_publish_failed">发布失败</string>
     <string name="moment_cover_update_success">封面已更新</string>
@@ -53,12 +53,20 @@
     <string name="moment_delete_confirm">确认删除这条朋友圈吗？</string>
     <string name="moment_delete_comment_confirm">确认删除这条评论吗？</string>
     <string name="moment_choose_media">选择图片/视频</string>
-    <string name="moment_take_media">拍摄</string>
-    <string name="moment_choose_album">相册</string>
+    <string name="moment_take_media">拍照/图片或视频</string>
+    <string name="moment_choose_album">从相册中获取</string>
     <string name="moment_text_post">发表文字</string>
     <string name="moment_notice_like">%1$s 赞了你的动态</string>
     <string name="moment_notice_comment">%1$s 评论了你的动态</string>
     <string name="moment_notice_reply">%1$s 回复了你的评论</string>
     <string name="moment_notice_mention">%1$s 提到了你</string>
+    <string name="moment_notice_banner_count">%1$d 条新消息</string>
+    <string name="moment_notice_like_simple">赞了你</string>
+    <string name="moment_notice_comment_simple">评论了你</string>
+    <string name="moment_notice_reply_simple">回复了你</string>
+    <string name="moment_notice_mention_simple">提到了你</string>
+    <string name="moment_selected_users">已选择%1$d位用户</string>
+    <string name="moment_selected_tags">已选择%1$d个标签</string>
     <string name="moment_unavailable">暂未接入</string>
+    <string name="moment_only_one_video">不允许同时存在视频与图片</string>
 </resources>

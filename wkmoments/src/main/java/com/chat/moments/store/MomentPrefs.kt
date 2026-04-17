@@ -25,6 +25,14 @@ object MomentPrefs {
         return WKSharedPreferencesUtil.getInstance().getLong(key("moment_notice_version"))
     }
 
+    fun saveLatestNoticePreview(text: String) {
+        WKSharedPreferencesUtil.getInstance().putSP(key("moment_latest_notice_preview"), text)
+    }
+
+    fun latestNoticePreview(): String {
+        return WKSharedPreferencesUtil.getInstance().getSP(key("moment_latest_notice_preview"))
+    }
+
     fun saveUserState(uid: String, blockMe: Boolean, hideHim: Boolean) {
         WKSharedPreferencesUtil.getInstance().putBoolean(key("moment_state_block_$uid"), blockMe)
         WKSharedPreferencesUtil.getInstance().putBoolean(key("moment_state_hide_$uid"), hideHim)

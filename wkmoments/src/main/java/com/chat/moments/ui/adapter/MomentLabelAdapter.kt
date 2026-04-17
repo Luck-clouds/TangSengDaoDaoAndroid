@@ -17,9 +17,13 @@ class MomentLabelAdapter : BaseQuickAdapter<MomentLabelItem, BaseViewHolder>(R.l
         val checkBox = holder.getView<CheckBox>(R.id.checkBox)
         val nameTv = holder.getView<TextView>(R.id.nameTv)
         val memberTv = holder.getView<TextView>(R.id.memberTv)
+        checkBox.setOnCheckedChangeListener(null)
         checkBox.isChecked = item.selected
         nameTv.text = item.label.name
         memberTv.text = item.label.memberNames.joinToString("、")
+        checkBox.setOnCheckedChangeListener { _, isChecked ->
+            item.selected = isChecked
+        }
         holder.itemView.setOnClickListener {
             item.selected = !item.selected
             checkBox.isChecked = item.selected

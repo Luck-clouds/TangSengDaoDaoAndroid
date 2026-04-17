@@ -78,7 +78,11 @@ class MomentPostAdapter(
         MomentUiUtils.bindCommentsText(commentsTv, item.comments) { comment ->
             onCommentClick(item, comment)
         }
-        likeIv.setImageResource(if (hasLikes) R.drawable.icon_moment_like_active else R.drawable.icon_moment_like_outline)
+        MomentUiUtils.limitIconInside(
+            likeIv,
+            if (hasLikes) R.drawable.icon_moment_like_active else R.drawable.icon_moment_like_outline,
+            insetDp = 2f
+        )
         likeIv.clearColorFilter()
         likesLayout.setOnClickListener(null)
         commentsTv.setOnClickListener(null)

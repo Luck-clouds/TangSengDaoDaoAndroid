@@ -1,5 +1,6 @@
 package com.chat.moments.service
 
+import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import io.reactivex.rxjava3.core.Observable
 import retrofit2.http.Body
@@ -49,7 +50,7 @@ interface MomentService {
     fun syncNotices(
         @Query("version") version: Long,
         @Query("limit") limit: Int
-    ): Observable<JSONObject>
+    ): Observable<JSONArray>
 
     @POST("moment/notices/read")
     fun markNoticesRead(@Body body: JSONObject): Observable<JSONObject>

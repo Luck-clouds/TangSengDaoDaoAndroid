@@ -1,45 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="320dp">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/coverIv"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="244dp"
-        android:scaleType="centerCrop" />
+        android:layout_height="320dp">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="244dp"
-        android:background="@drawable/bg_moment_cover_scrim" />
+        <ImageView
+            android:id="@+id/coverIv"
+            android:layout_width="match_parent"
+            android:layout_height="244dp"
+            android:scaleType="centerCrop" />
 
-    <ImageView
-        android:id="@+id/headerCameraIv"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_gravity="end|top"
-        android:layout_marginTop="60dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/icon_moment_camera_white" />
+        <View
+            android:id="@+id/coverScrimView"
+            android:layout_width="match_parent"
+            android:layout_height="244dp"
+            android:background="@drawable/bg_moment_cover_scrim" />
 
-    <com.chat.base.ui.components.AvatarView
-        android:id="@+id/avatarView"
+        <ImageView
+            android:id="@+id/headerCameraIv"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="end|top"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/icon_moment_camera_white" />
+
+        <com.chat.base.ui.components.AvatarView
+            android:id="@+id/avatarView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_marginTop="176dp"
+            android:layout_marginEnd="16dp" />
+
+        <TextView
+            android:id="@+id/nameTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_marginTop="202dp"
+            android:layout_marginEnd="116dp"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/noticeBannerLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_marginTop="176dp"
-        android:layout_marginEnd="16dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_moment_notice_banner_rect"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/nameTv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:layout_marginTop="202dp"
-        android:layout_marginEnd="116dp"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        <com.chat.base.ui.components.AvatarView
+            android:id="@+id/noticeBannerAvatarView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/noticeBannerTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

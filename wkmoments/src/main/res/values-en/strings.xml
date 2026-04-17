@@ -32,10 +32,11 @@
     <string name="moment_publish">Send</string>
     <string name="moment_my_timeline">My Moments</string>
     <string name="moment_notice_title">Moment Notifications</string>
+    <string name="moment_cover_title">Cover</string>
     <string name="moment_visibility_done">Done</string>
     <string name="moment_select_media_first">Select photo or video first</string>
     <string name="moment_max_image_count">Up to 9 images</string>
-    <string name="moment_only_one_video">Only one video is allowed and it cannot be mixed with images</string>
+    <string name="moment_only_one_video">Videos and pictures are not allowed to coexist simultaneously.</string>
     <string name="moment_publish_success">Published</string>
     <string name="moment_publish_failed">Publish failed</string>
     <string name="moment_cover_update_success">Cover updated</string>
@@ -53,12 +54,19 @@
     <string name="moment_delete_confirm">Delete this moment?</string>
     <string name="moment_delete_comment_confirm">Delete this comment?</string>
     <string name="moment_choose_media">Choose photo/video</string>
-    <string name="moment_take_media">Capture</string>
-    <string name="moment_choose_album">Album</string>
+    <string name="moment_take_media">Capture / Photo / Video</string>
+    <string name="moment_choose_album">Import from album</string>
     <string name="moment_text_post">Text only</string>
     <string name="moment_notice_like">%1$s liked your post</string>
     <string name="moment_notice_comment">%1$s commented on your post</string>
     <string name="moment_notice_reply">%1$s replied to your comment</string>
     <string name="moment_notice_mention">%1$s mentioned you</string>
+    <string name="moment_notice_banner_count">%1$d new notifications</string>
+    <string name="moment_notice_like_simple">liked you</string>
+    <string name="moment_notice_comment_simple">commented on you</string>
+    <string name="moment_notice_reply_simple">replied to you</string>
+    <string name="moment_notice_mention_simple">mentioned you</string>
+    <string name="moment_selected_users">%1$d users selected</string>
+    <string name="moment_selected_tags">%1$d tags selected</string>
     <string name="moment_unavailable">Not available yet</string>
 </resources>

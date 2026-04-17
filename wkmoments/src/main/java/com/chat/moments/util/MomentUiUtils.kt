@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.InsetDrawable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.TextUtils
@@ -14,18 +15,21 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.chat.base.WKBaseApplication
 import com.chat.base.act.PlayVideoActivity
 import com.chat.base.entity.ImagePopupBottomSheetItem
 import com.chat.base.config.WKApiConfig
 import com.chat.base.glide.GlideUtils
 import com.chat.base.ui.components.AvatarView
+import com.chat.base.utils.AndroidUtilities
 import com.chat.base.utils.WKDialogUtils
 import com.chat.base.utils.WKTimeUtils
 import com.chat.moments.R
 import com.chat.moments.entity.MomentComment
 import com.chat.moments.entity.MomentLike
 import com.chat.moments.entity.MomentMedia
+import com.chat.moments.entity.MomentNotice
 import com.chat.moments.entity.MomentTagChoice
 import com.chat.moments.entity.MomentUserChoice
 import com.chat.moments.entity.MomentVisibilityType
@@ -55,6 +59,13 @@ object MomentUiUtils {
         } else {
             imageView.setImageDrawable(null)
         }
+    }
+
+    fun buildCacheBustedUrl(path: String?, cacheKey: Long): String {
+        val showUrl = resolveUrl(path)
+        if (showUrl.isEmpty() || cacheKey <= 0L) return showUrl
+        val separator = if (showUrl.contains("?")) "&" else "?"
+        return "$showUrl${separator}v=$cacheKey"
     }
 
     fun showAvatar(avatarView: AvatarView, uid: String?) {
@@ -98,6 +109,22 @@ object MomentUiUtils {
         context.startActivity(intent)
     }
 
+    // Keep the ImageView size unchanged and only constrain the drawable inside it,
+    // which helps reduce visible jagged edges on PNG icons.
+    fun limitIconInside(
+        imageView: ImageView,
+        drawableRes: Int,
+        insetDp: Float = 3f,
+        paddingDp: Float = 0f
+    ) {
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        val inset = AndroidUtilities.dp(insetDp)
+        val padding = AndroidUtilities.dp(paddingDp)
+        imageView.setPadding(padding, padding, padding, padding)
+        val drawable = ContextCompat.getDrawable(imageView.context, drawableRes)
+        imageView.setImageDrawable(drawable?.let { InsetDrawable(it, inset) })
+    }
+
     fun formatPublishTime(createdAt: String): String {
         if (createdAt.isEmpty()) return ""
         return try {
@@ -113,6 +140,29 @@ object MomentUiUtils {
             }
         } catch (_: Exception) {
             createdAt
+        }
+    }
+
+    fun noticePreview(context: Context, notice: MomentNotice): String {
+        if (notice.content.isNotEmpty()) return notice.content
+        val name = notice.fromUser.name.ifEmpty { notice.fromUser.uid }
+        return when (notice.noticeType.lowercase(Locale.getDefault())) {
+            "like" -> context.getString(R.string.moment_notice_like, name)
+            "comment" -> context.getString(R.string.moment_notice_comment, name)
+            "reply" -> context.getString(R.string.moment_notice_reply, name)
+            "mention", "at" -> context.getString(R.string.moment_notice_mention, name)
+            else -> name
+        }
+    }
+
+    fun noticeDetailContent(context: Context, notice: MomentNotice): String {
+        val explicit = notice.content.trim()
+        return when (notice.noticeType.lowercase(Locale.getDefault())) {
+            "like" -> context.getString(R.string.moment_notice_like_simple)
+            "comment" -> explicit.ifEmpty { context.getString(R.string.moment_notice_comment_simple) }
+            "reply" -> explicit.ifEmpty { context.getString(R.string.moment_notice_reply_simple) }
+            "mention", "at" -> explicit.ifEmpty { context.getString(R.string.moment_notice_mention_simple) }
+            else -> explicit.ifEmpty { context.getString(R.string.moment_notice_comment_simple) }
         }
     }
 

@@ -2,11 +2,13 @@ package com.chat.moments.ui
 
 import android.content.Intent
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.endpoint.EndpointManager
 import com.chat.base.endpoint.entity.ChooseContactsMenu
+import com.chat.base.utils.WKLogUtils
 import com.chat.moments.R
 import com.chat.moments.databinding.ActMomentVisibilityLayoutBinding
 import com.chat.moments.entity.MomentAudienceSelection
@@ -23,14 +25,26 @@ class MomentVisibilityActivity : WKBaseActivity<ActMomentVisibilityLayoutBinding
     }
 
     private var selection = MomentAudienceSelection()
+    private val selectedTagIds = arrayListOf<String>()
+    private var currentExpandedType: String? = null
 
     private val labelLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != RESULT_OK) return@registerForActivityResult
         val labels = result.data?.getParcelableArrayListExtra<com.chat.moments.entity.MomentTagChoice>(MomentLabelPickerActivity.EXTRA_RESULT)
+        WKLogUtils.d(
+            "MomentVisibility",
+            "label result received labels=${labels?.map { "${it.id}:${it.name}" }} beforeSavedIds=$selectedTagIds"
+        )
         selection.tags.clear()
         if (labels != null) {
             selection.tags.addAll(labels)
         }
+        selectedTagIds.clear()
+        selectedTagIds.addAll(selection.tags.map { it.id })
+        WKLogUtils.d(
+            "MomentVisibility",
+            "label result applied selectionTags=${selection.tags.map { it.id }} savedIds=$selectedTagIds"
+        )
         renderSelectionSummary()
     }
 
@@ -48,6 +62,12 @@ class MomentVisibilityActivity : WKBaseActivity<ActMomentVisibilityLayoutBinding
 
     override fun initPresenter() {
         selection = intent.getParcelableExtra(EXTRA_SELECTION) ?: MomentAudienceSelection()
+        selectedTagIds.clear()
+        selectedTagIds.addAll(selection.tags.map { it.id })
+        WKLogUtils.d(
+            "MomentVisibility",
+            "initPresenter type=${selection.type} userCount=${selection.users.size} tagIds=$selectedTagIds"
+        )
     }
 
     override fun initView() {
@@ -57,7 +77,7 @@ class MomentVisibilityActivity : WKBaseActivity<ActMomentVisibilityLayoutBinding
             MomentVisibilityType.EXCLUDE_VISIBLE -> wkVBinding.excludeRb.isChecked = true
             else -> wkVBinding.publicRb.isChecked = true
         }
-        renderSelectionState()
+        renderSelectionState(false)
     }
 
     override fun initListener() {
@@ -68,27 +88,12 @@ class MomentVisibilityActivity : WKBaseActivity<ActMomentVisibilityLayoutBinding
                 R.id.excludeRb -> MomentVisibilityType.EXCLUDE_VISIBLE
                 else -> MomentVisibilityType.PUBLIC
             }
-            renderSelectionState()
+            renderSelectionState(true)
         }
-        wkVBinding.selectContactsTv.setOnClickListener {
-            EndpointManager.getInstance().invoke(
-                "choose_contacts",
-                ChooseContactsMenu(-1, true, false, selection.users.map { toChannel(it) }, object : ChooseContactsMenu.IChooseBack {
-                    override fun onBack(selectedList: MutableList<WKChannel>?) {
-                        selection.users.clear()
-                        selectedList?.forEach { channel ->
-                            selection.users.add(MomentUserChoice(channel.channelID, channel.channelRemark.ifEmpty { channel.channelName }, channel.avatar))
-                        }
-                        renderSelectionSummary()
-                    }
-                })
-            )
-        }
-        wkVBinding.selectTagsTv.setOnClickListener {
-            val intent = Intent(this, MomentLabelPickerActivity::class.java)
-            intent.putParcelableArrayListExtra(MomentLabelPickerActivity.EXTRA_SELECTED, ArrayList(selection.tags))
-            labelLauncher.launch(intent)
-        }
+        wkVBinding.partialSelectContactsLayout.setOnClickListener { openContactsChooser() }
+        wkVBinding.excludeSelectContactsLayout.setOnClickListener { openContactsChooser() }
+        wkVBinding.partialSelectTagsLayout.setOnClickListener { openTagPicker() }
+        wkVBinding.excludeSelectTagsLayout.setOnClickListener { openTagPicker() }
     }
 
     override fun rightLayoutClick() {
@@ -96,16 +101,124 @@ class MomentVisibilityActivity : WKBaseActivity<ActMomentVisibilityLayoutBinding
         finish()
     }
 
-    private fun renderSelectionState() {
-        val showSelection = selection.type == MomentVisibilityType.PARTIAL_VISIBLE || selection.type == MomentVisibilityType.EXCLUDE_VISIBLE
-        wkVBinding.selectionLayout.visibility = if (showSelection) View.VISIBLE else View.GONE
+    private fun renderSelectionState(animated: Boolean) {
+        when (selection.type) {
+            MomentVisibilityType.PARTIAL_VISIBLE -> {
+                showSelectionMenu(wkVBinding.partialSelectionLayout, MomentVisibilityType.PARTIAL_VISIBLE, animated)
+                hideSelectionMenu(wkVBinding.excludeSelectionLayout, MomentVisibilityType.EXCLUDE_VISIBLE, animated)
+            }
+
+            MomentVisibilityType.EXCLUDE_VISIBLE -> {
+                hideSelectionMenu(wkVBinding.partialSelectionLayout, MomentVisibilityType.PARTIAL_VISIBLE, animated)
+                showSelectionMenu(wkVBinding.excludeSelectionLayout, MomentVisibilityType.EXCLUDE_VISIBLE, animated)
+            }
+
+            else -> {
+                hideSelectionMenu(wkVBinding.partialSelectionLayout, MomentVisibilityType.PARTIAL_VISIBLE, animated)
+                hideSelectionMenu(wkVBinding.excludeSelectionLayout, MomentVisibilityType.EXCLUDE_VISIBLE, animated)
+            }
+        }
         renderSelectionSummary()
     }
 
+    private fun showSelectionMenu(target: View, type: String, animated: Boolean) {
+        if (currentExpandedType == type && target.visibility == View.VISIBLE) return
+        currentExpandedType = type
+        target.animate().cancel()
+        if (!animated) {
+            target.visibility = View.VISIBLE
+            target.alpha = 1f
+            target.scaleY = 1f
+            target.translationY = 0f
+            return
+        }
+        target.apply {
+            pivotY = 0f
+            visibility = View.VISIBLE
+            alpha = 0f
+            scaleY = 0.82f
+            translationY = -12f * resources.displayMetrics.density
+            animate()
+                .alpha(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(220L)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .start()
+        }
+    }
+
+    private fun hideSelectionMenu(target: View, type: String, animated: Boolean) {
+        if (currentExpandedType == type) currentExpandedType = null
+        if (target.visibility != View.VISIBLE) return
+        target.animate().cancel()
+        if (!animated) {
+            target.visibility = View.GONE
+            target.alpha = 1f
+            target.scaleY = 1f
+            target.translationY = 0f
+            return
+        }
+        target.apply {
+            pivotY = 0f
+            animate()
+                .alpha(0f)
+                .scaleY(0.82f)
+                .translationY(-12f * resources.displayMetrics.density)
+                .setDuration(180L)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    visibility = View.GONE
+                    alpha = 1f
+                    scaleY = 1f
+                    translationY = 0f
+                }
+                .start()
+        }
+    }
+
     private fun renderSelectionSummary() {
-        val summary = selection.buildSelectionSummary()
-        wkVBinding.selectionSummaryTv.text = summary
-        wkVBinding.selectionSummaryTv.visibility = if (summary.isEmpty()) View.GONE else View.VISIBLE
+        val usersSummary = if (selection.users.isEmpty()) "" else getString(R.string.moment_selected_users, selection.users.size)
+        val tagCount = if (selection.tags.isNotEmpty()) selection.tags.size else selectedTagIds.size
+        val tagsSummary = if (tagCount <= 0) "" else getString(R.string.moment_selected_tags, tagCount)
+        WKLogUtils.d(
+            "MomentVisibility",
+            "renderSelectionSummary users=${selection.users.map { it.uid }} selectionTags=${selection.tags.map { it.id }} savedIds=$selectedTagIds tagCount=$tagCount"
+        )
+        wkVBinding.partialSelectContactsValueTv.text = usersSummary
+        wkVBinding.excludeSelectContactsValueTv.text = usersSummary
+        wkVBinding.partialSelectContactsValueTv.visibility = if (usersSummary.isEmpty()) View.GONE else View.VISIBLE
+        wkVBinding.excludeSelectContactsValueTv.visibility = if (usersSummary.isEmpty()) View.GONE else View.VISIBLE
+        wkVBinding.partialSelectTagsValueTv.text = tagsSummary
+        wkVBinding.excludeSelectTagsValueTv.text = tagsSummary
+        wkVBinding.partialSelectTagsValueTv.visibility = if (tagsSummary.isEmpty()) View.GONE else View.VISIBLE
+        wkVBinding.excludeSelectTagsValueTv.visibility = if (tagsSummary.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun openContactsChooser() {
+        EndpointManager.getInstance().invoke(
+            "choose_contacts",
+            ChooseContactsMenu(-1, true, false, selection.users.map { toChannel(it) }, object : ChooseContactsMenu.IChooseBack {
+                override fun onBack(selectedList: MutableList<WKChannel>?) {
+                    selection.users.clear()
+                    selectedList?.forEach { channel ->
+                        selection.users.add(MomentUserChoice(channel.channelID, channel.channelRemark.ifEmpty { channel.channelName }, channel.avatar))
+                    }
+                    renderSelectionSummary()
+                }
+            })
+        )
+    }
+
+    private fun openTagPicker() {
+        WKLogUtils.d(
+            "MomentVisibility",
+            "open label picker savedIds=$selectedTagIds selectionTags=${selection.tags.map { "${it.id}:${it.name}" }}"
+        )
+        val intent = Intent(this, MomentLabelPickerActivity::class.java)
+        intent.putParcelableArrayListExtra(MomentLabelPickerActivity.EXTRA_SELECTED, ArrayList(selection.tags))
+        intent.putStringArrayListExtra(MomentLabelPickerActivity.EXTRA_SELECTED_IDS, ArrayList(selectedTagIds))
+        labelLauncher.launch(intent)
     }
 
     private fun toChannel(choice: MomentUserChoice): WKChannel {

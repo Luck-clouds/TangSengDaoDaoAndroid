@@ -1,6 +1,9 @@
 package com.chat.moments.entity
 
+import android.content.Context
 import android.os.Parcelable
+import com.chat.base.WKBaseApplication
+import com.chat.moments.R
 import kotlinx.parcelize.Parcelize
 
 object MomentVisibilityType {
@@ -48,6 +51,17 @@ data class MomentAudienceSelection(
         }
         return parts.joinToString(" · ")
     }
+
+    fun buildSelectionSummaryText(context: Context = WKBaseApplication.getInstance().context): String {
+        val parts = mutableListOf<String>()
+        if (users.isNotEmpty()) {
+            parts += context.getString(R.string.moment_selected_users, users.size)
+        }
+        if (tags.isNotEmpty()) {
+            parts += context.getString(R.string.moment_selected_tags, tags.size)
+        }
+        return parts.joinToString(" ")
+    }
 }
 
 @Parcelize
@@ -69,6 +83,7 @@ data class MomentComposeMedia(
 data class MomentFeedPage(
     var uid: String = "",
     var cover: String = "",
+    var coverVersion: Long = 0L,
     val list: MutableList<MomentPost> = mutableListOf()
 )
 

@@ -3,6 +3,7 @@ package com.chat.moments.util
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import com.chat.base.utils.AndroidUtilities
 
@@ -35,14 +36,11 @@ class MomentPullRefreshHelper(
     // 下拉时每 1px 对应的顺时针旋转角度，手指往上回推时会自然按同样比例逆时针回退。
     private val rotateDegreesPerPx = 3.0f
 
-    // 达到阈值后松手，额外执行的顺时针旋转角度。
-    private val releaseSpinDegrees = 720f
+    // 达到阈值后松手，额外执行的逆时针旋转角度。
+    private val releaseSpinDegrees = -1720f
 
     // 松手后追加旋转的时长。
-    private val releaseSpinDurationMs = 920L
-
-    // 追加旋转结束后，页面维持下拉状态的停留时间，再开始回弹。
-    private val releaseHoldDurationMs = 260L
+    private val releaseSpinDurationMs = 900L
 
     // 刷新结束后，加载图自身淡出/复位的时长。
     private val indicatorResetDurationMs = 420L
@@ -84,19 +82,20 @@ class MomentPullRefreshHelper(
     }
 
     fun startReleaseSpinIfNeeded(offset: Int) {
-        if (isSpinningAfterRelease || offset < fixedAndRefreshOffsetPx.toInt()) return
+        if (isSpinningAfterRelease) return
         isSpinningAfterRelease = true
         isRefreshDataReady = false
         isReleaseSpinFinished = false
         isIndicatorResetting = false
         containerView.visibility = View.VISIBLE
         indicatorView.animate().cancel()
-        indicatorView.translationY = fixedAndRefreshOffsetPx
+        indicatorView.translationY = offset.coerceAtMost(fixedAndRefreshOffsetPx.toInt()).toFloat()
         indicatorView.alpha = 1f
         indicatorView.scaleX = 1f
         indicatorView.scaleY = 1f
         indicatorView.animate()
             .rotationBy(releaseSpinDegrees)
+            .setInterpolator(LinearInterpolator())
             .setDuration(releaseSpinDurationMs)
             .withEndAction {
                 isReleaseSpinFinished = true
@@ -166,7 +165,7 @@ class MomentPullRefreshHelper(
             finishRunnable = null
         }
         finishRunnable = finishAction
-        containerView.postDelayed(finishAction, releaseHoldDurationMs)
+        containerView.post(finishAction)
     }
 
     private fun resetImmediately() {

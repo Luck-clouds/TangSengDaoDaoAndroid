@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -29,11 +30,16 @@ class WKMomentsApplication private constructor() {
     }
 
     private var application: Application? = null
+    private var startedActivityCount = 0
+    private var isSyncingNotice = false
 
     fun init(application: Application) {
         this.application = application
         registerContactsEntry()
         registerUserDetailEntries()
+        // Temporarily disable app-foreground sync. Keep homepage-triggered sync only
+        // so the moment notice entry logic can be tested independently.
+        // registerForegroundSync(application)
     }
 
     private fun registerContactsEntry() {
@@ -169,6 +175,46 @@ class WKMomentsApplication private constructor() {
         val channel = com.xinbida.wukongim.WKIM.getInstance().channelManager.getChannel(uid, com.xinbida.wukongim.entity.WKChannelType.PERSONAL)
         return channel?.channelRemark?.takeIf { it.isNotEmpty() }
             ?: channel?.channelName.orEmpty()
+    }
+
+    private fun registerForegroundSync(application: Application) {
+        application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityStarted(activity: Activity) {
+                val wasBackground = startedActivityCount == 0
+                startedActivityCount += 1
+                if (wasBackground) {
+                    syncMomentNoticeBadge()
+                }
+            }
+
+            override fun onActivityResumed(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivityStopped(activity: Activity) {
+                startedActivityCount = (startedActivityCount - 1).coerceAtLeast(0)
+            }
+
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        })
+    }
+
+    private fun syncMomentNoticeBadge() {
+        if (isSyncingNotice) return
+        if ((com.chat.base.config.WKConfig.getInstance().uid ?: "").isEmpty()) return
+        val app = application ?: return
+        isSyncingNotice = true
+        MomentModel.instance.syncNotices(0, 50) { code, _, list, version ->
+            isSyncingNotice = false
+            if (code != com.chat.base.net.HttpResponseCode.success.toInt()) return@syncNotices
+            val unreadList = list.filter { !it.isRead }
+            MomentPrefs.saveUnreadCount(unreadList.size)
+            MomentPrefs.saveNoticeVersion(version)
+            MomentPrefs.saveLatestNoticePreview(
+                unreadList.firstOrNull()?.let { MomentUiUtils.noticePreview(app, it) }.orEmpty()
+            )
+            refreshMomentEntry()
+        }
     }
 
 }

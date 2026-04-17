@@ -45,6 +45,76 @@
             android:textColor="@color/colorDark"
             android:textSize="18sp" />
 
+        <LinearLayout
+            android:id="@+id/partialSelectionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/partialSelectContactsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="54dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    android:id="@+id/partialSelectContactsTv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/moment_select_contacts"
+                    android:textColor="#556C94"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/partialSelectContactsValueTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/color999"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/partialSelectTagsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="54dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    android:id="@+id/partialSelectTagsTv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/moment_select_tags"
+                    android:textColor="#556C94"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/partialSelectTagsValueTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/color999"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+        </LinearLayout>
+
         <RadioButton
             android:id="@+id/excludeRb"
             android:layout_width="match_parent"
@@ -54,47 +124,75 @@
             android:text="@string/moment_visibility_exclude_desc"
             android:textColor="@color/colorDark"
             android:textSize="18sp" />
+
+        <LinearLayout
+            android:id="@+id/excludeSelectionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/excludeSelectContactsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="54dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    android:id="@+id/excludeSelectContactsTv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/moment_select_contacts"
+                    android:textColor="#556C94"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/excludeSelectContactsValueTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/color999"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/excludeSelectTagsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="54dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    android:id="@+id/excludeSelectTagsTv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/moment_select_tags"
+                    android:textColor="#556C94"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/excludeSelectTagsValueTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/color999"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+        </LinearLayout>
     </RadioGroup>
-
-    <LinearLayout
-        android:id="@+id/selectionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@android:color/white"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/selectContactsTv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="18dp"
-            android:text="@string/moment_select_contacts"
-            android:textColor="#556C94"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/selectTagsTv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="18dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="18dp"
-            android:paddingBottom="18dp"
-            android:text="@string/moment_select_tags"
-            android:textColor="#556C94"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/selectionSummaryTv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingBottom="18dp"
-            android:textColor="@color/color999"
-            android:textSize="14sp"
-            android:visibility="gone" />
-    </LinearLayout>
 </LinearLayout>

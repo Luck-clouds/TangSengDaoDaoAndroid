@@ -39,6 +39,8 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
 
     companion object {
         const val EXTRA_AUTO_ACTION = "moment_auto_action"
+        const val EXTRA_TEXT_ONLY = "moment_text_only"
+        const val EXTRA_INITIAL_MEDIAS = "moment_initial_medias"
         const val ACTION_CAPTURE = "capture"
         const val ACTION_ALBUM = "album"
     }
@@ -47,6 +49,7 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     private var locationTitle = ""
     private var mentionSelection = MomentAudienceSelection()
     private var visibilitySelection = MomentAudienceSelection()
+    private var textOnlyMode = false
 
     private val mediaAdapter by lazy {
         MomentComposeMediaAdapter(
@@ -96,12 +99,23 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     }
 
     override fun initView() {
+        textOnlyMode = intent.getBooleanExtra(EXTRA_TEXT_ONLY, false)
         wkVBinding.mediaRecyclerView.layoutManager = GridLayoutManager(this, 3)
         wkVBinding.mediaRecyclerView.adapter = mediaAdapter
+        MomentUiUtils.limitIconInside(wkVBinding.mentionIconIv, R.drawable.icon_moment_mention, insetDp = 2.5f)
+        MomentUiUtils.limitIconInside(wkVBinding.visibilityIconIv, R.drawable.icon_moment_visibility, insetDp = 2.5f)
+        MomentUiUtils.limitIconInside(wkVBinding.mentionArrowIv, com.chat.base.R.mipmap.ic_arrow_right, insetDp = 2.5f)
+        MomentUiUtils.limitIconInside(wkVBinding.visibilityArrowIv, com.chat.base.R.mipmap.ic_arrow_right, insetDp = 2.5f)
+        val initialMedias = intent.getParcelableArrayListExtra<MomentComposeMedia>(EXTRA_INITIAL_MEDIAS)
+        if (!initialMedias.isNullOrEmpty()) {
+            medias.clear()
+            medias.addAll(initialMedias)
+        }
         setRightViewEnabled(false)
         renderMediaList()
         renderMentionSummary()
         renderVisibilitySummary()
+        updatePublishEnabled()
     }
 
     override fun initListener() {
@@ -286,6 +300,12 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     }
 
     private fun renderMediaList() {
+        if (textOnlyMode && medias.isEmpty()) {
+            wkVBinding.mediaRecyclerView.visibility = View.GONE
+            mediaAdapter.setList(emptyList())
+            return
+        }
+        wkVBinding.mediaRecyclerView.visibility = View.VISIBLE
         val display = arrayListOf<MomentComposeMedia?>()
         display.addAll(medias)
         if (canAddMoreMedia()) {
@@ -310,7 +330,11 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     }
 
     private fun renderMentionSummary() {
-        val summary = MomentUiUtils.mentionsSummary(mentionSelection.users, mentionSelection.tags)
+        val summary = when {
+            mentionSelection.users.isNotEmpty() -> mentionSelection.users.size.toString()
+            mentionSelection.tags.isNotEmpty() -> mentionSelection.tags.size.toString()
+            else -> ""
+        }
         wkVBinding.mentionValueTv.text = summary
         wkVBinding.mentionValueTv.visibility = if (summary.isEmpty()) View.GONE else View.VISIBLE
     }

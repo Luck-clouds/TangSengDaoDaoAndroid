@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
 import android.text.InputFilter;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -535,6 +536,15 @@ public class WKDialogUtils {
                 subItem.setIconColor(item.getColor());
             }
             subItem.setMultiline();
+            ImageView imageView = subItem.getImageView();
+            imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            int iconInset = AndroidUtilities.dp(4);
+            int innerPadding = AndroidUtilities.dp(2);
+            imageView.setPadding(innerPadding, innerPadding, innerPadding, innerPadding);
+            Drawable drawable = ContextCompat.getDrawable(view.getContext(), item.getIconResourceID());
+            if (drawable != null) {
+                imageView.setImageDrawable(new InsetDrawable(drawable, iconInset));
+            }
             subItem.setOnClickListener(view1 -> {
                 if (scrimPopupWindow != null) {
                     scrimPopupWindow.dismiss(true);
