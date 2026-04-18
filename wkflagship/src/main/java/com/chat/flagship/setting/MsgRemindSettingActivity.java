@@ -2,7 +2,7 @@ package com.chat.flagship.setting;
 
 /**
  * 会话提醒设置页面
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.text.TextUtils;

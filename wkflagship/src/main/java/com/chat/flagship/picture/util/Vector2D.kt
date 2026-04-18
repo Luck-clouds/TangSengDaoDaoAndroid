@@ -6,7 +6,7 @@ import kotlin.math.sqrt
 
 /**
  * 二维向量计算
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class Vector2D(x: Float, y: Float) : PointF(x, y) {
 

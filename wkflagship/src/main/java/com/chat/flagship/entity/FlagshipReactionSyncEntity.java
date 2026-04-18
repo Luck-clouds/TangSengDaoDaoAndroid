@@ -2,7 +2,7 @@ package com.chat.flagship.entity;
 
 /**
  * 消息回应同步实体
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipReactionSyncEntity {
     public String messageId;

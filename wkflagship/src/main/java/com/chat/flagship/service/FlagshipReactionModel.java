@@ -2,7 +2,7 @@ package com.chat.flagship.service;
 
 /**
  * 消息回应业务模型
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.text.TextUtils;

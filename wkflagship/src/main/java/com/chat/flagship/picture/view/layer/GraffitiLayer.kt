@@ -18,7 +18,7 @@ import kotlin.math.abs
 
 /**
  * 图片涂鸦图层
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class GraffitiLayer(private val parent: View) : ILayer {
 

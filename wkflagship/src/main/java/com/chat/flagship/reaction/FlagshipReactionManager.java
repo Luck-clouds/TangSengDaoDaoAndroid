@@ -2,7 +2,7 @@ package com.chat.flagship.reaction;
 
 /**
  * 消息回应 UI 与资源管理
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.app.Activity;

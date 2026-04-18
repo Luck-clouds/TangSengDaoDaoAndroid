@@ -2,7 +2,7 @@ package com.chat.flagship;
 
 /**
  * 旗舰模块初始化入口
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.app.Application;

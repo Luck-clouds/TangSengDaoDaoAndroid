@@ -16,7 +16,7 @@ import kotlin.math.abs
 
 /**
  * 图片马赛克图层
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class MosaicLayer(private val parent: View) : ILayer {
 

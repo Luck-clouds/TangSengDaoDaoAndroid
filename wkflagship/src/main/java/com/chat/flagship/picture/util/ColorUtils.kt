@@ -4,7 +4,7 @@ import androidx.core.graphics.toColorInt
 
 /**
  * 图片编辑颜色表
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 object ColorUtils {
     val colorful = arrayListOf(

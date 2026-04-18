@@ -2,7 +2,7 @@ package com.chat.flagship.provider
 
 /**
  * 截屏通知系统提示气泡
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.text.SpannableString

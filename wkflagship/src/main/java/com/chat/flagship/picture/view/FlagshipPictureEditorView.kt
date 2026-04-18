@@ -34,7 +34,7 @@ import kotlin.math.max
 
 /**
  * 图片编辑主视图
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class FlagshipPictureEditorView @JvmOverloads constructor(
     context: Context,

@@ -2,7 +2,7 @@ package com.chat.flagship.msgmodel;
 
 /**
  * 截屏通知消息体
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.os.Parcel;

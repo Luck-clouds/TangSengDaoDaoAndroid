@@ -2,7 +2,7 @@ package com.chat.flagship.screenshot;
 
 /**
  * 会话级截屏监听管理器
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.Manifest;

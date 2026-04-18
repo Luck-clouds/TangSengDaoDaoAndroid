@@ -16,7 +16,7 @@ import kotlin.math.min
 
 /**
  * 图片文字贴纸图层
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class StickerLayer(
     private val parent: View,

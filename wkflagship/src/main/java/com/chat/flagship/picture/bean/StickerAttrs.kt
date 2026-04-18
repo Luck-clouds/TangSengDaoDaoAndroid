@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 
 /**
  * 图片编辑贴纸属性
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class StickerAttrs(
     var bitmap: Bitmap,

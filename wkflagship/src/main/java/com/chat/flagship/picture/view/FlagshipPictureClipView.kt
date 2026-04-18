@@ -23,7 +23,7 @@ import kotlin.math.min
 
 /**
  * 图片裁剪视图
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class FlagshipPictureClipView @JvmOverloads constructor(
     context: Context,

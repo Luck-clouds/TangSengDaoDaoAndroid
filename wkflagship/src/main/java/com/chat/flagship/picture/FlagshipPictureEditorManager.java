@@ -2,7 +2,7 @@ package com.chat.flagship.picture;
 
 /**
  * 图片编辑入口管理
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.app.Activity;

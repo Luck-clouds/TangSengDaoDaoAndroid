@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 
 /**
  * 图片编辑位图工具
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 private const val MAX_BITMAP_SIZE = 64f * 1024 * 1024
 
