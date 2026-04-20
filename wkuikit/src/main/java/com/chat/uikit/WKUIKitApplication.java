@@ -220,6 +220,7 @@ public class WKUIKitApplication {
     private void initKitModuleListener() {
         EndpointManager.getInstance().setMethod("add_security_module", object -> true);
         // 注册消息model到sdk
+        WKIM.getInstance().getMsgManager().registerContentMsg(WKGifContent.class);
         WKIM.getInstance().getMsgManager().registerContentMsg(WKCardContent.class);
         WKIM.getInstance().getMsgManager().registerContentMsg(WKFileContent.class);
 

@@ -58,6 +58,7 @@ import com.chat.base.utils.LayoutHelper
 import com.chat.base.utils.SoftKeyboardUtils
 import com.chat.base.utils.StringUtils
 import com.chat.base.utils.WKDialogUtils
+import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.base.utils.WKPermissions
 import com.chat.base.utils.WKPermissions.IPermissionResult
 import com.chat.base.utils.WKToastUtils
@@ -953,9 +954,12 @@ open class WKTextProvider : WKChatBaseProvider() {
         replyTv: AppCompatTextView
     ) {
         when (mTextContent.reply.payload.type) {
-            WKContentType.WK_GIF -> {
+            WKContentType.WK_GIF,
+            WKContentType.WK_VECTOR_STICKER,
+            WKContentType.WK_EMOJI_STICKER -> {
                 replyIv.visibility = View.VISIBLE
                 replyTv.visibility = View.GONE
+                WKImageDisplayUtils.prepareImageSlot(replyIv, 4f)
                 val gifContent = mTextContent.reply.payload as WKGifContent
                 GlideUtils.getInstance()
                     .showGif(

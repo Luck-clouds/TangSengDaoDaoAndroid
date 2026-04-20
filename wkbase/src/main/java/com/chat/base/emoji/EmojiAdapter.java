@@ -10,6 +10,7 @@ import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.chat.base.R;
 import com.chat.base.ui.components.FilterImageView;
 import com.chat.base.utils.AndroidUtilities;
+import com.chat.base.utils.WKImageDisplayUtils;
 
 import java.util.List;
 
@@ -32,6 +33,11 @@ public class EmojiAdapter extends BaseQuickAdapter<EmojiEntry, BaseViewHolder> {
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(30), AndroidUtilities.dp( 30));
         layoutParams.setMargins(width / 14, width / 14, width / 14, width / 14);
         imageView.setLayoutParams(layoutParams);
-        imageView.setImageDrawable(EmojiManager.getInstance().getDrawable(getContext(), item.getText()));
+        WKImageDisplayUtils.limitDrawableInside(
+                imageView,
+                EmojiManager.getInstance().getDrawable(getContext(), item.getText()),
+                2f,
+                1f
+        );
     }
 }

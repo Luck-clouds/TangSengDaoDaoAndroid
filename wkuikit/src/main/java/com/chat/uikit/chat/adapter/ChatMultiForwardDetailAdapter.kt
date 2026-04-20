@@ -29,6 +29,7 @@ import com.chat.base.msg.model.WKGifContent
 import com.chat.base.msgitem.WKContentType
 import com.chat.base.ui.components.AvatarView
 import com.chat.base.utils.ImageUtils
+import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.base.utils.WKDialogUtils
 import com.chat.base.utils.WKTimeUtils
 import com.chat.base.utils.WKToastUtils
@@ -202,13 +203,16 @@ class ChatMultiForwardDetailAdapter(
                             }
                     }
 
-                    WKContentType.WK_GIF -> {
+                    WKContentType.WK_GIF,
+                    WKContentType.WK_VECTOR_STICKER,
+                    WKContentType.WK_EMOJI_STICKER -> {
                         holder.setGone(R.id.progressView, true)
                         holder.setGone(R.id.playIv, true)
                         holder.setGone(R.id.contentTv, true)
                         holder.setGone(R.id.imageView, true)
                         holder.setGone(R.id.gifIv, false)
                         holder.setGone(R.id.contentLayout, true)
+                        WKImageDisplayUtils.prepareImageSlot(holder.getView(R.id.gifIv), 4f)
                         val wkGifContent =
                             item.msg.baseContentMsgModel as WKGifContent
                         GlideUtils.getInstance().showImg(

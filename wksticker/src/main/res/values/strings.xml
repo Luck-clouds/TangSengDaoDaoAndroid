@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sticker_title">表情商店</string>
+    <string name="sticker_my_title">我的表情</string>
+    <string name="sticker_custom_title">添加的单个表情</string>
+    <string name="sticker_sort_title">表情管理</string>
+    <string name="sticker_preview_title">预览</string>
+    <string name="sticker_add">添加</string>
+    <string name="sticker_remove">移除</string>
+    <string name="sticker_added">已收藏</string>
+    <string name="sticker_removed">已移除</string>
+    <string name="sticker_view_album">查看专辑</string>
+    <string name="sticker_favorites">收藏</string>
+    <string name="sticker_custom">添加</string>
+    <string name="sticker_manage">整理</string>
+    <string name="sticker_done">完成</string>
+    <string name="sticker_move_front">移到前面</string>
+    <string name="sticker_delete">删除</string>
+    <string name="sticker_empty">暂无表情</string>
+    <string name="sticker_store_empty">暂无表情包</string>
+    <string name="sticker_search_hint">搜索表情包</string>
+    <string name="sticker_save">保存</string>
+    <string name="sticker_add_custom">添加单个表情</string>
+    <string name="sticker_request_failed">操作失败，请稍后重试</string>
+    <string name="sticker_choose_image_only">这里只允许选择图片，不允许选择视频</string>
+    <string name="sticker_delete_confirm">确认删除选中的表情吗？</string>
+    <string name="sticker_remove_package_confirm">确认移除这套表情吗？</string>
+    <string name="sticker_search">搜索</string>
+    <string name="sticker_my_package_sort">排序</string>
+</resources>
