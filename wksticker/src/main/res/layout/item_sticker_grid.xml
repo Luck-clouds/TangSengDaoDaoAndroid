@@ -2,7 +2,34 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp">
+    android:layout_margin="1dp">
+
+    <LinearLayout
+        android:id="@+id/sectionHeaderLayout"
+        android:layout_width="match_parent"
+        android:layout_height="18dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/sectionTitleTv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:textColor="@color/color999"
+            android:textSize="15sp" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/sectionAddIv"
+            android:layout_width="33dp"
+            android:layout_height="33dp"
+            android:padding="7dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/sticker_plus_icon"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/contentLayout"
@@ -13,12 +40,14 @@
         <FrameLayout
             android:id="@+id/imageContainer"
             android:layout_width="match_parent"
-            android:layout_height="96dp">
+            android:layout_height="70dp"
+            android:layout_gravity="center_horizontal">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/imageView"
-                android:layout_width="match_parent"
+                android:layout_width="64dp"
                 android:layout_height="match_parent"
+                android:layout_gravity="center"
                 android:adjustViewBounds="true"
                 android:scaleType="centerInside" />
 

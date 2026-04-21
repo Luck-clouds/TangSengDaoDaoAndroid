@@ -1,22 +1,14 @@
 package com.chat.sticker.utils
 
 import com.chat.base.msg.model.WKGifContent
-import com.chat.base.utils.WKLogUtils
 import com.chat.sticker.entity.StickerItem
 
+@Suppress("UNUSED_PARAMETER")
 object StickerTrace {
-    const val TAG = "WK_STICKER_TRACE"
-
     fun d(message: String) {
-        WKLogUtils.d(TAG, message)
     }
 
     fun e(message: String, throwable: Throwable? = null) {
-        if (throwable == null) {
-            WKLogUtils.e(TAG, message)
-        } else {
-            WKLogUtils.e(TAG, message, throwable)
-        }
     }
 
     fun itemSummary(item: StickerItem?): String {

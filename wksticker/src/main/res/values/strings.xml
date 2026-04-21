@@ -7,6 +7,8 @@
     <string name="sticker_preview_title">预览</string>
     <string name="sticker_add">添加</string>
     <string name="sticker_remove">移除</string>
+    <string name="sticker_already_added">已添加</string>
+    <string name="sticker_cancel_favorite">取消</string>
     <string name="sticker_added">已收藏</string>
     <string name="sticker_removed">已移除</string>
     <string name="sticker_view_album">查看专辑</string>

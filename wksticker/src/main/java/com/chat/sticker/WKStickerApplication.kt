@@ -103,10 +103,11 @@ class WKStickerApplication private constructor() {
             if (!isStickerMsgType(msg.type)) return@setMethod null
             val content = msg.baseContentMsgModel as? WKGifContent ?: return@setMethod null
             if (!hasFavoriteTargetSource(content)) return@setMethod null
-            val removable = content.placeholder.orEmpty().startsWith("favorite")
+            val target = resolveFavoriteTarget(content)
+            val removable = isFavoriteSticker(content, target)
             ChatItemPopupMenu(
                 if (removable) R.mipmap.sticker_remove_icon else R.mipmap.sticker_add_icon,
-                application?.getString(if (removable) R.string.sticker_remove else R.string.sticker_add) ?: if (removable) "移除" else "添加",
+                application?.getString(if (removable) R.string.sticker_cancel_favorite else R.string.sticker_add) ?: if (removable) "取消" else "添加",
                 object : ChatItemPopupMenu.IPopupItemClick {
                     override fun onClick(mMsg: WKMsg, iConversationContext: IConversationContext) {
                         toggleFavorite(iConversationContext.chatActivity, content, removable)
@@ -122,6 +123,16 @@ class WKStickerApplication private constructor() {
             openMySticker(obj as? Context ?: application)
             null
         }
+    }
+
+    private fun isFavoriteSticker(content: WKGifContent, target: FavoriteTarget): Boolean {
+        if (content.placeholder.orEmpty().startsWith("favorite")) return true
+        return StickerModel.instance.isFavorite(
+            target.targetType,
+            target.targetId,
+            target.emojiCode,
+            listOf(content.url.orEmpty(), extractPlaceholderHref(content.placeholder.orEmpty()))
+        )
     }
 
     private fun isStickerMsgType(type: Int): Boolean {
@@ -159,6 +170,7 @@ class WKStickerApplication private constructor() {
                 WKToastUtils.getInstance().showToastNormal(
                     context.getString(if (removable) R.string.sticker_removed else R.string.sticker_added)
                 )
+                StickerModel.instance.getFavorites { _, _, _ -> }
                 StickerPanelView.notifyDataChanged()
             } else {
                 StickerTrace.e("STICKER_TRACE_FAVORITE_TOGGLE fail code=$code msg=$msg")

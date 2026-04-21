@@ -38,20 +38,13 @@ class StickerMyStickersActivity : WKBaseActivity<ActStickerMyLayoutBinding>() {
     override fun initListener() {
         adapter.setOnItemClickListener { _, _, position ->
             val item = adapter.getItem(position) ?: return@setOnItemClickListener
-            when (item.type) {
-                "custom" -> startActivity(Intent(this, StickerCustomActivity::class.java))
-                "package" -> {
-                    val intent = Intent(this, StickerPackageDetailActivity::class.java)
-                    intent.putExtra(StickerPackageDetailActivity.EXTRA_PACKAGE_ID, item.id)
-                    intent.putExtra(StickerPackageDetailActivity.EXTRA_IS_ADDED, true)
-                    startActivity(intent)
-                }
+            if (item.type == "custom") {
+                startActivity(Intent(this, StickerCustomActivity::class.java))
             }
         }
         adapter.setOnItemChildClickListener { _, view, position ->
-            if (view.id != R.id.actionTv) return@setOnItemChildClickListener
             val item = adapter.getItem(position) ?: return@setOnItemChildClickListener
-            if (item.type != "package") return@setOnItemChildClickListener
+            if (view.id != R.id.actionTv || item.type != "package") return@setOnItemChildClickListener
             StickerModel.instance.removeMyPackage(item.id) { code, msg ->
                 if (code == HttpResponseCode.success.toInt()) {
                     loadData()

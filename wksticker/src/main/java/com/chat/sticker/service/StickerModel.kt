@@ -32,6 +32,35 @@ class StickerModel private constructor() : WKBaseModel() {
         val instance: StickerModel by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { StickerModel() }
     }
 
+    private val favoriteItems = mutableListOf<StickerItem>()
+
+    fun isFavorite(targetType: String, targetId: String = "", emojiCode: String = "", mediaUrls: List<String> = emptyList()): Boolean {
+        val normalizedUrls = mediaUrls.filter { isUsefulMediaPath(it) }
+        synchronized(favoriteItems) {
+            return favoriteItems.any { item ->
+                when {
+                    targetType == "builtin_emoji" && emojiCode.isNotEmpty() -> item.emojiCode == emojiCode
+                    targetId.isNotEmpty() -> {
+                        if (item.targetType.isNotEmpty() && item.targetType != targetType) return@any false
+                        val itemTargetId = item.targetId.ifEmpty {
+                            when (targetType) {
+                                "custom_item" -> item.customId.ifEmpty { item.itemId }
+                                "dynamic_emoji" -> item.emojiId.ifEmpty { item.itemId }
+                                else -> item.itemId
+                            }
+                        }
+                        itemTargetId == targetId
+                    }
+                    normalizedUrls.isNotEmpty() -> {
+                        val itemUrls = listOf(item.gifUrl, item.originUrl, item.thumbUrl).filter { isUsefulMediaPath(it) }
+                        normalizedUrls.any { targetUrl -> itemUrls.any { itemUrl -> sameMediaPath(targetUrl, itemUrl) } }
+                    }
+                    else -> false
+                }
+            }
+        }
+    }
+
     fun getPanel(callback: (Int, String, StickerPanelData) -> Unit) {
         StickerTrace.d("STICKER_TRACE_API_REQUEST GET /v1/sticker/panel")
         requestAndErrorBack(createService(StickerService::class.java).panel(), object : IRequestResultErrorInfoListener<JSONObject> {
@@ -52,7 +81,12 @@ class StickerModel private constructor() : WKBaseModel() {
         requestAndErrorBack(createService(StickerService::class.java).favorites(), object : IRequestResultErrorInfoListener<JSONArray> {
             override fun onSuccess(result: JSONArray) {
                 StickerTrace.d("STICKER_TRACE_API_RESPONSE GET /v1/sticker/favorites body=$result")
+                val cacheItems = StickerFavoriteItem.toStickerItems(result, includeEmptyMedia = true)
                 val items = StickerFavoriteItem.toStickerItems(result)
+                synchronized(favoriteItems) {
+                    favoriteItems.clear()
+                    favoriteItems.addAll(cacheItems)
+                }
                 StickerTrace.d("STICKER_TRACE_FAVORITE_PARSE count=${items.size} first=${StickerTrace.itemSummary(items.firstOrNull())}")
                 callback(HttpResponseCode.success.toInt(), "", items)
             }
@@ -105,7 +139,7 @@ class StickerModel private constructor() : WKBaseModel() {
                         isAdded = true
                     )
                 }
-                callback(HttpResponseCode.success.toInt(), "", list)
+                callback(HttpResponseCode.success.toInt(), "", list.sortedBy { it.sortNum }.toMutableList())
             }
 
             override fun onFail(code: Int, msg: String?, errJson: String?) {
@@ -164,7 +198,9 @@ class StickerModel private constructor() : WKBaseModel() {
         if (targetId.isNotEmpty()) body["target_id"] = targetId
         if (emojiCode.isNotEmpty()) body["emoji_code"] = emojiCode
         StickerTrace.d("STICKER_TRACE_API_REQUEST POST /v1/sticker/favorites body=$body")
-        requestAndErrorBack(createService(StickerService::class.java).addFavorite(body), commonCallback(callback))
+        requestAndErrorBack(createService(StickerService::class.java).addFavorite(body), commonCallback(callback) {
+            upsertFavoriteCache(targetType, targetId, emojiCode)
+        })
     }
 
     fun removeFavorite(targetType: String, targetId: String = "", emojiCode: String = "", callback: (Int, String) -> Unit) {
@@ -173,7 +209,9 @@ class StickerModel private constructor() : WKBaseModel() {
         if (targetId.isNotEmpty()) body["target_id"] = targetId
         if (emojiCode.isNotEmpty()) body["emoji_code"] = emojiCode
         StickerTrace.d("STICKER_TRACE_API_REQUEST DELETE /v1/sticker/favorites body=$body")
-        requestAndErrorBack(createService(StickerService::class.java).removeFavorite(body), commonCallback(callback))
+        requestAndErrorBack(createService(StickerService::class.java).removeFavorite(body), commonCallback(callback) {
+            removeFavoriteCache(targetType, targetId, emojiCode)
+        })
     }
 
     fun addMyPackage(packageId: String, callback: (Int, String) -> Unit) {
@@ -199,6 +237,7 @@ class StickerModel private constructor() : WKBaseModel() {
     fun reorderMyPackages(ids: List<String>, callback: (Int, String) -> Unit) {
         val body = JSONObject()
         body["ids"] = ids
+        StickerTrace.d("STICKER_TRACE_API_REQUEST PUT /v1/sticker/my/packages/reorder body=$body")
         requestAndErrorBack(createService(StickerService::class.java).reorderMyPackages(body), commonCallback(callback))
     }
 
@@ -272,11 +311,66 @@ class StickerModel private constructor() : WKBaseModel() {
         })
     }
 
-    private fun commonCallback(callback: (Int, String) -> Unit): IRequestResultErrorInfoListener<CommonResponse> {
+    private fun upsertFavoriteCache(targetType: String, targetId: String, emojiCode: String) {
+        synchronized(favoriteItems) {
+            val exists = isFavorite(targetType, targetId, emojiCode)
+            if (exists) return
+            favoriteItems += StickerItem(
+                itemId = targetId,
+                targetType = targetType,
+                targetId = targetId,
+                emojiCode = emojiCode
+            )
+        }
+    }
+
+    private fun removeFavoriteCache(targetType: String, targetId: String, emojiCode: String) {
+        synchronized(favoriteItems) {
+            favoriteItems.removeAll { item ->
+                when {
+                    targetType == "builtin_emoji" && emojiCode.isNotEmpty() -> item.emojiCode == emojiCode
+                    targetId.isNotEmpty() -> {
+                        if (item.targetType.isNotEmpty() && item.targetType != targetType) return@removeAll false
+                        val itemTargetId = item.targetId.ifEmpty {
+                            when (targetType) {
+                                "custom_item" -> item.customId.ifEmpty { item.itemId }
+                                "dynamic_emoji" -> item.emojiId.ifEmpty { item.itemId }
+                                else -> item.itemId
+                            }
+                        }
+                        itemTargetId == targetId
+                    }
+                    else -> false
+                }
+            }
+        }
+    }
+
+    private fun isUsefulMediaPath(value: String): Boolean {
+        val cleanValue = value.trim()
+        return cleanValue.length > 5 && (cleanValue.startsWith("http", true) || cleanValue.startsWith("/") || cleanValue.contains("/"))
+    }
+
+    private fun sameMediaPath(left: String, right: String): Boolean {
+        val leftRaw = left.substringBefore("?").trim()
+        val rightRaw = right.substringBefore("?").trim()
+        val leftShow = WKApiConfig.getShowUrl(leftRaw).substringBefore("?")
+        val rightShow = WKApiConfig.getShowUrl(rightRaw).substringBefore("?")
+        return leftRaw == rightRaw ||
+            leftShow == rightShow ||
+            leftShow.endsWith(rightRaw) ||
+            rightShow.endsWith(leftRaw)
+    }
+
+    private fun commonCallback(callback: (Int, String) -> Unit, onSuccessMutation: (() -> Unit)? = null): IRequestResultErrorInfoListener<CommonResponse> {
         return object : IRequestResultErrorInfoListener<CommonResponse> {
             override fun onSuccess(result: CommonResponse) {
                 StickerTrace.d("STICKER_TRACE_API_COMMON_SUCCESS status=${result.status} msg=${result.msg.orEmpty()}")
-                callback(if (result.status == 0) HttpResponseCode.success.toInt() else result.status, result.msg.orEmpty())
+                val code = if (result.status == 0) HttpResponseCode.success.toInt() else result.status
+                if (code == HttpResponseCode.success.toInt()) {
+                    onSuccessMutation?.invoke()
+                }
+                callback(code, result.msg.orEmpty())
             }
 
             override fun onFail(code: Int, msg: String?, errJson: String?) {

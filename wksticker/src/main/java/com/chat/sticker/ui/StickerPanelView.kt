@@ -15,6 +15,8 @@ import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView
 import com.chat.base.config.WKApiConfig
 import com.chat.base.emoji.EmojiAdapter
 import com.chat.base.emoji.EmojiEntry
@@ -56,6 +58,8 @@ class StickerPanelView @JvmOverloads constructor(
             StickerTrace.d("STICKER_TRACE_PANEL_NOTIFY activeViews=${listeners.size}")
             listeners.forEach { it.get()?.refreshTabsAndData() }
         }
+
+        private const val PAGE_SWITCH_PROGRESS_THRESHOLD = 0.28f
     }
 
     private val binding = ViewStickerPanelBinding.inflate(LayoutInflater.from(context), this, true)
@@ -64,11 +68,15 @@ class StickerPanelView @JvmOverloads constructor(
     private var currentTabKey = "favorites"
     private var currentPage = Page.EMOJI
     private var currentTabs = mutableListOf<StickerTabItem>()
+    private val sectionPositions = linkedMapOf<String, Int>()
+    private var ignoreStickerScroll = false
     private var swipeDownX = 0f
     private var swipeDownY = 0f
     private var pageProgress = 0f
     private var isDraggingPage = false
     private var pageAnimator: ValueAnimator? = null
+    private var bottomBarVisible = true
+    private var swipeStartPage = Page.EMOJI
 
     private enum class Page {
         EMOJI, STICKER
@@ -103,22 +111,35 @@ class StickerPanelView @JvmOverloads constructor(
             val emojiEntry = adapter1.getItem(position) as? EmojiEntry ?: return@setOnItemClickListener
             EndpointManager.getInstance().invoke("emoji_click", emojiEntry.text)
         }
+        binding.emojiRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                handleContentScroll(dy)
+            }
+        })
     }
 
     private fun initSticker() {
         binding.tabRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         binding.tabRecyclerView.adapter = tabAdapter
-        binding.stickerRecyclerView.layoutManager = GridLayoutManager(context, 4)
+        val stickerLayoutManager = GridLayoutManager(context, 5)
+        stickerLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (stickerAdapter.getItem(position)?.isSectionHeader == true) stickerLayoutManager.spanCount else 1
+            }
+        }
+        binding.stickerRecyclerView.layoutManager = stickerLayoutManager
         stickerAdapter.showTitles = false
+        stickerAdapter.previewMoveResolver = ::findStickerItemUnder
         binding.stickerRecyclerView.adapter = stickerAdapter
+        attachStickerPreviewTouchListener()
         tabAdapter.setOnItemClickListener { _, _, position ->
-            currentTabs.forEachIndexed { index, item -> item.selected = index == position }
-            tabAdapter.notifyDataSetChanged()
-            currentTabKey = currentTabs[position].key
-            loadStickerTab(currentTabKey)
+            if (StickerFullScreenPreview.isShowing()) return@setOnItemClickListener
+            val key = currentTabs.getOrNull(position)?.key ?: return@setOnItemClickListener
+            selectStickerSection(key, true)
         }
         stickerAdapter.setOnItemClickListener { _, _, position ->
             val item = stickerAdapter.getItem(position) ?: return@setOnItemClickListener
+            if (item.isSectionHeader) return@setOnItemClickListener
             if (item.isAddCell) {
                 val intent = android.content.Intent(context, StickerCustomActivity::class.java)
                 context.startActivity(intent)
@@ -126,6 +147,43 @@ class StickerPanelView @JvmOverloads constructor(
             }
             sendSticker(item)
         }
+        binding.stickerRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (ignoreStickerScroll) return
+                updateTabByScroll()
+                handleContentScroll(dy)
+            }
+        })
+    }
+
+    private fun handleContentScroll(dy: Int) {
+        when {
+            dy > AndroidUtilities.dp(2f) -> setBottomBarVisible(false)
+            dy < -AndroidUtilities.dp(2f) -> setBottomBarVisible(true)
+        }
+    }
+
+    private fun attachStickerPreviewTouchListener() {
+        binding.stickerRecyclerView.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                if (!StickerFullScreenPreview.isShowing()) return false
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_MOVE -> StickerFullScreenPreview.handleMove(e.rawX, e.rawY)
+                    MotionEvent.ACTION_UP -> StickerFullScreenPreview.handleRelease(true)
+                    MotionEvent.ACTION_CANCEL -> StickerFullScreenPreview.handleRelease(false)
+                }
+                return true
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
+                if (!StickerFullScreenPreview.isShowing()) return
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_MOVE -> StickerFullScreenPreview.handleMove(e.rawX, e.rawY)
+                    MotionEvent.ACTION_UP -> StickerFullScreenPreview.handleRelease(true)
+                    MotionEvent.ACTION_CANCEL -> StickerFullScreenPreview.handleRelease(false)
+                }
+            }
+        })
     }
 
     private fun initBottomBar() {
@@ -133,9 +191,14 @@ class StickerPanelView @JvmOverloads constructor(
         binding.emojiTabLayout.background = Theme.createSelectorDrawable(pressedColor, 3)
         binding.stickerTabLayout.background = Theme.createSelectorDrawable(pressedColor, 3)
         binding.actionLayout.background = Theme.createSelectorDrawable(pressedColor, 3)
-        binding.emojiTabLayout.setOnClickListener { switchPage(Page.EMOJI) }
-        binding.stickerTabLayout.setOnClickListener { switchPage(Page.STICKER) }
+        binding.emojiTabLayout.setOnClickListener {
+            if (!StickerFullScreenPreview.isShowing()) switchPage(Page.EMOJI)
+        }
+        binding.stickerTabLayout.setOnClickListener {
+            if (!StickerFullScreenPreview.isShowing()) switchPage(Page.STICKER)
+        }
         binding.actionLayout.setOnClickListener {
+            if (StickerFullScreenPreview.isShowing()) return@setOnClickListener
             if (currentPage == Page.EMOJI) {
                 EndpointManager.getInstance().invoke("emoji_click", "")
             } else {
@@ -153,36 +216,45 @@ class StickerPanelView @JvmOverloads constructor(
 
     private fun attachSwipeSwitch(view: View) {
         view.setOnTouchListener { _, event ->
+            if (StickerFullScreenPreview.isShowing()) {
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_MOVE -> StickerFullScreenPreview.handleMove(event.rawX, event.rawY)
+                    MotionEvent.ACTION_UP -> StickerFullScreenPreview.handleRelease(true)
+                    MotionEvent.ACTION_CANCEL -> StickerFullScreenPreview.handleRelease(false)
+                }
+                return@setOnTouchListener true
+            }
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     pageAnimator?.cancel()
                     swipeDownX = event.rawX
                     swipeDownY = event.rawY
                     isDraggingPage = false
+                    swipeStartPage = currentPage
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - swipeDownX
                     val dy = event.rawY - swipeDownY
-                    if (!isDraggingPage && abs(dx) > AndroidUtilities.dp(8f) && abs(dx) > abs(dy) * 1.15f) {
+                    if (!isDraggingPage && abs(dx) > AndroidUtilities.dp(4f) && abs(dx) > abs(dy) * 0.65f) {
                         isDraggingPage = true
                     }
                     if (isDraggingPage) {
                         val width = pageWidth()
-                        val baseProgress = if (currentPage == Page.EMOJI) 0f else 1f
+                        val baseProgress = if (swipeStartPage == Page.EMOJI) 0f else 1f
                         setPageProgress((baseProgress - dx / width).coerceIn(0f, 1f))
                         return@setOnTouchListener true
                     }
                 }
                 MotionEvent.ACTION_UP -> {
                     if (isDraggingPage) {
-                        switchPage(if (pageProgress >= 0.5f) Page.STICKER else Page.EMOJI)
+                        switchPage(resolveSwipeTargetPage())
                         isDraggingPage = false
                         return@setOnTouchListener true
                     }
                 }
                 MotionEvent.ACTION_CANCEL -> {
                     if (isDraggingPage) {
-                        switchPage(currentPage)
+                        switchPage(swipeStartPage)
                         isDraggingPage = false
                         return@setOnTouchListener true
                     }
@@ -192,16 +264,23 @@ class StickerPanelView @JvmOverloads constructor(
         }
     }
 
+    private fun resolveSwipeTargetPage(): Page {
+        return when (swipeStartPage) {
+            Page.EMOJI -> if (pageProgress >= PAGE_SWITCH_PROGRESS_THRESHOLD) Page.STICKER else Page.EMOJI
+            Page.STICKER -> if (pageProgress <= 1f - PAGE_SWITCH_PROGRESS_THRESHOLD) Page.EMOJI else Page.STICKER
+        }
+    }
+
     private fun switchPage(page: Page) {
         currentPage = page
         StickerTrace.d("STICKER_TRACE_PANEL_SWITCH page=$page")
         animateToPage(page)
         val activeColor = ContextCompat.getColor(context, com.chat.base.R.color.colorAccent)
         val inactiveColor = ContextCompat.getColor(context, com.chat.base.R.color.color999)
-        binding.emojiTabIv.colorFilter = PorterDuffColorFilter(if (page == Page.EMOJI) activeColor else inactiveColor, PorterDuff.Mode.MULTIPLY)
-        binding.stickerTabIv.colorFilter = PorterDuffColorFilter(if (page == Page.STICKER) activeColor else inactiveColor, PorterDuff.Mode.MULTIPLY)
+        binding.emojiTabIv.colorFilter = PorterDuffColorFilter(if (page == Page.EMOJI) activeColor else inactiveColor, PorterDuff.Mode.SRC_IN)
+        binding.stickerTabIv.colorFilter = PorterDuffColorFilter(if (page == Page.STICKER) activeColor else inactiveColor, PorterDuff.Mode.SRC_IN)
         binding.actionIv.setImageResource(if (page == Page.EMOJI) R.mipmap.sticker_delete_icon else R.mipmap.sticker_settings_icon)
-        binding.actionIv.colorFilter = PorterDuffColorFilter(inactiveColor, PorterDuff.Mode.MULTIPLY)
+        binding.actionIv.colorFilter = PorterDuffColorFilter(inactiveColor, PorterDuff.Mode.SRC_IN)
     }
 
     private fun animateToPage(page: Page) {
@@ -212,8 +291,9 @@ class StickerPanelView @JvmOverloads constructor(
         }
         pageAnimator?.cancel()
         pageAnimator = ValueAnimator.ofFloat(pageProgress, targetProgress).apply {
-            duration = 220
-            interpolator = DecelerateInterpolator()
+            val remaining = abs(pageProgress - targetProgress)
+            duration = (260 + remaining * 360).toLong().coerceIn(260L, 620L)
+            interpolator = DecelerateInterpolator(1.8f)
             addUpdateListener { animator ->
                 setPageProgress(animator.animatedValue as Float)
             }
@@ -238,6 +318,8 @@ class StickerPanelView @JvmOverloads constructor(
         binding.stickerPage.visibility = View.VISIBLE
         binding.emojiRecyclerView.translationX = -pageProgress * width
         binding.stickerPage.translationX = (1f - pageProgress) * width
+        binding.emojiRecyclerView.alpha = (1f - pageProgress * 0.18f).coerceIn(0.82f, 1f)
+        binding.stickerPage.alpha = (0.82f + pageProgress * 0.18f).coerceIn(0.82f, 1f)
     }
 
     private fun pageWidth(): Float {
@@ -254,11 +336,15 @@ class StickerPanelView @JvmOverloads constructor(
             }
             StickerTrace.d("STICKER_TRACE_PANEL_RESPONSE favoriteCount=${panel.favoriteCount} customCount=${panel.customCount} myPackages=${panel.myPackages.size}")
             currentTabs = mutableListOf(
-                StickerTabItem("favorites", context.getString(R.string.sticker_favorites), currentTabKey == "favorites"),
-                StickerTabItem("custom", context.getString(R.string.sticker_custom), currentTabKey == "custom"),
+                StickerTabItem("favorites", context.getString(R.string.sticker_favorites), iconRes = R.drawable.ic_sticker_favorite_nav, selected = currentTabKey == "favorites"),
             )
             panel.myPackages.forEach {
-                currentTabs += StickerTabItem("package:${it.packageId}", it.name, currentTabKey == "package:${it.packageId}")
+                currentTabs += StickerTabItem(
+                    "package:${it.packageId}",
+                    it.name,
+                    iconUrl = if (it.icon.isNotEmpty()) it.icon else it.cover,
+                    selected = currentTabKey == "package:${it.packageId}"
+                )
             }
             StickerTrace.d("STICKER_TRACE_PANEL_TABS keys=${currentTabs.joinToString { it.key }}")
             if (currentTabs.none { it.selected }) {
@@ -266,67 +352,151 @@ class StickerPanelView @JvmOverloads constructor(
                 currentTabKey = currentTabs.firstOrNull()?.key ?: "favorites"
             }
             tabAdapter.setList(currentTabs)
-            loadStickerTab(currentTabKey)
+            loadStickerSections(panel.myPackages)
         }
     }
 
-    private fun loadStickerTab(tabKey: String) {
-        StickerTrace.d("STICKER_TRACE_TAB_LOAD key=$tabKey")
-        when {
-            tabKey == "favorites" -> {
-                StickerModel.instance.getFavorites { code, msg, list ->
-                    if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
-                        StickerTrace.d("STICKER_TRACE_TAB_DATA key=$tabKey count=${list.size} first=${StickerTrace.itemSummary(list.firstOrNull())}")
-                        setStickerData(list)
-                    } else {
-                        StickerTrace.e("STICKER_TRACE_TAB_FAIL key=$tabKey code=$code msg=$msg")
-                        showLoadFail(msg)
-                    }
-                }
+    private fun loadStickerSections(packages: MutableList<com.chat.sticker.entity.StickerPackage>) {
+        val favorites = mutableListOf<StickerItem>()
+        val customItems = mutableListOf<StickerItem>()
+        val packageItems = linkedMapOf<String, MutableList<StickerItem>>()
+        var pending = 2 + packages.size
+        fun finishOne() {
+            pending--
+            if (pending == 0) {
+                renderStickerSections(packages, favorites, customItems, packageItems)
             }
-            tabKey == "custom" -> {
-                StickerModel.instance.getCustom { code, msg, list ->
-                    if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
-                        val data = mutableListOf<StickerItem>()
-                        data += StickerItem(isAddCell = true)
-                        data += list
-                        StickerTrace.d("STICKER_TRACE_TAB_DATA key=$tabKey count=${data.size} first=${StickerTrace.itemSummary(list.firstOrNull())}")
-                        setStickerData(data)
-                    } else {
-                        StickerTrace.e("STICKER_TRACE_TAB_FAIL key=$tabKey code=$code msg=$msg")
-                        showLoadFail(msg)
-                    }
-                }
+        }
+        StickerModel.instance.getFavorites { code, msg, list ->
+            if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
+                favorites += list
+            } else {
+                StickerTrace.e("STICKER_TRACE_SECTION_FAIL key=favorites code=$code msg=$msg")
             }
-            tabKey.startsWith("package:") -> {
-                val packageId = tabKey.removePrefix("package:")
-                StickerModel.instance.getPackageDetail(packageId) { code, msg, _, items ->
-                    if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
-                        StickerTrace.d("STICKER_TRACE_TAB_DATA key=$tabKey count=${items.size} first=${StickerTrace.itemSummary(items.firstOrNull())}")
-                        setStickerData(items)
-                    } else {
-                        StickerTrace.e("STICKER_TRACE_TAB_FAIL key=$tabKey code=$code msg=$msg")
-                        showLoadFail(msg)
-                    }
+            finishOne()
+        }
+        StickerModel.instance.getCustom { code, msg, list ->
+            if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
+                customItems += list
+            } else {
+                StickerTrace.e("STICKER_TRACE_SECTION_FAIL key=custom code=$code msg=$msg")
+            }
+            finishOne()
+        }
+        packages.forEach { pkg ->
+            val key = "package:${pkg.packageId}"
+            StickerModel.instance.getPackageDetail(pkg.packageId) { code, msg, _, items ->
+                if (code == com.chat.base.net.HttpResponseCode.success.toInt()) {
+                    packageItems[key] = items
+                } else {
+                    StickerTrace.e("STICKER_TRACE_SECTION_FAIL key=$key code=$code msg=$msg")
+                    packageItems[key] = mutableListOf()
                 }
+                finishOne()
             }
         }
     }
 
-    private fun setStickerData(list: MutableList<StickerItem>) {
+    private fun renderStickerSections(
+        packages: MutableList<com.chat.sticker.entity.StickerPackage>,
+        favorites: MutableList<StickerItem>,
+        customItems: MutableList<StickerItem>,
+        packageItems: LinkedHashMap<String, MutableList<StickerItem>>,
+    ) {
+        val data = mutableListOf<StickerItem>()
+        sectionPositions.clear()
+        sectionPositions["favorites"] = data.size
+        data += StickerItem(
+            sectionKey = "favorites",
+            sectionName = context.getString(R.string.sticker_custom_title),
+            isSectionHeader = true,
+            showAddButton = true
+        )
+        data += favorites.map { it.copy(sectionKey = "favorites") }
+        data += customItems.map { it.copy(sectionKey = "favorites") }
+        packages.forEach { pkg ->
+            val key = "package:${pkg.packageId}"
+            sectionPositions[key] = data.size
+            data += StickerItem(
+                sectionKey = key,
+                sectionName = pkg.name,
+                isSectionHeader = true
+            )
+            data += (packageItems[key] ?: mutableListOf()).map { it.copy(sectionKey = key) }
+        }
         stickerAdapter.editMode = false
-        stickerAdapter.setList(list)
-        StickerTrace.d("STICKER_TRACE_PANEL_RENDER count=${list.size} first=${StickerTrace.itemSummary(list.firstOrNull())}")
-        binding.emptyTv.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        stickerAdapter.setList(data)
+        binding.emptyTv.visibility = if (data.size <= sectionPositions.size) View.VISIBLE else View.GONE
+        StickerTrace.d("STICKER_TRACE_PANEL_RENDER_SECTIONS count=${data.size} sections=${sectionPositions.keys.joinToString()} first=${StickerTrace.itemSummary(data.firstOrNull { !it.isSectionHeader })}")
+        selectStickerSection(currentTabKey.takeIf { sectionPositions.containsKey(it) } ?: "favorites", false)
     }
 
-    private fun showLoadFail(msg: String) {
-        stickerAdapter.setList(mutableListOf())
-        StickerTrace.e("STICKER_TRACE_PANEL_RENDER fail msg=$msg")
-        binding.emptyTv.visibility = View.VISIBLE
-        if (msg.isNotEmpty()) {
-            WKToastUtils.getInstance().showToastNormal(msg)
+    private fun selectStickerSection(key: String, scroll: Boolean) {
+        currentTabKey = key
+        currentTabs.forEach { it.selected = it.key == key }
+        tabAdapter.notifyDataSetChanged()
+        if (scroll) {
+            val position = sectionPositions[key] ?: return
+            ignoreStickerScroll = true
+            val smoothScroller = object : LinearSmoothScroller(context) {
+                override fun getVerticalSnapPreference(): Int = SNAP_TO_START
+                override fun calculateTimeForScrolling(dx: Int): Int {
+                    return super.calculateTimeForScrolling(dx) * 2
+                }
+            }
+            smoothScroller.targetPosition = position
+            binding.stickerRecyclerView.layoutManager?.startSmoothScroll(smoothScroller)
+            binding.stickerRecyclerView.postDelayed({ ignoreStickerScroll = false }, 840)
         }
+    }
+
+    private fun setBottomBarVisible(visible: Boolean) {
+        if (bottomBarVisible == visible) return
+        bottomBarVisible = visible
+        val barHeight = binding.bottomBarLayout.height.takeIf { it > 0 } ?: AndroidUtilities.dp(45f)
+        val hideOffset = (barHeight + AndroidUtilities.dp(20f)).toFloat()
+        binding.bottomBarLayout.animate().cancel()
+        if (visible) {
+            binding.bottomBarLayout.visibility = View.VISIBLE
+            binding.bottomBarLayout.translationY = hideOffset
+            binding.bottomBarLayout.alpha = 0f
+        }
+        binding.bottomBarLayout.animate()
+            .translationY(if (visible) 0f else hideOffset)
+            .alpha(if (visible) 1f else 0f)
+            .setDuration(220)
+            .setInterpolator(DecelerateInterpolator())
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (!bottomBarVisible) {
+                        binding.bottomBarLayout.visibility = View.GONE
+                    }
+                    binding.bottomBarLayout.animate().setListener(null)
+                }
+            })
+            .start()
+    }
+
+    private fun updateTabByScroll() {
+        val layoutManager = binding.stickerRecyclerView.layoutManager as? GridLayoutManager ?: return
+        val firstVisible = layoutManager.findFirstVisibleItemPosition()
+        if (firstVisible == RecyclerView.NO_POSITION) return
+        val activeKey = sectionPositions.entries.lastOrNull { it.value <= firstVisible }?.key ?: return
+        if (activeKey != currentTabKey) {
+            selectStickerSection(activeKey, false)
+        }
+    }
+
+    private fun findStickerItemUnder(rawX: Float, rawY: Float): StickerItem? {
+        val location = IntArray(2)
+        binding.stickerRecyclerView.getLocationOnScreen(location)
+        val localX = rawX - location[0]
+        val localY = rawY - location[1]
+        val child = binding.stickerRecyclerView.findChildViewUnder(localX, localY) ?: return null
+        val position = binding.stickerRecyclerView.getChildAdapterPosition(child)
+        if (position == RecyclerView.NO_POSITION) return null
+        val item = stickerAdapter.getItem(position) ?: return null
+        return item.takeUnless { it.isSectionHeader || it.isAddCell }
     }
 
     private fun sendSticker(item: StickerItem) {

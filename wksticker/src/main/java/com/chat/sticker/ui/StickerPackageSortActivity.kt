@@ -40,6 +40,8 @@ class StickerPackageSortActivity : WKBaseActivity<ActStickerSortLayoutBinding>()
 
     override fun initView() {
         adapter.showAction = false
+        adapter.showSortHandle = true
+        adapter.compactMode = true
         initAdapter(wkVBinding.recyclerView, adapter)
         val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
             override fun onMove(

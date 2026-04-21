@@ -32,6 +32,21 @@ private fun JSONObject?.readLongCompat(vararg keys: String): Long {
     return 0L
 }
 
+private fun JSONObject?.readBooleanCompat(vararg keys: String): Boolean {
+    if (this == null) return false
+    keys.forEach { key ->
+        if (this.containsKey(key)) {
+            return when (val value = this.get(key)) {
+                is Boolean -> value
+                is Number -> value.toInt() != 0
+                is String -> value.equals("true", true) || value == "1"
+                else -> this.getBooleanValue(key)
+            }
+        }
+    }
+    return false
+}
+
 private fun JSONObject?.readObjectCompat(vararg keys: String): JSONObject? {
     if (this == null) return null
     keys.forEach { key ->
@@ -79,6 +94,9 @@ data class StickerPackage(
                 status = source.readIntCompat("status", "Status"),
                 createdAt = source.readStringCompat("created_at", "CreatedAt"),
                 updatedAt = source.readStringCompat("updated_at", "UpdatedAt"),
+                isAdded = source.readBooleanCompat("is_added", "isAdded", "IsAdded").let { added ->
+                    added || json.readBooleanCompat("is_added", "isAdded", "IsAdded")
+                },
             )
         }
     }
@@ -108,6 +126,10 @@ data class StickerItem(
     val updatedAt: String = "",
     val targetType: String = "",
     val targetId: String = "",
+    val sectionKey: String = "",
+    val sectionName: String = "",
+    var isSectionHeader: Boolean = false,
+    var showAddButton: Boolean = false,
     var selected: Boolean = false,
     var isAddCell: Boolean = false,
 ) : Parcelable {
@@ -199,7 +221,7 @@ data class StickerFavoriteItem(
             )
         }
 
-        fun toStickerItems(array: JSONArray?): MutableList<StickerItem> {
+        fun toStickerItems(array: JSONArray?, includeEmptyMedia: Boolean = false): MutableList<StickerItem> {
             val list = mutableListOf<StickerItem>()
             if (array == null) return list
             for (i in 0 until array.size) {
@@ -213,7 +235,7 @@ data class StickerFavoriteItem(
                     targetType = if (detail.targetType.isNotEmpty()) detail.targetType else favorite.targetType,
                     targetId = if (detail.targetId.isNotEmpty()) detail.targetId else favorite.targetId
                 )
-                if (item.gifUrl.isEmpty() && item.originUrl.isEmpty() && item.thumbUrl.isEmpty()) {
+                if (!includeEmptyMedia && item.gifUrl.isEmpty() && item.originUrl.isEmpty() && item.thumbUrl.isEmpty()) {
                     StickerTrace.e("STICKER_TRACE_FAVORITE_PARSE empty_url index=$i targetType=${favorite.targetType} targetId=${favorite.targetId} raw=${raw ?: ""} item=${StickerTrace.itemSummary(item)}")
                     continue
                 }
@@ -243,7 +265,7 @@ data class StickerPanelData(
             }
             return StickerPanelData(
                 tabs = json.getJSONArray("tabs") ?: JSONArray(),
-                myPackages = myPackages,
+                myPackages = myPackages.sortedBy { it.sortNum }.toMutableList(),
                 emojiGroups = json.getJSONArray("emoji_groups") ?: JSONArray(),
                 favoriteCount = json.readIntCompat("favorite_count", "favoriteCount", "FavoriteCount"),
                 customCount = json.readIntCompat("custom_count", "customCount", "CustomCount"),

@@ -4,6 +4,7 @@ import android.view.View
 import android.view.MotionEvent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.chad.library.adapter.base.BaseQuickAdapter
@@ -16,14 +17,34 @@ import com.chat.base.utils.AndroidUtilities
 import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.sticker.R
 import com.chat.sticker.entity.StickerItem
+import com.chat.sticker.ui.StickerCustomActivity
 import com.chat.sticker.ui.StickerFullScreenPreview
 import com.chat.sticker.utils.StickerTrace
 
 class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layout.item_sticker_grid) {
     var editMode: Boolean = false
     var showTitles: Boolean = true
+    var previewMoveResolver: ((Float, Float) -> StickerItem?)? = null
 
     override fun convert(holder: BaseViewHolder, item: StickerItem) {
+        val sectionHeaderLayout = holder.getView<View>(R.id.sectionHeaderLayout)
+        val contentLayout = holder.getView<View>(R.id.contentLayout)
+        val sectionAddIv = holder.getView<androidx.appcompat.widget.AppCompatImageView>(R.id.sectionAddIv)
+        if (item.isSectionHeader) {
+            sectionHeaderLayout.visibility = View.VISIBLE
+            contentLayout.visibility = View.GONE
+            holder.setText(R.id.sectionTitleTv, item.sectionName)
+            sectionAddIv.visibility = if (item.showAddButton) View.VISIBLE else View.GONE
+            sectionAddIv.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)
+            sectionAddIv.setOnClickListener {
+                context.startActivity(Intent(context, StickerCustomActivity::class.java))
+            }
+            holder.itemView.setOnLongClickListener(null)
+            holder.itemView.setOnTouchListener(null)
+            return
+        }
+        sectionHeaderLayout.visibility = View.GONE
+        contentLayout.visibility = View.VISIBLE
         val imageView = holder.getView<androidx.appcompat.widget.AppCompatImageView>(R.id.imageView)
         val checkView = holder.getView<CheckBox>(R.id.checkIv)
         val titleView = holder.getView<androidx.appcompat.widget.AppCompatTextView>(R.id.nameTv)
@@ -63,12 +84,14 @@ class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layou
         }
         holder.itemView.setOnLongClickListener {
             if (item.isAddCell) return@setOnLongClickListener false
-            StickerFullScreenPreview.show(context, item)
+            StickerFullScreenPreview.show(context, item, previewMoveResolver)
             true
         }
         holder.itemView.setOnTouchListener { _, event ->
-            if (!item.isAddCell && (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL)) {
-                StickerFullScreenPreview.dismiss()
+            when (event.actionMasked) {
+                MotionEvent.ACTION_MOVE -> StickerFullScreenPreview.handleMove(event.rawX, event.rawY)
+                MotionEvent.ACTION_UP -> StickerFullScreenPreview.handleRelease(true)
+                MotionEvent.ACTION_CANCEL -> StickerFullScreenPreview.handleRelease(false)
             }
             false
         }

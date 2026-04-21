@@ -18,7 +18,6 @@
             android:id="@+id/coverIv"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:background="@drawable/bg_sticker_add_cell"
             android:scaleType="centerCrop" />
 
         <LinearLayout

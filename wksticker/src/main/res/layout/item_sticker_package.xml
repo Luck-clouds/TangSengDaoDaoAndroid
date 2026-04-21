@@ -52,4 +52,12 @@
         android:textColor="@color/white"
         android:textSize="15sp" />
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/sortHandleIv"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:scaleType="centerInside"
+        android:visibility="gone" />
+
 </LinearLayout>
