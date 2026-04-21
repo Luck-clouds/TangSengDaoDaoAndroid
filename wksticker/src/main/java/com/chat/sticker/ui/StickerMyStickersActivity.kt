@@ -80,6 +80,7 @@ class StickerMyStickersActivity : WKBaseActivity<ActStickerMyLayoutBinding>() {
             }
             val data = mutableListOf<MyStickerEntry>()
             data += MyStickerEntry("custom", "custom", getString(R.string.sticker_custom_title), getString(R.string.sticker_add_custom), "", false)
+            data += MyStickerEntry("section", "panel_packages", getString(R.string.sticker_panel_packages_title), "", "", false)
             list.forEach {
                 data += MyStickerEntry("package", it.packageId, it.name, if (it.description.isNotEmpty()) it.description else it.tags, if (it.icon.isNotEmpty()) it.icon else it.cover, true)
             }

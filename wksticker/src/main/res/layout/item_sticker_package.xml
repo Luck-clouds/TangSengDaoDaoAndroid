@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/homeColor"
+    android:background="@color/white"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="14dp"
@@ -14,7 +14,6 @@
         android:id="@+id/iconIv"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:background="@drawable/bg_sticker_add_cell"
         android:scaleType="centerCrop" />
 
     <LinearLayout
@@ -45,12 +44,12 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/actionTv"
-        android:layout_width="56dp"
-        android:layout_height="30dp"
+        android:layout_width="82dp"
+        android:layout_height="36dp"
         android:background="@drawable/bg_sticker_action"
         android:gravity="center"
         android:text="@string/sticker_add"
         android:textColor="@color/white"
-        android:textSize="13sp" />
+        android:textSize="15sp" />
 
 </LinearLayout>

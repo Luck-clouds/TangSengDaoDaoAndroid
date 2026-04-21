@@ -47,13 +47,13 @@
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/actionTv"
-            android:layout_width="56dp"
-            android:layout_height="30dp"
+            android:layout_width="82dp"
+            android:layout_height="36dp"
             android:background="@drawable/bg_sticker_action"
             android:gravity="center"
             android:text="@string/sticker_add"
             android:textColor="@color/white"
-            android:textSize="13sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <TextView

@@ -13,6 +13,7 @@ import com.chat.base.net.entity.CommonResponse
 import com.chat.base.net.ud.UploadService
 import com.chat.base.utils.WKFileUtils
 import com.chat.sticker.entity.StickerItem
+import com.chat.sticker.entity.StickerFavoriteItem
 import com.chat.sticker.entity.StickerPackage
 import com.chat.sticker.entity.StickerPanelData
 import com.chat.sticker.utils.StickerGifConverter
@@ -51,7 +52,9 @@ class StickerModel private constructor() : WKBaseModel() {
         requestAndErrorBack(createService(StickerService::class.java).favorites(), object : IRequestResultErrorInfoListener<JSONArray> {
             override fun onSuccess(result: JSONArray) {
                 StickerTrace.d("STICKER_TRACE_API_RESPONSE GET /v1/sticker/favorites body=$result")
-                callback(HttpResponseCode.success.toInt(), "", com.chat.sticker.entity.StickerFavoriteItem.toStickerItems(result))
+                val items = StickerFavoriteItem.toStickerItems(result)
+                StickerTrace.d("STICKER_TRACE_FAVORITE_PARSE count=${items.size} first=${StickerTrace.itemSummary(items.firstOrNull())}")
+                callback(HttpResponseCode.success.toInt(), "", items)
             }
 
             override fun onFail(code: Int, msg: String?, errJson: String?) {
@@ -160,6 +163,7 @@ class StickerModel private constructor() : WKBaseModel() {
         body["target_type"] = targetType
         if (targetId.isNotEmpty()) body["target_id"] = targetId
         if (emojiCode.isNotEmpty()) body["emoji_code"] = emojiCode
+        StickerTrace.d("STICKER_TRACE_API_REQUEST POST /v1/sticker/favorites body=$body")
         requestAndErrorBack(createService(StickerService::class.java).addFavorite(body), commonCallback(callback))
     }
 
@@ -168,6 +172,7 @@ class StickerModel private constructor() : WKBaseModel() {
         body["target_type"] = targetType
         if (targetId.isNotEmpty()) body["target_id"] = targetId
         if (emojiCode.isNotEmpty()) body["emoji_code"] = emojiCode
+        StickerTrace.d("STICKER_TRACE_API_REQUEST DELETE /v1/sticker/favorites body=$body")
         requestAndErrorBack(createService(StickerService::class.java).removeFavorite(body), commonCallback(callback))
     }
 
@@ -270,10 +275,12 @@ class StickerModel private constructor() : WKBaseModel() {
     private fun commonCallback(callback: (Int, String) -> Unit): IRequestResultErrorInfoListener<CommonResponse> {
         return object : IRequestResultErrorInfoListener<CommonResponse> {
             override fun onSuccess(result: CommonResponse) {
+                StickerTrace.d("STICKER_TRACE_API_COMMON_SUCCESS status=${result.status} msg=${result.msg.orEmpty()}")
                 callback(if (result.status == 0) HttpResponseCode.success.toInt() else result.status, result.msg.orEmpty())
             }
 
             override fun onFail(code: Int, msg: String?, errJson: String?) {
+                StickerTrace.e("STICKER_TRACE_API_COMMON_FAIL code=$code msg=${msg.orEmpty()} err=${errJson.orEmpty()}")
                 callback(code, msg.orEmpty())
             }
         }

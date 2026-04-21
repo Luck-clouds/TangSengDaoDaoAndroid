@@ -27,4 +27,5 @@
     <string name="sticker_remove_package_confirm">确认移除这套表情吗？</string>
     <string name="sticker_search">搜索</string>
     <string name="sticker_my_package_sort">排序</string>
+    <string name="sticker_panel_packages_title">聊天面板中的整套表情</string>
 </resources>

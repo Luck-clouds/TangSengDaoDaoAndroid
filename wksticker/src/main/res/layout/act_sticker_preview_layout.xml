@@ -23,7 +23,6 @@
                 android:layout_height="220dp"
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
-                android:background="@drawable/bg_sticker_add_cell"
                 android:scaleType="fitCenter" />
         </FrameLayout>
     </LinearLayout>

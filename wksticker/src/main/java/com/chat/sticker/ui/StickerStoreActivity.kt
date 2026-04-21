@@ -1,9 +1,11 @@
 package com.chat.sticker.ui
 
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.NonNull
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.net.HttpResponseCode
+import com.chat.base.utils.AndroidUtilities
 import com.chat.base.utils.WKReader
 import com.chat.sticker.R
 import com.chat.sticker.databinding.ActStickerStoreLayoutBinding
@@ -28,7 +30,12 @@ class StickerStoreActivity : WKBaseActivity<ActStickerStoreLayoutBinding>() {
         titleTv.setText(R.string.sticker_title)
     }
 
-    override fun getRightTvText(textView: TextView): String = getString(R.string.sticker_my_title)
+    override fun getRightIvResourceId(imageView: ImageView): Int {
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        val padding = AndroidUtilities.dp(2f)
+        imageView.setPadding(padding, padding, padding, padding)
+        return R.mipmap.sticker_settings_icon
+    }
 
     override fun rightLayoutClick() {
         startActivity(android.content.Intent(this, StickerMyStickersActivity::class.java))

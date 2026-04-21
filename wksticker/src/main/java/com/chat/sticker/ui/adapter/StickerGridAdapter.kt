@@ -2,11 +2,17 @@ package com.chat.sticker.ui.adapter
 
 import android.view.View
 import android.view.MotionEvent
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import com.chat.base.config.WKApiConfig
 import com.chat.base.glide.GlideUtils
+import com.chat.base.ui.Theme
+import com.chat.base.ui.components.CheckBox
+import com.chat.base.utils.AndroidUtilities
 import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.sticker.R
 import com.chat.sticker.entity.StickerItem
@@ -15,18 +21,25 @@ import com.chat.sticker.utils.StickerTrace
 
 class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layout.item_sticker_grid) {
     var editMode: Boolean = false
+    var showTitles: Boolean = true
 
     override fun convert(holder: BaseViewHolder, item: StickerItem) {
         val imageView = holder.getView<androidx.appcompat.widget.AppCompatImageView>(R.id.imageView)
-        val checkView = holder.getView<androidx.appcompat.widget.AppCompatImageView>(R.id.checkIv)
+        val checkView = holder.getView<CheckBox>(R.id.checkIv)
         val titleView = holder.getView<androidx.appcompat.widget.AppCompatTextView>(R.id.nameTv)
         if (item.isAddCell) {
-            WKImageDisplayUtils.limitResourceInside(imageView, R.mipmap.sticker_plus_icon, 4f, 2f)
-            titleView.isVisible = true
+            imageView.background = null
+            WKImageDisplayUtils.limitResourceInside(imageView, R.mipmap.sticker_plus_icon, 14f, 4f)
+            imageView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)
+            titleView.isVisible = showTitles
             titleView.text = context.getString(R.string.sticker_add)
             checkView.visibility = View.GONE
+            holder.itemView.setOnLongClickListener(null)
+            holder.itemView.setOnTouchListener(null)
             return
         }
+        imageView.clearColorFilter()
+        imageView.background = null
         val previewUrl = when {
             item.gifUrl.isNotEmpty() -> WKApiConfig.getShowUrl(item.gifUrl)
             item.originUrl.isNotEmpty() && (item.originExt.contains("gif", true) || item.sourceMediaType.contains("gif", true) || item.originUrl.contains(".gif", true)) -> WKApiConfig.getShowUrl(item.originUrl)
@@ -59,9 +72,16 @@ class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layou
             }
             false
         }
-        titleView.isVisible = item.name.isNotEmpty()
+        titleView.isVisible = showTitles && item.name.isNotEmpty()
         titleView.text = item.name
         checkView.visibility = if (editMode) View.VISIBLE else View.GONE
-        checkView.isSelected = item.selected
+        checkView.setResId(context, com.chat.base.R.mipmap.round_check2)
+        checkView.setDrawBackground(true)
+        checkView.setHasBorder(true)
+        checkView.setStrokeWidth(AndroidUtilities.dp(2f))
+        checkView.setBorderColor(ContextCompat.getColor(context, com.chat.base.R.color.layoutColor))
+        checkView.setSize(24)
+        checkView.setColor(Theme.colorAccount, ContextCompat.getColor(context, com.chat.base.R.color.white))
+        checkView.setChecked(item.selected, true)
     }
 }

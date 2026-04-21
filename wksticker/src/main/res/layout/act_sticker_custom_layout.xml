@@ -44,10 +44,11 @@
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_sticker_action"
+            android:enabled="false"
             android:gravity="center"
             android:text="@string/sticker_move_front"
-            android:textColor="@color/white" />
+            android:textColor="@color/color999"
+            android:textSize="15sp" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/deleteTv"
@@ -55,10 +56,11 @@
             android:layout_height="36dp"
             android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_sticker_action"
+            android:enabled="false"
             android:gravity="center"
             android:text="@string/sticker_delete"
-            android:textColor="@color/white" />
+            android:textColor="@color/red"
+            android:textSize="15sp" />
     </LinearLayout>
 
 </LinearLayout>

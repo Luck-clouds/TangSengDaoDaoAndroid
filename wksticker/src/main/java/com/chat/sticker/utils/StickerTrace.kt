@@ -21,7 +21,7 @@ object StickerTrace {
 
     fun itemSummary(item: StickerItem?): String {
         if (item == null) return "item=null"
-        return "itemId=${item.itemId}, packageId=${item.packageId}, customId=${item.customId}, name=${item.name}, gifUrl=${item.gifUrl}, thumbUrl=${item.thumbUrl}, originUrl=${item.originUrl}, ext=${item.originExt}, mediaType=${item.sourceMediaType}, size=${item.width}x${item.height}"
+        return "itemId=${item.itemId}, packageId=${item.packageId}, customId=${item.customId}, targetType=${item.targetType}, targetId=${item.targetId}, name=${item.name}, gifUrl=${item.gifUrl}, thumbUrl=${item.thumbUrl}, originUrl=${item.originUrl}, ext=${item.originExt}, mediaType=${item.sourceMediaType}, size=${item.width}x${item.height}"
     }
 
     fun gifSummary(content: WKGifContent?): String {

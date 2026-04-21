@@ -22,13 +22,12 @@
                 android:adjustViewBounds="true"
                 android:scaleType="centerInside" />
 
-            <androidx.appcompat.widget.AppCompatImageView
+            <com.chat.base.ui.components.CheckBox
                 android:id="@+id/checkIv"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="top|end"
                 android:layout_margin="6dp"
-                android:background="@drawable/bg_sticker_check"
                 android:visibility="gone" />
         </FrameLayout>
 

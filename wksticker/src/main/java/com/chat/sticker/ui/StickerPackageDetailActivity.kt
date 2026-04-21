@@ -1,6 +1,7 @@
 package com.chat.sticker.ui
 
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.config.WKApiConfig
@@ -75,5 +76,9 @@ class StickerPackageDetailActivity : WKBaseActivity<ActStickerPackageDetailLayou
 
     private fun refreshAction() {
         wkVBinding.actionTv.text = getString(if (isAdded) R.string.sticker_remove else R.string.sticker_add)
+        wkVBinding.actionTv.setBackgroundResource(if (isAdded) R.drawable.bg_sticker_action_remove else R.drawable.bg_sticker_action)
+        wkVBinding.actionTv.setTextColor(
+            ContextCompat.getColor(this, if (isAdded) com.chat.base.R.color.red else com.chat.base.R.color.white)
+        )
     }
 }

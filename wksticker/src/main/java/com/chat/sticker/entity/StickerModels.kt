@@ -1,8 +1,10 @@
 package com.chat.sticker.entity
 
 import android.os.Parcelable
+import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
+import com.chat.sticker.utils.StickerTrace
 import kotlinx.parcelize.Parcelize
 
 private fun JSONObject?.readStringCompat(vararg keys: String): String {
@@ -28,6 +30,18 @@ private fun JSONObject?.readLongCompat(vararg keys: String): Long {
         if (this.containsKey(key)) return this.getLongValue(key)
     }
     return 0L
+}
+
+private fun JSONObject?.readObjectCompat(vararg keys: String): JSONObject? {
+    if (this == null) return null
+    keys.forEach { key ->
+        runCatching { this.getJSONObject(key) }.getOrNull()?.let { return it }
+        val raw = this.getString(key)?.trim().orEmpty()
+        if (raw.startsWith("{")) {
+            runCatching { JSON.parseObject(raw) }.getOrNull()?.let { return it }
+        }
+    }
+    return null
 }
 
 @Parcelize
@@ -92,6 +106,8 @@ data class StickerItem(
     val size: Long = 0,
     val createdAt: String = "",
     val updatedAt: String = "",
+    val targetType: String = "",
+    val targetId: String = "",
     var selected: Boolean = false,
     var isAddCell: Boolean = false,
 ) : Parcelable {
@@ -99,11 +115,12 @@ data class StickerItem(
         fun fromJson(json: JSONObject?): StickerItem {
             if (json == null) return StickerItem()
             val rawUrl = json.readStringCompat("url", "Url")
+                .ifEmpty { json.readStringCompat("file_url", "FileURL", "media_url", "MediaURL", "path", "Path", "src", "Src") }
             val rawFormat = json.readStringCompat("format", "Format")
             val rawTitle = json.readStringCompat("title", "Title")
             val rawPlaceholder = json.readStringCompat("placeholder", "Placeholder")
             return StickerItem(
-                itemId = json.readStringCompat("item_id", "ItemID"),
+                itemId = json.readStringCompat("item_id", "ItemID", "id", "ID"),
                 packageId = json.readStringCompat("package_id", "PackageID").ifEmpty { json.readStringCompat("category", "Category") },
                 customId = json.readStringCompat("custom_id", "CustomID"),
                 emojiId = json.readStringCompat("emoji_id", "EmojiID"),
@@ -113,20 +130,22 @@ data class StickerItem(
                 groupNo = json.readStringCompat("group_no", "GroupNo"),
                 sortNum = json.readIntCompat("sort_num", "SortNum"),
                 status = json.readIntCompat("status", "Status"),
-                originUrl = json.readStringCompat("origin_url", "OriginURL").ifEmpty { rawUrl },
-                gifUrl = json.readStringCompat("gif_url", "GifURL").ifEmpty {
+                originUrl = json.readStringCompat("origin_url", "OriginURL", "originUrl", "original_url", "OriginalURL").ifEmpty { rawUrl },
+                gifUrl = json.readStringCompat("gif_url", "GifURL", "gifUrl", "gif", "Gif").ifEmpty {
                     if (rawFormat.contains("gif", true) || rawUrl.contains(".gif", true)) rawUrl else ""
                 },
-                thumbUrl = json.readStringCompat("thumb_url", "ThumbURL"),
+                thumbUrl = json.readStringCompat("thumb_url", "ThumbURL", "thumbUrl", "thumbnail_url", "ThumbnailURL", "preview_url", "PreviewURL", "cover", "Cover"),
                 originExt = json.readStringCompat("origin_ext", "OriginExt").ifEmpty { rawFormat },
                 sourceMediaType = json.readStringCompat("source_media_type", "SourceMediaType").ifEmpty {
                     if (rawFormat.contains("gif", true) || rawUrl.contains(".gif", true)) "image/gif" else ""
                 },
-                width = json.readIntCompat("width", "Width"),
-                height = json.readIntCompat("height", "Height"),
+                width = json.readIntCompat("width", "Width", "w", "W"),
+                height = json.readIntCompat("height", "Height", "h", "H"),
                 size = json.readLongCompat("size", "Size"),
                 createdAt = json.readStringCompat("created_at", "CreatedAt"),
                 updatedAt = json.readStringCompat("updated_at", "UpdatedAt"),
+                targetType = json.readStringCompat("target_type", "TargetType"),
+                targetId = json.readStringCompat("target_id", "TargetID"),
             )
         }
 
@@ -152,13 +171,31 @@ data class StickerFavoriteItem(
     companion object {
         fun fromJson(json: JSONObject?): StickerFavoriteItem {
             if (json == null) return StickerFavoriteItem()
+            val detailJson = json.readObjectCompat(
+                "detail",
+                "Detail",
+                "item",
+                "Item",
+                "target",
+                "Target",
+                "target_detail",
+                "TargetDetail",
+                "emoji",
+                "Emoji",
+                "sticker",
+                "Sticker",
+                "custom",
+                "Custom",
+                "data",
+                "Data"
+            ) ?: json
             return StickerFavoriteItem(
                 targetType = json.readStringCompat("target_type", "TargetType"),
                 targetId = json.readStringCompat("target_id", "TargetID"),
                 emojiCode = json.readStringCompat("emoji_code", "EmojiCode"),
                 sortNum = json.readIntCompat("sort_num", "SortNum"),
                 name = json.readStringCompat("name", "Name"),
-                detail = StickerItem.fromJson(json.getJSONObject("detail") ?: json.getJSONObject("Detail"))
+                detail = StickerItem.fromJson(detailJson)
             )
         }
 
@@ -166,12 +203,21 @@ data class StickerFavoriteItem(
             val list = mutableListOf<StickerItem>()
             if (array == null) return list
             for (i in 0 until array.size) {
-                val favorite = fromJson(array.getJSONObject(i))
+                val raw = array.getJSONObject(i)
+                val favorite = fromJson(raw)
                 val detail = favorite.detail
-                list += detail.copy(
-                    itemId = if (detail.itemId.isNotEmpty()) detail.itemId else favorite.targetId,
-                    emojiCode = if (detail.emojiCode.isNotEmpty()) detail.emojiCode else favorite.emojiCode
+                val item = detail.copy(
+                    itemId = if (detail.itemId.isNotEmpty()) detail.itemId else favorite.targetId.takeUnless { it == ".gif" }.orEmpty(),
+                    emojiCode = if (detail.emojiCode.isNotEmpty()) detail.emojiCode else favorite.emojiCode,
+                    name = if (detail.name.isNotEmpty()) detail.name else favorite.name,
+                    targetType = if (detail.targetType.isNotEmpty()) detail.targetType else favorite.targetType,
+                    targetId = if (detail.targetId.isNotEmpty()) detail.targetId else favorite.targetId
                 )
+                if (item.gifUrl.isEmpty() && item.originUrl.isEmpty() && item.thumbUrl.isEmpty()) {
+                    StickerTrace.e("STICKER_TRACE_FAVORITE_PARSE empty_url index=$i targetType=${favorite.targetType} targetId=${favorite.targetId} raw=${raw ?: ""} item=${StickerTrace.itemSummary(item)}")
+                    continue
+                }
+                list += item
             }
             return list
         }
