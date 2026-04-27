@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -18,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -81,23 +83,22 @@ public final class FlagshipReactionManager {
         container.setGravity(Gravity.CENTER_VERTICAL);
         container.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         Set<String> currentUserEmojis = findCurrentUserEmojis(activeList);
-        for (Map.Entry<String, Integer> entry : sortReactionCountMap(countByEmoji(activeList)).entrySet()) {
-            View itemView = LayoutInflater.from(parentView.getContext()).inflate(com.chat.flagship.R.layout.item_flagship_msg_reaction_chip, parentView, false);
-            LinearLayout contentLayout = itemView.findViewById(R.id.contentLayout);
-            TextView reactionTv = itemView.findViewById(com.chat.flagship.R.id.reactionTv);
-            TextView countTv = itemView.findViewById(R.id.countTv);
-            String reactionKey = entry.getKey();
-            reactionTv.setText(getDisplayValue(reactionKey));
-            countTv.setText(String.format(Locale.getDefault(), "%d", entry.getValue()));
-            if (currentUserEmojis.contains(reactionKey)) {
-                contentLayout.setBackgroundResource(com.chat.flagship.R.drawable.shape_flagship_reaction_selected);
-                countTv.setTextColor(Color.parseColor("#2F6FE4"));
-            } else {
-                countTv.setTextColor(Color.parseColor("#303133"));
-            }
-            contentLayout.setOnClickListener(v -> showReactionUsersDialog(parentView.getContext(), activeList, reactionKey));
-            container.addView(itemView);
+        LinkedHashMap<String, Integer> reactionCountMap = sortReactionCountMap(countByEmoji(activeList));
+        if (reactionCountMap.isEmpty()) {
+            parentView.setVisibility(View.GONE);
+            return;
         }
+        View itemView = LayoutInflater.from(parentView.getContext()).inflate(com.chat.flagship.R.layout.item_flagship_msg_reaction_chip, parentView, false);
+        LinearLayout contentLayout = itemView.findViewById(R.id.contentLayout);
+        LinearLayout iconsContainer = itemView.findViewById(com.chat.flagship.R.id.iconsContainer);
+        TextView countTv = itemView.findViewById(R.id.countTv);
+        bindReactionBubbleIcons(parentView.getContext(), iconsContainer, reactionCountMap);
+        countTv.setText(String.format(Locale.getDefault(), "%d", getTotalReactionCount(reactionCountMap)));
+        if (!currentUserEmojis.isEmpty()) {
+            contentLayout.setBackgroundResource(com.chat.flagship.R.drawable.shape_flagship_reaction_selected);
+        }
+        contentLayout.setOnClickListener(v -> showReactionUsersDialog(parentView.getContext(), activeList, null));
+        container.addView(itemView);
         parentView.addView(container);
     }
 
@@ -155,10 +156,11 @@ public final class FlagshipReactionManager {
                 View itemView = LayoutInflater.from(activity).inflate(com.chat.flagship.R.layout.item_flagship_msg_reaction_user, root, false);
                 AvatarView avatarView = itemView.findViewById(R.id.avatarView);
                 TextView nameTv = itemView.findViewById(R.id.nameTv);
+                ImageView reactionIv = itemView.findViewById(com.chat.flagship.R.id.reactionIv);
                 TextView reactionTv = itemView.findViewById(com.chat.flagship.R.id.reactionTv);
                 avatarView.showAvatar(reaction.uid, WKChannelType.PERSONAL);
                 nameTv.setText(buildReactionUserName(reaction));
-                reactionTv.setText(getDisplayValue(reaction.emoji));
+                bindReactionBubbleIcon(reactionIv, reactionTv, reaction.emoji);
                 root.addView(itemView);
             }
         }
@@ -333,20 +335,116 @@ public final class FlagshipReactionManager {
         return reactionKey;
     }
 
+    private static void bindReactionBubbleIcon(ImageView reactionIv, TextView reactionTv, String reactionKey) {
+        int imageResId = getBubbleImageResId(reactionKey);
+        if (imageResId != 0) {
+            reactionIv.setImageResource(imageResId);
+            reactionIv.setVisibility(View.VISIBLE);
+            reactionTv.setVisibility(View.GONE);
+            return;
+        }
+        reactionIv.setVisibility(View.GONE);
+        reactionTv.setVisibility(View.VISIBLE);
+        reactionTv.setText(getDisplayValue(reactionKey));
+    }
+
+    private static int getBubbleImageResId(String reactionKey) {
+        if (TextUtils.isEmpty(reactionKey)) {
+            return 0;
+        }
+        for (ReactionSpec spec : DEFAULT_SPECS) {
+            if (TextUtils.equals(spec.apiName, reactionKey) || TextUtils.equals(spec.displayValue, reactionKey)) {
+                return spec.bubbleImageResId;
+            }
+        }
+        return 0;
+    }
+
+    private static void bindReactionBubbleIcons(Context context, LinearLayout container, LinkedHashMap<String, Integer> reactionCountMap) {
+        container.removeAllViews();
+        int index = 0;
+        for (String reactionKey : reactionCountMap.keySet()) {
+            View badgeView = createReactionBadgeView(context, reactionKey);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            if (index > 0) {
+                params.setMarginStart(-dp(context, 8));
+            }
+            badgeView.setLayoutParams(params);
+            container.addView(badgeView);
+            index++;
+            if (index >= 3) {
+                break;
+            }
+        }
+    }
+
+    private static View createReactionBadgeView(Context context, String reactionKey) {
+        FrameLayout badgeLayout = new FrameLayout(context);
+        int badgeSize = dp(context, 28);
+        FrameLayout.LayoutParams badgeParams = new FrameLayout.LayoutParams(badgeSize, badgeSize);
+        badgeLayout.setLayoutParams(badgeParams);
+
+        View bgView = new View(context);
+        GradientDrawable bgDrawable = new GradientDrawable();
+        bgDrawable.setShape(GradientDrawable.OVAL);
+        bgDrawable.setColor(getBubbleBadgeColor(reactionKey));
+        bgView.setBackground(bgDrawable);
+        badgeLayout.addView(bgView, badgeParams);
+
+        ImageView reactionIv = new ImageView(context);
+        reactionIv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        FrameLayout.LayoutParams iconParams = new FrameLayout.LayoutParams(dp(context, 19), dp(context, 19));
+        iconParams.gravity = Gravity.CENTER;
+        TextView reactionTv = new TextView(context);
+        reactionTv.setGravity(Gravity.CENTER);
+        reactionTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        reactionTv.setIncludeFontPadding(false);
+        reactionTv.setTextColor(Color.WHITE);
+        bindReactionBubbleIcon(reactionIv, reactionTv, reactionKey);
+        if (reactionIv.getVisibility() == View.VISIBLE) {
+            badgeLayout.addView(reactionIv, iconParams);
+        } else {
+            badgeLayout.addView(reactionTv, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+        return badgeLayout;
+    }
+
+    private static int getBubbleBadgeColor(String reactionKey) {
+        if (TextUtils.isEmpty(reactionKey)) {
+            return Color.parseColor("#7F8DE8");
+        }
+        for (ReactionSpec spec : DEFAULT_SPECS) {
+            if (TextUtils.equals(spec.apiName, reactionKey) || TextUtils.equals(spec.displayValue, reactionKey)) {
+                return spec.bubbleBadgeColor;
+            }
+        }
+        return Color.parseColor("#7F8DE8");
+    }
+
+    private static int getTotalReactionCount(LinkedHashMap<String, Integer> reactionCountMap) {
+        int total = 0;
+        for (Integer count : reactionCountMap.values()) {
+            if (count != null && count > 0) {
+                total += count;
+            }
+        }
+        return total;
+    }
+
     private static List<ReactionSpec> buildDefaultSpecs() {
         List<ReactionSpec> list = new ArrayList<>();
         // 第一列是接口值，第二列是界面显示值。后端若有精确枚举差异，只改这里即可。
-        list.add(new ReactionSpec("Laugh", "\uD83D\uDE01", com.chat.flagship.R.raw.flagship_reaction_01));
-        list.add(new ReactionSpec("Admire", "\uD83E\uDD29", com.chat.flagship.R.raw.flagship_reaction_02));
-        list.add(new ReactionSpec("Heart", "\u2764\uFE0F", com.chat.flagship.R.raw.flagship_reaction_03));
-        list.add(new ReactionSpec("ThumbsUp", "\uD83D\uDC4D", com.chat.flagship.R.raw.flagship_reaction_04));
-        list.add(new ReactionSpec("ThumbsDown", "\uD83D\uDC4E", com.chat.flagship.R.raw.flagship_reaction_05));
-        list.add(new ReactionSpec("Vomit", "\uD83E\uDD2E", com.chat.flagship.R.raw.flagship_reaction_06));
-        list.add(new ReactionSpec("Fire", "\uD83D\uDD25", com.chat.flagship.R.raw.flagship_reaction_07));
-        list.add(new ReactionSpec("PartyPopper", "\uD83C\uDF89", com.chat.flagship.R.raw.flagship_reaction_08));
-        list.add(new ReactionSpec("TearSmile", "\uD83E\uDD72", com.chat.flagship.R.raw.flagship_reaction_09));
-        list.add(new ReactionSpec("Shock", "\uD83D\uDE31", com.chat.flagship.R.raw.flagship_reaction_10));
-        list.add(new ReactionSpec("Poop", "\uD83D\uDCA9", com.chat.flagship.R.raw.flagship_reaction_11));
+        list.add(new ReactionSpec("Laugh", "\uD83D\uDE01", com.chat.flagship.R.raw.flagship_reaction_01, com.chat.flagship.R.drawable.flagship_reaction_01, Color.parseColor("#7B89E9")));
+        list.add(new ReactionSpec("Admire", "\uD83E\uDD29", com.chat.flagship.R.raw.flagship_reaction_02, com.chat.flagship.R.drawable.flagship_reaction_02, Color.parseColor("#C867F0")));
+        list.add(new ReactionSpec("Heart", "\u2764\uFE0F", com.chat.flagship.R.raw.flagship_reaction_03, com.chat.flagship.R.drawable.flagship_reaction_03, Color.parseColor("#C867F0")));
+        list.add(new ReactionSpec("ThumbsUp", "\uD83D\uDC4D", com.chat.flagship.R.raw.flagship_reaction_04, com.chat.flagship.R.drawable.flagship_reaction_04, Color.parseColor("#7B89E9")));
+        list.add(new ReactionSpec("ThumbsDown", "\uD83D\uDC4E", com.chat.flagship.R.raw.flagship_reaction_05, com.chat.flagship.R.drawable.flagship_reaction_05, Color.parseColor("#7B89E9")));
+        list.add(new ReactionSpec("Vomit", "\uD83E\uDD2E", com.chat.flagship.R.raw.flagship_reaction_06, com.chat.flagship.R.drawable.flagship_reaction_06, Color.parseColor("#76BB89")));
+        list.add(new ReactionSpec("Fire", "\uD83D\uDD25", com.chat.flagship.R.raw.flagship_reaction_07, com.chat.flagship.R.drawable.flagship_reaction_07, Color.parseColor("#FF8A5A")));
+        list.add(new ReactionSpec("PartyPopper", "\uD83C\uDF89", com.chat.flagship.R.raw.flagship_reaction_08, com.chat.flagship.R.drawable.flagship_reaction_08, Color.parseColor("#FF8EC5")));
+        list.add(new ReactionSpec("TearSmile", "\uD83E\uDD72", com.chat.flagship.R.raw.flagship_reaction_09, com.chat.flagship.R.drawable.flagship_reaction_09, Color.parseColor("#7B89E9")));
+        list.add(new ReactionSpec("Shock", "\uD83D\uDE31", com.chat.flagship.R.raw.flagship_reaction_10, com.chat.flagship.R.drawable.flagship_reaction_10, Color.parseColor("#F5A25D")));
+        list.add(new ReactionSpec("Poop", "\uD83D\uDCA9", com.chat.flagship.R.raw.flagship_reaction_11, com.chat.flagship.R.drawable.flagship_reaction_11, Color.parseColor("#A07B5E")));
         return list;
     }
 
@@ -354,11 +452,15 @@ public final class FlagshipReactionManager {
         final String apiName;
         final String displayValue;
         final int resourceId;
+        final int bubbleImageResId;
+        final int bubbleBadgeColor;
 
-        ReactionSpec(String apiName, String displayValue, int resourceId) {
+        ReactionSpec(String apiName, String displayValue, int resourceId, int bubbleImageResId, int bubbleBadgeColor) {
             this.apiName = apiName;
             this.displayValue = displayValue;
             this.resourceId = resourceId;
+            this.bubbleImageResId = bubbleImageResId;
+            this.bubbleBadgeColor = bubbleBadgeColor;
         }
     }
 }

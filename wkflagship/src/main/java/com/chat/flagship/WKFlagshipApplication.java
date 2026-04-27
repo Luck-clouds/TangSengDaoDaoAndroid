@@ -14,11 +14,13 @@ import android.view.LayoutInflater;
 import android.widget.TextView;
 
 import com.chat.base.endpoint.EndpointManager;
+import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.entity.CanReactionMenu;
 import com.chat.base.endpoint.entity.ChatSettingCellMenu;
 import com.chat.base.endpoint.entity.EditImgMenu;
 import com.chat.base.endpoint.entity.EditMsgMenu;
 import com.chat.base.endpoint.entity.MsgReactionMenu;
+import com.chat.base.endpoint.entity.SearchChatContentMenu;
 import com.chat.base.endpoint.entity.ShowMsgReactionMenu;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
@@ -28,6 +30,8 @@ import com.chat.flagship.picture.FlagshipPictureEditorManager;
 import com.chat.flagship.provider.WKScreenShotProvider;
 import com.chat.flagship.reaction.FlagshipReactionManager;
 import com.chat.flagship.screenshot.FlagshipScreenShotManager;
+import com.chat.flagship.search.file.FlagshipSearchFileActivity;
+import com.chat.flagship.search.video.FlagshipSearchVideoActivity;
 import com.chat.flagship.service.FlagshipReactionModel;
 import com.chat.flagship.setting.MsgRemindSettingActivity;
 import com.xinbida.wukongim.entity.WKMsg;
@@ -131,6 +135,30 @@ public class WKFlagshipApplication {
             });
             return binding.getRoot();
         });
+        EndpointManager.getInstance().setMethod("flagship_search_message_with_video", EndpointCategory.wkSearchChatContent, 97, object -> {
+            if (!(object instanceof com.xinbida.wukongim.entity.WKChannel channel)) {
+                return null;
+            }
+            return new SearchChatContentMenu(getApplication().getString(R.string.flagship_search_video), (channelID, channelType) -> {
+                Intent intent = new Intent(getApplication(), FlagshipSearchVideoActivity.class);
+                intent.putExtra("channel_id", channel.channelID);
+                intent.putExtra("channel_type", channel.channelType);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplication().startActivity(intent);
+            });
+        });
+        EndpointManager.getInstance().setMethod("flagship_search_message_with_file", EndpointCategory.wkSearchChatContent, 97, object -> {
+            if (!(object instanceof com.xinbida.wukongim.entity.WKChannel channel)) {
+                return null;
+            }
+            return new SearchChatContentMenu(getApplication().getString(R.string.flagship_search_file), (channelID, channelType) -> {
+                Intent intent = new Intent(getApplication(), FlagshipSearchFileActivity.class);
+                intent.putExtra("channel_id", channel.channelID);
+                intent.putExtra("channel_type", channel.channelType);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplication().startActivity(intent);
+            });
+        });
     }
 
     private boolean canShowReaction(Object object) {
@@ -160,5 +188,9 @@ public class WKFlagshipApplication {
                 && msg.type != WKContentType.WK_VIDEO
                 && msg.type != WKContentType.systemMsg
                 && msg.type != WKContentType.screenshot;
+    }
+
+    private Application getApplication() {
+        return applicationRef == null ? null : applicationRef.get();
     }
 }

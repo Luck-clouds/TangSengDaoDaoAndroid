@@ -1,31 +1,8 @@
 <resources>
-    <string name="flagship_msg_remind_setting">Message Reminder Settings</string>
-    <string name="flagship_screenshot_notify">Screenshot Notice</string>
-    <string name="flagship_screenshot_notify_desc">When enabled, a screenshot system notice will be shown in the current chat after a user takes a screenshot.</string>
-    <string name="flagship_screenshot_notice_summary">Screenshot Notice</string>
-    <string name="flagship_screenshot_notice_self">You took a screenshot in the chat</string>
-    <string name="flagship_screenshot_notice_other">%1$s took a screenshot in the chat</string>
-    <string name="flagship_screenshot_notice_other_fallback">The other party</string>
-    <string name="flagship_revoke_notify">Revoke Notice</string>
-    <string name="flagship_revoke_notify_desc">When enabled, a revoke notice will be shown in the current chat after a message is revoked.</string>
-    <string name="flagship_reaction_title">Message Reaction</string>
-    <string name="flagship_reaction_list_title">Reaction List</string>
-    <string name="flagship_reaction_list_empty">No reactions yet</string>
-    <string name="flagship_reaction_action_failed">Reaction action failed</string>
-    <string name="flagship_reaction_sync_failed">Failed to refresh reaction state</string>
-    <string name="flagship_picture_editor_title">Image Editor</string>
-    <string name="flagship_picture_edit_callback_expired">Editor callback expired</string>
-    <string name="flagship_picture_tool_text">Text</string>
-    <string name="flagship_picture_tool_graffiti">Draw</string>
-    <string name="flagship_picture_tool_mosaic">Mosaic</string>
-    <string name="flagship_picture_tool_clip">Crop</string>
-    <string name="flagship_picture_tool_undo">Undo</string>
-    <string name="flagship_picture_tool_rotate">Rotate</string>
-    <string name="flagship_picture_text_hint">Enter text</string>
-    <string name="flagship_picture_complete">Complete</string>
-    <string name="flagship_picture_delete">Delete</string>
-    <string name="flagship_picture_save_local">Save to Device</string>
-    <string name="flagship_picture_forward_friend">Send to Friends</string>
-    <string name="flagship_picture_forward_done">Forwarded</string>
-    <string name="flagship_picture_editor_export_failed">Failed to export image</string>
+    <string name="flagship_search_video">Videos</string>
+    <string name="flagship_search_file">Files</string>
+    <string name="flagship_search_no_data">No matching records</string>
+    <string name="flagship_search_preview">Preview</string>
+    <string name="flagship_search_file_unknown_name">Unknown file</string>
+    <string name="flagship_search_file_unknown_ext">FILE</string>
 </resources>

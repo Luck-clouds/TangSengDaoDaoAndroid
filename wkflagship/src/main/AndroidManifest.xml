@@ -3,6 +3,12 @@
 
     <application>
         <activity
+            android:name=".search.video.FlagshipSearchVideoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".search.file.FlagshipSearchFileActivity"
+            android:exported="false" />
+        <activity
             android:name=".picture.FlagshipPictureEditorActivity"
             android:exported="false" />
         <activity

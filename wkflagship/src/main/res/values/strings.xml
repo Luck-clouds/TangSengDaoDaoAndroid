@@ -28,4 +28,10 @@
     <string name="flagship_picture_forward_friend">转发给朋友</string>
     <string name="flagship_picture_forward_done">已转发</string>
     <string name="flagship_picture_editor_export_failed">图片导出失败</string>
+    <string name="flagship_search_video">视频</string>
+    <string name="flagship_search_file">文件</string>
+    <string name="flagship_search_no_data">暂无相关记录</string>
+    <string name="flagship_search_preview">预览</string>
+    <string name="flagship_search_file_unknown_name">未知文件</string>
+    <string name="flagship_search_file_unknown_ext">FILE</string>
 </resources>

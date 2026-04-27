@@ -24,11 +24,20 @@
         android:textColor="#222222"
         android:textSize="15sp" />
 
+    <ImageView
+        android:id="@+id/reactionIv"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/reactionTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:textColor="#303133"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:visibility="gone" />
 </LinearLayout>
