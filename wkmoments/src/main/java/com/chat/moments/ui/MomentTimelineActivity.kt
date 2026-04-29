@@ -256,6 +256,14 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         SingleClickUtil.onSingleClick(headerCameraIv) {
             showComposeBottomSheet()
         }
+        if (isAllFriendsTimeline) {
+            SingleClickUtil.onSingleClick(headerAvatarView) {
+                val selfUid = WKConfig.getInstance().uid
+                if (!selfUid.isNullOrEmpty()) {
+                    WKMomentsApplication.getInstance().openTimeline(this, selfUid, false)
+                }
+            }
+        }
         headerCameraIv.setOnLongClickListener {
             val intent = Intent(this, MomentComposeActivity::class.java)
             intent.putExtra(MomentComposeActivity.EXTRA_TEXT_ONLY, true)

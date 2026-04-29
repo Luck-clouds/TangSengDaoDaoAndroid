@@ -3,6 +3,13 @@
 
     <application>
         <activity
+            android:name=".richtext.FlagshipRichTextMentionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".richtext.FlagshipRichTextEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".search.video.FlagshipSearchVideoActivity"
             android:exported="false" />
         <activity

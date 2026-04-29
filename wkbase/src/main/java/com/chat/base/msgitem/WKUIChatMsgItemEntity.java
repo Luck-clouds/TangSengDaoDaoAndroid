@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -14,7 +15,9 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 import android.view.View;
@@ -103,7 +106,29 @@ public class WKUIChatMsgItemEntity {
                 if ((entity.offset + entity.length) > displaySpans.length() || entity.offset > displaySpans.length())
                     continue;
 
-                if (entity.type.equals(ChatContentSpanType.getLink())) {
+                if (entity.type.equals(ChatContentSpanType.getRichBold())) {
+                    displaySpans.setSpan(new StyleSpan(Typeface.BOLD), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } else if (entity.type.equals(ChatContentSpanType.getRichItalic())) {
+                    displaySpans.setSpan(new StyleSpan(Typeface.ITALIC), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } else if (entity.type.equals(ChatContentSpanType.getRichColor())) {
+                    if (!TextUtils.isEmpty(entity.value)) {
+                        try {
+                            displaySpans.setSpan(new ForegroundColorSpan(Color.parseColor(entity.value)), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } else if (entity.type.equals(ChatContentSpanType.getRichUnderline())) {
+                    displaySpans.setSpan(new UnderlineSpan(), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } else if (entity.type.equals(ChatContentSpanType.getRichStrike())) {
+                    displaySpans.setSpan(new StrikethroughSpan(), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } else if (entity.type.equals(ChatContentSpanType.getRichSize())) {
+                    if (!TextUtils.isEmpty(entity.value)) {
+                        try {
+                            displaySpans.setSpan(new AbsoluteSizeSpan(Integer.parseInt(entity.value), true), entity.offset, (entity.offset + entity.length), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } else if (entity.type.equals(ChatContentSpanType.getLink())) {
                     String content = getContent().substring(entity.offset, (entity.offset + entity.length));
                     NormalClickableContent.NormalClickableTypes types;
                     if (StringUtils.isMobile(content) || StringUtils.isEmail(content)) {

@@ -134,15 +134,22 @@ public class ContactEditText extends AppCompatAutoCompleteTextView {
 
     //添加一个Span
     public void addSpan(String showText, String uid) {
-        if (!TextUtils.isEmpty(getText().toString()) && getText().toString().length() + showText.length() > maxLength) {
+        Editable editable = getText();
+        String currentText = editable == null ? "" : editable.toString();
+        if (!TextUtils.isEmpty(currentText) && currentText.length() + showText.length() > maxLength) {
             WKToastUtils.getInstance()
                     .showToast(getContext().getString(R.string.content_too_long));
             return;
         }
-
+        if (editable == null) {
+            return;
+        }
         int index = getSelectionStart();
-        getText().insert(index, showText);
-        SpannableString spannableString = new SpannableString(getText());
+        if (index < 0 || index > editable.length()) {
+            index = editable.length();
+        }
+        editable.insert(index, showText);
+        SpannableString spannableString = new SpannableString(editable);
         generateOneSpan(spannableString, new UnSpanText(index, index + showText.length(), showText, uid));
         setText(spannableString);
         setSelection(index + showText.length());

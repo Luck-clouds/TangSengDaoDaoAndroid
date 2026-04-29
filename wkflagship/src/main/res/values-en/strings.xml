@@ -1,4 +1,19 @@
 <resources>
+    <string name="flagship_rich_text_title">Rich Text</string>
+    <string name="flagship_rich_text_send">Send</string>
+    <string name="flagship_rich_text_hint">Enter content</string>
+    <string name="flagship_rich_text_empty">Please enter content</string>
+    <string name="flagship_rich_text_select_hint">Please select text first</string>
+    <string name="flagship_rich_text_not_supported">This action is not available yet</string>
+    <string name="flagship_rich_text_context_expired">Conversation expired, please reopen</string>
+    <string name="flagship_rich_text_selected_images">%1$d images selected and will be sent together</string>
+    <string name="flagship_rich_text_image_scale_title">Image Size</string>
+    <string name="flagship_rich_text_image_scale_option">%1$d%%</string>
+    <string name="flagship_rich_text_remove_image">Remove image</string>
+    <string name="flagship_rich_text_at_group_only">@ is only available in group chats</string>
+    <string name="flagship_rich_text_mention_title">Choose Group Member</string>
+    <string name="flagship_rich_text_search_hint">Search members</string>
+    <string name="flagship_rich_text_member_empty">No members available</string>
     <string name="flagship_search_video">Videos</string>
     <string name="flagship_search_file">Files</string>
     <string name="flagship_search_no_data">No matching records</string>

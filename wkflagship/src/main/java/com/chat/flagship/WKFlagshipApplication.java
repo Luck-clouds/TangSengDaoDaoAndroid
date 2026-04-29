@@ -16,12 +16,14 @@ import android.widget.TextView;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.entity.CanReactionMenu;
+import com.chat.base.endpoint.entity.ChatItemPopupMenu;
 import com.chat.base.endpoint.entity.ChatSettingCellMenu;
 import com.chat.base.endpoint.entity.EditImgMenu;
 import com.chat.base.endpoint.entity.EditMsgMenu;
 import com.chat.base.endpoint.entity.MsgReactionMenu;
 import com.chat.base.endpoint.entity.SearchChatContentMenu;
 import com.chat.base.endpoint.entity.ShowMsgReactionMenu;
+import com.chat.base.msg.IConversationContext;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.flagship.databinding.ItemMsgRemindEntryLayoutBinding;
@@ -29,11 +31,13 @@ import com.chat.flagship.msgmodel.WKScreenShotContent;
 import com.chat.flagship.picture.FlagshipPictureEditorManager;
 import com.chat.flagship.provider.WKScreenShotProvider;
 import com.chat.flagship.reaction.FlagshipReactionManager;
+import com.chat.flagship.richtext.FlagshipRichTextManager;
 import com.chat.flagship.screenshot.FlagshipScreenShotManager;
 import com.chat.flagship.search.file.FlagshipSearchFileActivity;
 import com.chat.flagship.search.video.FlagshipSearchVideoActivity;
 import com.chat.flagship.service.FlagshipReactionModel;
 import com.chat.flagship.setting.MsgRemindSettingActivity;
+import com.chat.base.config.WKConfig;
 import com.xinbida.wukongim.entity.WKMsg;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannelType;
@@ -74,6 +78,28 @@ public class WKFlagshipApplication {
                 FlagshipPictureEditorManager.getInstance().openByEditMsg(menu);
             }
             return null;
+        });
+        EndpointManager.getInstance().setMethod("show_rich_edit", object -> {
+            if (object instanceof IConversationContext conversationContext) {
+                FlagshipRichTextManager.getInstance().open(conversationContext);
+            }
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("flagship_edit_text_msg", EndpointCategory.wkChatPopupItem, 85, object -> {
+            if (!(object instanceof WKMsg wkMsg)) {
+                return null;
+            }
+            if (wkMsg.type != WKContentType.WK_TEXT) {
+                return null;
+            }
+            if (!TextUtils.equals(wkMsg.fromUID, WKConfig.getInstance().getUid())) {
+                return null;
+            }
+            return new ChatItemPopupMenu(R.drawable.ic_flagship_msg_edit, getApplication().getString(com.chat.base.R.string.str_edit), (msg, iConversationContext) -> {
+                if (iConversationContext != null) {
+                    iConversationContext.showEdit(msg);
+                }
+            });
         });
         EndpointManager.getInstance().setMethod("reaction_sticker", object -> FlagshipReactionManager.getReactionStickers());
         EndpointManager.getInstance().setMethod("is_show_reaction", object -> canShowReaction(object));

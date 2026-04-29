@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <TextView
+        android:id="@+id/attachmentHintTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF7F7F7"
+        android:paddingStart="18dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="10dp"
+        android:textColor="#FF666666"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <HorizontalScrollView
+        android:id="@+id/imagePreviewScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF7F7F7"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/imagePreviewLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
+    </HorizontalScrollView>
+
+    <com.chat.base.ui.components.ContactEditText
+        android:id="@+id/editorEt"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        android:gravity="top|start"
+        android:hint="@string/flagship_rich_text_hint"
+        android:includeFontPadding="false"
+        android:inputType="textMultiLine|textCapSentences"
+        android:layout_gravity="top"
+        android:overScrollMode="never"
+        android:paddingStart="18dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="18dp"
+        android:scrollbars="vertical"
+        android:textColor="@android:color/black"
+        android:textColorHint="#FFB9B9B9"
+        android:textSize="18sp" />
+
+    <HorizontalScrollView
+        android:id="@+id/sizeBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#FFF7F7F7"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:id="@+id/size14Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="14"
+                android:textColor="#FF666666"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/size16Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="16"
+                android:textColor="#FF666666"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/size18Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="18"
+                android:textColor="#FF666666"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/size20Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="20"
+                android:textColor="#FF666666"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/size24Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="24"
+                android:textColor="#FF666666"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/size28Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:gravity="center"
+                android:text="28"
+                android:textColor="#FF666666"
+                android:textSize="28sp" />
+
+            <TextView
+                android:id="@+id/size32Tv"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="32"
+                android:textColor="#FF666666"
+                android:textSize="32sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/colorBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#FFF7F7F7"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <View
+                android:id="@+id/colorWhiteView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_white" />
+
+            <View
+                android:id="@+id/colorBlackView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_black" />
+
+            <View
+                android:id="@+id/colorRedView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_red" />
+
+            <View
+                android:id="@+id/colorYellowView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_yellow" />
+
+            <View
+                android:id="@+id/colorGreenView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_green" />
+
+            <View
+                android:id="@+id/colorBlueView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/selector_oval_blue" />
+
+            <View
+                android:id="@+id/colorPurpleView"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/selector_oval_purple" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="74dp"
+        android:background="@android:color/white"
+        android:elevation="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <LinearLayout
+            android:id="@+id/imageTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/imageToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="图"
+                android:textColor="#FF8A8A8A"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/colorTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/colorToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="A"
+                android:textStyle="bold"
+                android:textColor="#FF666666"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/sizeTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sizeToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="16"
+                android:textColor="#FF8A8A8A"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/boldTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/boldToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B"
+                android:textColor="#FF5A5A5A"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/italicTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/italicToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="I"
+                android:textColor="#FF5A5A5A"
+                android:textSize="24sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/underlineTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/underlineToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="U"
+                android:textColor="#FF8A8A8A"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/strikeTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/strikeToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S"
+                android:textColor="#FF8A8A8A"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/atTool"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/atToolLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@"
+                android:textColor="#FF8A8A8A"
+                android:textSize="24sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
