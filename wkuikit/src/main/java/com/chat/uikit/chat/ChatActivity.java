@@ -280,6 +280,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         WKUIKitApplication.getInstance().chattingChannelID = channelId;
         isUploadReadMsg = true;
         chatPanelManager.initRefreshListener();
+        EndpointManager.getInstance().invoke("set_chat_bg", new SetChatBgMenu(channelId, channelType, wkVBinding.imageView, wkVBinding.rootView, wkVBinding.blurView));
         EndpointManager.getInstance().invoke("start_screen_shot", this);
 
         Object addSecurityModule = EndpointManager.getInstance().invoke("add_security_module", null);
@@ -2007,6 +2008,22 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         return channel;
     }
 
+    private boolean shouldUploadMsgReceipt(WKMsg wkMsg) {
+        if (wkMsg == null || wkMsg.remoteExtra == null || TextUtils.isEmpty(wkMsg.messageID)) {
+            return false;
+        }
+        if (wkMsg.remoteExtra.readed != 0) {
+            return false;
+        }
+        if (TextUtils.isEmpty(wkMsg.fromUID) || wkMsg.fromUID.equals(loginUID)) {
+            return false;
+        }
+        boolean msgReceiptEnabled = wkMsg.setting != null && wkMsg.setting.receipt == 1;
+        WKChannel channel = getChatChannelInfo();
+        boolean channelReceiptEnabled = channel != null && channel.receipt == 1;
+        return msgReceiptEnabled || channelReceiptEnabled;
+    }
+
     @Override
     public void showMultipleChoice() {
         chatPanelManager.showMultipleChoice();
@@ -2303,7 +2320,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             wkMsg.viewed = 1;
         }
 
-        if (wkMsg.remoteExtra.readed == 0 && wkMsg.setting != null && wkMsg.setting.receipt == 1 && !TextUtils.isEmpty(wkMsg.fromUID) && !wkMsg.fromUID.equals(loginUID)) {
+        if (shouldUploadMsgReceipt(wkMsg)) {
             boolean isAdd = true;
             for (int j = 0, size = readMsgIds.size(); j < size; j++) {
                 if (readMsgIds.get(j).equals(wkMsg.messageID)) {
@@ -2601,7 +2618,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                             wkVBinding.chatUnreadLayout.newMsgLayout.post(() -> CommonAnim.getInstance().showOrHide(wkVBinding.chatUnreadLayout.newMsgLayout, redDot > 0, true, false));
                         } else {
                             scrollToEnd();
-                            if (msg.setting.receipt == 1) readMsgIds.add(msg.messageID);
+                            if (shouldUploadMsgReceipt(msg)) readMsgIds.add(msg.messageID);
                         }
                     }
                 }

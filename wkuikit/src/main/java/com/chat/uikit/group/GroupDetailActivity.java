@@ -93,6 +93,10 @@ public class GroupDetailActivity extends WKBaseActivity<ActGroupDetailLayoutBind
             wkVBinding.msgRemindLayout.removeAllViews();
             wkVBinding.msgRemindLayout.addView(view);
         }
+        View chatBgView = (View) EndpointManager.getInstance().invoke("chat_bg_view", new ChatSettingCellMenu(groupNo, WKChannelType.GROUP, wkVBinding.msgRemindLayout));
+        if (chatBgView != null) {
+            wkVBinding.msgRemindLayout.addView(chatBgView);
+        }
 //
 //        View findMsgView = (View) EndpointManager.getInstance().invoke("find_msg_view", new ChatSettingCellMenu(groupNo, WKChannelType.GROUP, wkVBinding.findContentLayout));
 //        if (findMsgView != null) {

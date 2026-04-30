@@ -65,6 +65,10 @@ public class ChatPersonalActivity extends WKBaseActivity<ActChatPersonalLayoutBi
             wkVBinding.msgRemindLayout.removeAllViews();
             wkVBinding.msgRemindLayout.addView(view);
         }
+        View chatBgView = (View) EndpointManager.getInstance().invoke("chat_bg_view", new ChatSettingCellMenu(channelId, WKChannelType.PERSONAL, wkVBinding.msgRemindLayout));
+        if (chatBgView != null) {
+            wkVBinding.msgRemindLayout.addView(chatBgView);
+        }
 //        View findMsgView = (View) EndpointManager.getInstance().invoke("find_msg_view", new ChatSettingCellMenu(channelId, WKChannelType.PERSONAL, wkVBinding.findContentLayout));
 //        if (findMsgView != null) {
 //            wkVBinding.findContentLayout.removeAllViews();

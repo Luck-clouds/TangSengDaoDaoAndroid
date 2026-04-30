@@ -1,5 +1,11 @@
 <resources>
     <string name="flagship_msg_remind_setting">消息提醒设置</string>
+    <string name="flagship_msg_receipt">消息回执</string>
+    <string name="flagship_receipt_loading">加载中...</string>
+    <string name="flagship_receipt_all_count">全部 %1$d</string>
+    <string name="flagship_receipt_readed_count">已读 %1$d</string>
+    <string name="flagship_receipt_unread_count">未读 %1$d</string>
+    <string name="flagship_receipt_empty">暂无成员记录</string>
     <string name="flagship_screenshot_notify">截屏通知</string>
     <string name="flagship_screenshot_notify_desc">开启后，用户截屏时会在当前聊天中显示截屏系统通知。</string>
     <string name="flagship_screenshot_notice_summary">截屏通知</string>
@@ -49,4 +55,16 @@
     <string name="flagship_search_preview">预览</string>
     <string name="flagship_search_file_unknown_name">未知文件</string>
     <string name="flagship_search_file_unknown_ext">FILE</string>
+    <string name="flagship_chat_bg">聊天背景</string>
+    <string name="flagship_chat_bg_album">相册</string>
+    <string name="flagship_chat_bg_preview">预览背景</string>
+    <string name="flagship_chat_bg_default">默认</string>
+    <string name="flagship_chat_bg_preset">背景</string>
+    <string name="flagship_chat_bg_default_preview">恢复默认聊天背景</string>
+    <string name="flagship_chat_bg_blur">模糊</string>
+    <string name="flagship_chat_bg_set">设置背景</string>
+    <string name="flagship_chat_bg_load_failed">聊天背景加载失败</string>
+    <string name="flagship_chat_bg_save_failed">背景设置失败</string>
+    <string name="flagship_chat_bg_preview_left">你好，这张背景可以先预览效果。</string>
+    <string name="flagship_chat_bg_preview_right">确认后只会作用于当前聊天。</string>
 </resources>

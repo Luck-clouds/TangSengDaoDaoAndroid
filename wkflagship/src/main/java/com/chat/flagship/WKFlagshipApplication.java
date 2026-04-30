@@ -13,6 +13,8 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
+import com.chat.base.common.WKCommonModel;
+import com.chat.base.config.WKApiConfig;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.entity.CanReactionMenu;
@@ -21,28 +23,40 @@ import com.chat.base.endpoint.entity.ChatSettingCellMenu;
 import com.chat.base.endpoint.entity.EditImgMenu;
 import com.chat.base.endpoint.entity.EditMsgMenu;
 import com.chat.base.endpoint.entity.MsgReactionMenu;
+import com.chat.base.endpoint.entity.ReadMsgMenu;
+import com.chat.base.endpoint.entity.ReadMsgDetailMenu;
 import com.chat.base.endpoint.entity.SearchChatContentMenu;
 import com.chat.base.endpoint.entity.ShowMsgReactionMenu;
 import com.chat.base.msg.IConversationContext;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
+import com.chat.base.net.HttpResponseCode;
+import com.chat.base.ui.components.SwitchView;
+import com.chat.base.utils.WKToastUtils;
+import com.chat.flagship.chatbg.FlagshipChatBgManager;
 import com.chat.flagship.databinding.ItemMsgRemindEntryLayoutBinding;
+import com.chat.flagship.databinding.ItemFlagshipMsgReceiptEntryLayoutBinding;
 import com.chat.flagship.msgmodel.WKScreenShotContent;
 import com.chat.flagship.picture.FlagshipPictureEditorManager;
 import com.chat.flagship.provider.WKScreenShotProvider;
 import com.chat.flagship.reaction.FlagshipReactionManager;
+import com.chat.flagship.receipt.FlagshipMsgReceiptDetailActivity;
 import com.chat.flagship.richtext.FlagshipRichTextManager;
 import com.chat.flagship.screenshot.FlagshipScreenShotManager;
 import com.chat.flagship.search.file.FlagshipSearchFileActivity;
 import com.chat.flagship.search.video.FlagshipSearchVideoActivity;
 import com.chat.flagship.service.FlagshipReactionModel;
+import com.chat.flagship.service.FlagshipMessageReadModel;
+import com.chat.flagship.service.FlagshipSettingModel;
 import com.chat.flagship.setting.MsgRemindSettingActivity;
 import com.chat.base.config.WKConfig;
 import com.xinbida.wukongim.entity.WKMsg;
 import com.xinbida.wukongim.WKIM;
+import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelType;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 
 public class WKFlagshipApplication {
     private WeakReference<Application> applicationRef;
@@ -79,10 +93,63 @@ public class WKFlagshipApplication {
             }
             return null;
         });
+        EndpointManager.getInstance().setMethod("set_chat_bg", object -> {
+            if (object instanceof com.chat.base.endpoint.entity.SetChatBgMenu menu) {
+                FlagshipChatBgManager.getInstance().apply(menu);
+            }
+            return null;
+        });
         EndpointManager.getInstance().setMethod("show_rich_edit", object -> {
             if (object instanceof IConversationContext conversationContext) {
                 FlagshipRichTextManager.getInstance().open(conversationContext);
             }
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("read_msg", object -> {
+            if (object instanceof ReadMsgMenu menu) {
+                FlagshipMessageReadModel.getInstance().markRead(menu.getChannelID(), menu.getChannelType(), menu.getMsgIds());
+            }
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("show_receipt", object -> {
+            if (!(object instanceof WKMsg wkMsg)) {
+                return false;
+            }
+            if (!TextUtils.equals(wkMsg.fromUID, WKConfig.getInstance().getUid())) {
+                return false;
+            }
+            if (TextUtils.isEmpty(wkMsg.messageID) || wkMsg.isDeleted == 1
+                    || (wkMsg.remoteExtra != null && wkMsg.remoteExtra.revoke == 1)) {
+                return false;
+            }
+            boolean msgReceiptEnabled = wkMsg.setting != null && wkMsg.setting.receipt == 1;
+            boolean hasReceiptCount = wkMsg.remoteExtra != null
+                    && (wkMsg.remoteExtra.readedCount > 0 || wkMsg.remoteExtra.unreadCount > 0);
+            WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(wkMsg.channelID, wkMsg.channelType);
+            boolean channelReceiptEnabled = channel != null && channel.receipt == 1;
+            return msgReceiptEnabled || channelReceiptEnabled || hasReceiptCount;
+        });
+        EndpointManager.getInstance().setMethod("show_msg_read_detail", object -> {
+            if (!(object instanceof ReadMsgDetailMenu menu) || TextUtils.isEmpty(menu.messageID)) {
+                return null;
+            }
+            Context context = menu.iConversationContext != null && menu.iConversationContext.getChatActivity() != null
+                    ? menu.iConversationContext.getChatActivity()
+                    : getApplication();
+            if (context == null) {
+                return null;
+            }
+            WKMsg wkMsg = WKIM.getInstance().getMsgManager().getWithMessageID(menu.messageID);
+            Intent intent = new Intent(context, FlagshipMsgReceiptDetailActivity.class);
+            intent.putExtra(FlagshipMsgReceiptDetailActivity.EXTRA_MESSAGE_ID, menu.messageID);
+            if (wkMsg != null && wkMsg.remoteExtra != null) {
+                intent.putExtra(FlagshipMsgReceiptDetailActivity.EXTRA_READED_COUNT, wkMsg.remoteExtra.readedCount);
+                intent.putExtra(FlagshipMsgReceiptDetailActivity.EXTRA_UNREAD_COUNT, wkMsg.remoteExtra.unreadCount);
+            }
+            if (!(context instanceof Activity)) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            }
+            context.startActivity(intent);
             return null;
         });
         EndpointManager.getInstance().setMethod("flagship_edit_text_msg", EndpointCategory.wkChatPopupItem, 85, object -> {
@@ -95,7 +162,7 @@ public class WKFlagshipApplication {
             if (!TextUtils.equals(wkMsg.fromUID, WKConfig.getInstance().getUid())) {
                 return null;
             }
-            return new ChatItemPopupMenu(R.drawable.ic_flagship_msg_edit, getApplication().getString(com.chat.base.R.string.str_edit), (msg, iConversationContext) -> {
+            return new ChatItemPopupMenu(R.mipmap.ic_flagship_msg_edit, getApplication().getString(com.chat.base.R.string.str_edit), (msg, iConversationContext) -> {
                 if (iConversationContext != null) {
                     iConversationContext.showEdit(msg);
                 }
@@ -161,6 +228,34 @@ public class WKFlagshipApplication {
             });
             return binding.getRoot();
         });
+        EndpointManager.getInstance().setMethod("msg_receipt_view", object -> {
+            if (!(object instanceof ChatSettingCellMenu menu)) {
+                return null;
+            }
+            byte channelType = menu.getChannelType();
+            if (channelType != WKChannelType.PERSONAL && channelType != WKChannelType.GROUP) {
+                return null;
+            }
+            Context context = menu.getParentLayout().getContext();
+            ItemFlagshipMsgReceiptEntryLayoutBinding binding = ItemFlagshipMsgReceiptEntryLayoutBinding.inflate(LayoutInflater.from(context), menu.getParentLayout(), false);
+            binding.nameTv.setText(R.string.flagship_msg_receipt);
+            bindReceiptSwitch(binding.receiptSwitch, menu.getChannelID(), channelType);
+            return binding.getRoot();
+        });
+        EndpointManager.getInstance().setMethod("chat_bg_view", object -> {
+            if (!(object instanceof ChatSettingCellMenu menu)) {
+                return null;
+            }
+            byte channelType = menu.getChannelType();
+            if (channelType != WKChannelType.PERSONAL && channelType != WKChannelType.GROUP) {
+                return null;
+            }
+            Context context = menu.getParentLayout().getContext();
+            ItemMsgRemindEntryLayoutBinding binding = ItemMsgRemindEntryLayoutBinding.inflate(LayoutInflater.from(context), menu.getParentLayout(), false);
+            binding.nameTv.setText(R.string.flagship_chat_bg);
+            binding.getRoot().setOnClickListener(v -> FlagshipChatBgManager.getInstance().openList(context, menu.getChannelID(), channelType));
+            return binding.getRoot();
+        });
         EndpointManager.getInstance().setMethod("flagship_search_message_with_video", EndpointCategory.wkSearchChatContent, 97, object -> {
             if (!(object instanceof com.xinbida.wukongim.entity.WKChannel channel)) {
                 return null;
@@ -214,6 +309,55 @@ public class WKFlagshipApplication {
                 && msg.type != WKContentType.WK_VIDEO
                 && msg.type != WKContentType.systemMsg
                 && msg.type != WKContentType.screenshot;
+    }
+
+    private void bindReceiptSwitch(SwitchView switchView, String channelId, byte channelType) {
+        if (switchView == null || TextUtils.isEmpty(channelId)) {
+            return;
+        }
+        switchView.setChecked(readChannelReceipt(channelId, channelType) == 1);
+        switchView.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                return;
+            }
+            FlagshipSettingModel.getInstance().updateSetting(channelId, channelType, "receipt", isChecked ? 1 : 0, (code, msg) -> {
+                if (code == HttpResponseCode.success) {
+                    updateChannelReceiptLocal(channelId, channelType, isChecked ? 1 : 0);
+                    WKCommonModel.getInstance().getChannel(channelId, channelType, (resultCode, resultMsg, entity) -> {
+                        if (entity != null) {
+                            switchView.setChecked(entity.receipt == 1);
+                        }
+                    });
+                } else {
+                    switchView.setChecked(!isChecked);
+                    if (!TextUtils.isEmpty(msg)) {
+                        WKToastUtils.getInstance().showToastNormal(msg);
+                    }
+                }
+            });
+        });
+        WKCommonModel.getInstance().getChannel(channelId, channelType, (code, msg, entity) -> {
+            if (entity != null && switchView.getWindowToken() != null) {
+                switchView.setChecked(entity.receipt == 1);
+            }
+        });
+    }
+
+    private int readChannelReceipt(String channelId, byte channelType) {
+        WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(channelId, channelType);
+        return channel == null ? 0 : channel.receipt;
+    }
+
+    private void updateChannelReceiptLocal(String channelId, byte channelType, int receipt) {
+        WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(channelId, channelType);
+        if (channel == null) {
+            channel = new WKChannel(channelId, channelType);
+            channel.avatar = WKApiConfig.getShowAvatar(channelId, channelType);
+            channel.remoteExtraMap = new HashMap<>();
+            channel.localExtra = new HashMap<>();
+        }
+        channel.receipt = receipt;
+        WKIM.getInstance().getChannelManager().saveOrUpdateChannel(channel);
     }
 
     private Application getApplication() {
