@@ -7,6 +7,8 @@ package com.chat.flagship;
 
 import android.app.Application;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
@@ -22,6 +24,7 @@ import com.chat.base.endpoint.entity.ChatItemPopupMenu;
 import com.chat.base.endpoint.entity.ChatSettingCellMenu;
 import com.chat.base.endpoint.entity.EditImgMenu;
 import com.chat.base.endpoint.entity.EditMsgMenu;
+import com.chat.base.endpoint.entity.MsgConfig;
 import com.chat.base.endpoint.entity.MsgReactionMenu;
 import com.chat.base.endpoint.entity.ReadMsgMenu;
 import com.chat.base.endpoint.entity.ReadMsgDetailMenu;
@@ -36,8 +39,10 @@ import com.chat.base.utils.WKToastUtils;
 import com.chat.flagship.chatbg.FlagshipChatBgManager;
 import com.chat.flagship.databinding.ItemMsgRemindEntryLayoutBinding;
 import com.chat.flagship.databinding.ItemFlagshipMsgReceiptEntryLayoutBinding;
+import com.chat.flagship.msgmodel.WKRichTextContent;
 import com.chat.flagship.msgmodel.WKScreenShotContent;
 import com.chat.flagship.picture.FlagshipPictureEditorManager;
+import com.chat.flagship.provider.WKRichTextProvider;
 import com.chat.flagship.provider.WKScreenShotProvider;
 import com.chat.flagship.reaction.FlagshipReactionManager;
 import com.chat.flagship.receipt.FlagshipMsgReceiptDetailActivity;
@@ -76,7 +81,10 @@ public class WKFlagshipApplication {
         applicationRef = new WeakReference<>(application);
         // 注册截屏消息体和对应的系统提示样式。
         WKIM.getInstance().getMsgManager().registerContentMsg(WKScreenShotContent.class);
+        WKIM.getInstance().getMsgManager().registerContentMsg(WKRichTextContent.class);
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.screenshot, new WKScreenShotProvider());
+        WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.richText, new WKRichTextProvider());
+        EndpointManager.getInstance().setMethod(EndpointCategory.msgConfig + WKContentType.richText, object -> new MsgConfig(true));
         registerEndpoints();
     }
 
@@ -165,6 +173,30 @@ public class WKFlagshipApplication {
             return new ChatItemPopupMenu(R.mipmap.ic_flagship_msg_edit, getApplication().getString(com.chat.base.R.string.str_edit), (msg, iConversationContext) -> {
                 if (iConversationContext != null) {
                     iConversationContext.showEdit(msg);
+                }
+            });
+        });
+        EndpointManager.getInstance().setMethod("flagship_copy_rich_text_msg", EndpointCategory.wkChatPopupItem, 90, object -> {
+            if (!(object instanceof WKMsg wkMsg)) {
+                return null;
+            }
+            if (wkMsg.type != WKContentType.richText) {
+                return null;
+            }
+            return new ChatItemPopupMenu(com.chat.base.R.mipmap.msg_copy, getApplication().getString(com.chat.base.R.string.copy), (msg, iConversationContext) -> {
+                if (!(msg.baseContentMsgModel instanceof WKRichTextContent richTextContent)) {
+                    return;
+                }
+                String copyText = richTextContent.content;
+                if (TextUtils.isEmpty(copyText)) {
+                    copyText = richTextContent.getDisplayContent();
+                }
+                if (!TextUtils.isEmpty(copyText)) {
+                    ClipboardManager clipboardManager = (ClipboardManager) getApplication().getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboardManager != null) {
+                        clipboardManager.setPrimaryClip(ClipData.newPlainText("rich_text", copyText));
+                    }
+                    WKToastUtils.getInstance().showToastNormal(getApplication().getString(com.chat.base.R.string.copyed));
                 }
             });
         });

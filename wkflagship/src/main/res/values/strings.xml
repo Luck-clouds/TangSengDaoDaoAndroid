@@ -49,6 +49,11 @@
     <string name="flagship_rich_text_mention_title">选择群成员</string>
     <string name="flagship_rich_text_search_hint">搜索群成员</string>
     <string name="flagship_rich_text_member_empty">暂无可选成员</string>
+    <string name="flagship_rich_text_summary">[富文本]</string>
+    <string name="flagship_rich_text_image_only_summary">[图片]</string>
+    <string name="flagship_rich_text_upload_failed">图片上传失败，请重试</string>
+    <string name="flagship_rich_text_image_tool">插入图片</string>
+    <string name="flagship_rich_text_italic_tool">斜体</string>
     <string name="flagship_search_video">视频</string>
     <string name="flagship_search_file">文件</string>
     <string name="flagship_search_no_data">暂无相关记录</string>
@@ -62,9 +67,18 @@
     <string name="flagship_chat_bg_preset">背景</string>
     <string name="flagship_chat_bg_default_preview">恢复默认聊天背景</string>
     <string name="flagship_chat_bg_blur">模糊</string>
+    <string name="flagship_chat_bg_blur_disabled">开启模糊</string>
+    <string name="flagship_chat_bg_blur_enabled">已模糊</string>
+    <string name="flagship_chat_bg_refresh">渐变</string>
+    <string name="flagship_chat_bg_pattern">图案</string>
+    <string name="flagship_chat_bg_pattern_on">图案开</string>
+    <string name="flagship_chat_bg_pattern_off">图案关</string>
     <string name="flagship_chat_bg_set">设置背景</string>
     <string name="flagship_chat_bg_load_failed">聊天背景加载失败</string>
     <string name="flagship_chat_bg_save_failed">背景设置失败</string>
     <string name="flagship_chat_bg_preview_left">你好，这张背景可以先预览效果。</string>
     <string name="flagship_chat_bg_preview_right">确认后只会作用于当前聊天。</string>
+    <string name="flagship_chat_bg_preview_left_status">14:18</string>
+    <string name="flagship_chat_bg_preview_right_status">14:20 已读</string>
+    <string name="flagship_chat_bg_preview_right_status_format">%1$s 已读</string>
 </resources>

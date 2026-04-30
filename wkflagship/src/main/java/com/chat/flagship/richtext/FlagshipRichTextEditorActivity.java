@@ -6,18 +6,27 @@ package com.chat.flagship.richtext;
  */
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.Typeface;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.Spannable;
 import android.text.TextWatcher;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.view.MotionEvent;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,6 +34,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.entity.BottomSheetItem;
@@ -34,6 +45,7 @@ import com.chat.base.glide.ChooseResultModel;
 import com.chat.base.glide.GlideUtils;
 import com.chat.base.msg.ChatContentSpanType;
 import com.chat.base.msg.IConversationContext;
+import com.chat.base.net.ud.WKUploader;
 import com.chat.base.ui.components.ContactEditText;
 import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.SoftKeyboardUtils;
@@ -41,23 +53,26 @@ import com.chat.base.utils.WKDialogUtils;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.flagship.R;
 import com.chat.flagship.databinding.ActFlagshipRichTextEditorLayoutBinding;
+import com.chat.flagship.msgmodel.WKRichTextContent;
 import com.chat.flagship.picture.util.ColorUtils;
 import com.xinbida.wukongim.entity.WKChannelType;
 import com.xinbida.wukongim.entity.WKMentionInfo;
-import com.xinbida.wukongim.msgmodel.WKImageContent;
 import com.xinbida.wukongim.msgmodel.WKMsgEntity;
-import com.xinbida.wukongim.msgmodel.WKTextContent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRichTextEditorLayoutBinding> {
     private static final int REQUEST_MENTION = 8101;
     private static final int[] IMAGE_SCALE_OPTIONS = new int[]{25, 50, 75, 100};
+    private static final char IMAGE_PLACEHOLDER = '\uFFFC';
+    private static int nextImageLocalId = 1;
 
     private final List<View> colorViews = new ArrayList<>();
     private final List<TextView> sizeViews = new ArrayList<>();
@@ -73,16 +88,34 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     private boolean italicEnabled;
     private boolean underlineEnabled;
     private boolean strikeEnabled;
+    private boolean sending;
     @Nullable
     private IConversationContext conversationContext;
 
+    private interface UploadNodesCallback {
+        void onSuccess(Map<Integer, WKRichTextContent.RichNode> nodes);
+
+        void onFail();
+    }
+
     private static class PendingImageItem {
+        final int localId;
         final String path;
         int percent;
 
         PendingImageItem(String path) {
+            this.localId = nextImageLocalId++;
             this.path = path;
             this.percent = 100;
+        }
+    }
+
+    private static class RichPendingImageSpan extends ImageSpan {
+        final PendingImageItem item;
+
+        RichPendingImageSpan(Drawable drawable, PendingImageItem item) {
+            super(drawable, ALIGN_BASELINE);
+            this.item = item;
         }
     }
 
@@ -117,10 +150,12 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
         initColorViews();
         initSizeViews();
         initToolViews();
+        initEditorImageTouch();
+        initImeInsets();
         wkVBinding.underlineToolLabel.setPaintFlags(wkVBinding.underlineToolLabel.getPaintFlags() | TextPaint.UNDERLINE_TEXT_FLAG);
         wkVBinding.strikeToolLabel.setPaintFlags(wkVBinding.strikeToolLabel.getPaintFlags() | TextPaint.STRIKE_THRU_TEXT_FLAG);
         initEditorWatcher();
-        updateAttachmentState();
+        hideLegacyAttachmentPreview();
         updateToolStates();
         wkVBinding.atTool.setVisibility(isGroupChat() ? View.VISIBLE : View.GONE);
         wkVBinding.editorEt.post(() -> {
@@ -131,6 +166,81 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
             wkVBinding.editorEt.scrollTo(0, 0);
             SoftKeyboardUtils.getInstance().showSoftKeyBoard(this, wkVBinding.editorEt);
         });
+    }
+
+    private void initImeInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(wkVBinding.rootLayout, (v, insets) -> {
+            WindowInsetsCompat imeInsets = insets;
+            int imeBottom = imeInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+            int navBottom = imeInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            int rootBottomInset = Math.max(0, imeBottom - navBottom);
+            int bottomPadding = imeBottom > 0 ? 0 : navBottom;
+            wkVBinding.rootLayout.setPadding(
+                    wkVBinding.rootLayout.getPaddingLeft(),
+                    wkVBinding.rootLayout.getPaddingTop(),
+                    wkVBinding.rootLayout.getPaddingRight(),
+                    rootBottomInset
+            );
+            wkVBinding.bottomToolContainer.setPadding(
+                    wkVBinding.bottomToolContainer.getPaddingLeft(),
+                    wkVBinding.bottomToolContainer.getPaddingTop(),
+                    wkVBinding.bottomToolContainer.getPaddingRight(),
+                    bottomPadding
+            );
+            return insets;
+        });
+    }
+
+    private void hideLegacyAttachmentPreview() {
+        wkVBinding.attachmentHintTv.setVisibility(View.GONE);
+        wkVBinding.imagePreviewScroll.setVisibility(View.GONE);
+        wkVBinding.imagePreviewLayout.removeAllViews();
+    }
+
+    private void initEditorImageTouch() {
+        wkVBinding.editorEt.setOnTouchListener((v, event) -> {
+            if (event.getAction() != MotionEvent.ACTION_UP) {
+                return false;
+            }
+            Layout layout = wkVBinding.editorEt.getLayout();
+            Editable editable = wkVBinding.editorEt.getText();
+            if (layout == null || editable == null) {
+                return false;
+            }
+            int x = (int) event.getX() - wkVBinding.editorEt.getTotalPaddingLeft() + wkVBinding.editorEt.getScrollX();
+            int y = (int) event.getY() - wkVBinding.editorEt.getTotalPaddingTop() + wkVBinding.editorEt.getScrollY();
+            int line = layout.getLineForVertical(y);
+            int offset = layout.getOffsetForHorizontal(line, x);
+            RichPendingImageSpan span = findImageSpanAtOffset(editable, offset);
+            if (span != null && isTouchInsideImageSpan(layout, span, x, y)) {
+                showImageScaleSheet(span.item);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private boolean isTouchInsideImageSpan(Layout layout, RichPendingImageSpan span, int x, int y) {
+        Editable editable = wkVBinding.editorEt.getText();
+        if (editable == null) {
+            return false;
+        }
+        int spanStart = editable.getSpanStart(span);
+        if (spanStart < 0) {
+            return false;
+        }
+        int line = layout.getLineForOffset(spanStart);
+        int lineTop = layout.getLineTop(line);
+        int lineBottom = layout.getLineBottom(line);
+        Drawable drawable = span.getDrawable();
+        int drawableWidth = drawable == null ? 0 : drawable.getBounds().width();
+        int drawableHeight = drawable == null ? 0 : drawable.getBounds().height();
+        float spanLeft = layout.getPrimaryHorizontal(spanStart);
+        float spanRight = spanLeft + drawableWidth;
+        int availableHeight = Math.max(0, lineBottom - lineTop);
+        int spanTop = lineTop + Math.max(0, (availableHeight - drawableHeight) / 2);
+        int spanBottom = spanTop + drawableHeight;
+        return x >= spanLeft && x <= spanRight && y >= spanTop && y <= spanBottom;
     }
 
     private void initColorViews() {
@@ -252,36 +362,191 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
             finish();
             return;
         }
-        String content = wkVBinding.editorEt.getText() == null ? "" : wkVBinding.editorEt.getText().toString();
+        Editable editable = wkVBinding.editorEt.getText();
+        String content = editable == null ? "" : editable.toString().replace(String.valueOf(IMAGE_PLACEHOLDER), "");
         if (content.trim().isEmpty() && pendingImages.isEmpty()) {
             showToast(R.string.flagship_rich_text_empty);
             return;
         }
-        for (PendingImageItem item : pendingImages) {
-            context.sendMessage(new WKImageContent(item.path));
+        if (sending) {
+            return;
         }
-        if (!content.trim().isEmpty()) {
-            WKTextContent textContent = new WKTextContent(content);
-            List<WKMsgEntity> entities = buildAllEntities(wkVBinding.editorEt.getText());
-            if (!entities.isEmpty()) {
-                textContent.entities = entities;
+        sending = true;
+        uploadPendingImages(context, new ArrayList<>(pendingImages), new UploadNodesCallback() {
+            @Override
+            public void onSuccess(Map<Integer, WKRichTextContent.RichNode> nodes) {
+                WKRichTextContent richTextContent = buildRichTextContent(wkVBinding.editorEt.getText(), nodes);
+                context.sendMessage(richTextContent);
+                finish();
             }
-            List<String> uidList = ((ContactEditText) wkVBinding.editorEt).getAllUIDs();
-            if (uidList != null && !uidList.isEmpty()) {
-                WKMentionInfo mentionInfo = new WKMentionInfo();
-                mentionInfo.uids = new ArrayList<>(uidList);
-                textContent.mentionInfo = mentionInfo;
+
+            @Override
+            public void onFail() {
+                sending = false;
+                WKToastUtils.getInstance().showToastNormal(getString(R.string.flagship_rich_text_upload_failed));
             }
-            context.sendMessage(textContent);
-        }
-        finish();
+        });
     }
 
-    private List<WKMsgEntity> buildAllEntities(@Nullable Editable editable) {
+    private WKRichTextContent buildRichTextContent(@Nullable Editable editable, Map<Integer, WKRichTextContent.RichNode> uploadedImageNodes) {
+        WKRichTextContent richTextContent = new WKRichTextContent();
+        richTextContent.nodes = buildOrderedNodes(editable, uploadedImageNodes);
+        richTextContent.content = buildSummaryContent(editable, richTextContent.nodes);
+        bindMentionInfo(richTextContent);
+        return richTextContent;
+    }
+
+    private void bindMentionInfo(WKRichTextContent richTextContent) {
+        List<String> uidList = ((ContactEditText) wkVBinding.editorEt).getAllUIDs();
+        if (uidList == null || uidList.isEmpty()) {
+            return;
+        }
+        List<String> mentionUids = new ArrayList<>();
+        for (String uid : uidList) {
+            if (TextUtils.isEmpty(uid)) {
+                continue;
+            }
+            if ("-1".equals(uid)) {
+                richTextContent.mentionAll = 1;
+            } else if (!mentionUids.contains(uid)) {
+                mentionUids.add(uid);
+            }
+        }
+        if (!mentionUids.isEmpty()) {
+            WKMentionInfo mentionInfo = new WKMentionInfo();
+            mentionInfo.uids = mentionUids;
+            richTextContent.mentionInfo = mentionInfo;
+        }
+    }
+
+    private void uploadPendingImages(IConversationContext context, List<PendingImageItem> items, UploadNodesCallback callback) {
+        if (items.isEmpty()) {
+            callback.onSuccess(new HashMap<>());
+            return;
+        }
+        Map<Integer, WKRichTextContent.RichNode> result = new HashMap<>();
+        uploadPendingImages(context, items, 0, result, callback);
+    }
+
+    private void uploadPendingImages(IConversationContext context, List<PendingImageItem> items, int index, Map<Integer, WKRichTextContent.RichNode> result, UploadNodesCallback callback) {
+        if (index >= items.size()) {
+            callback.onSuccess(result);
+            return;
+        }
+        PendingImageItem item = items.get(index);
+        WKUploader.getInstance().getUploadFileUrl(context.getChatChannelInfo().channelID, context.getChatChannelInfo().channelType, item.path, (uploadUrl, fileUrl) -> {
+            if (TextUtils.isEmpty(uploadUrl)) {
+                callback.onFail();
+                return;
+            }
+            WKUploader.getInstance().upload(uploadUrl, item.path, item.path, new WKUploader.IUploadBack() {
+                @Override
+                public void onSuccess(String url) {
+                    result.put(item.localId, buildImageNode(item, url));
+                    uploadPendingImages(context, items, index + 1, result, callback);
+                }
+
+                @Override
+                public void onError() {
+                    callback.onFail();
+                }
+            });
+        });
+    }
+
+    private WKRichTextContent.RichNode buildImageNode(PendingImageItem item, String path) {
+        WKRichTextContent.RichNode node = new WKRichTextContent.RichNode();
+        node.kind = WKRichTextContent.NODE_KIND_IMAGE;
+        node.path = path;
+        node.widthPercent = item.percent;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(item.path, options);
+        node.width = Math.max(0, options.outWidth);
+        node.height = Math.max(0, options.outHeight);
+        return node;
+    }
+
+    private List<WKRichTextContent.RichNode> buildOrderedNodes(@Nullable Editable editable, Map<Integer, WKRichTextContent.RichNode> uploadedImageNodes) {
+        List<WKRichTextContent.RichNode> nodes = new ArrayList<>();
+        if (editable == null) {
+            return nodes;
+        }
+        List<WKMsgEntity> allEntities = buildAllTextEntities(editable);
+        RichPendingImageSpan[] imageSpans = editable.getSpans(0, editable.length(), RichPendingImageSpan.class);
+        List<RichPendingImageSpan> sortedSpans = new ArrayList<>();
+        Collections.addAll(sortedSpans, imageSpans);
+        sortedSpans.sort(Comparator.comparingInt(editable::getSpanStart));
+        int cursor = 0;
+        for (RichPendingImageSpan span : sortedSpans) {
+            int start = editable.getSpanStart(span);
+            int end = editable.getSpanEnd(span);
+            if (start > cursor) {
+                appendTextNode(nodes, editable.subSequence(cursor, start).toString(), buildSegmentEntities(allEntities, cursor, start));
+            }
+            WKRichTextContent.RichNode imageNode = uploadedImageNodes.get(span.item.localId);
+            if (imageNode != null) {
+                nodes.add(imageNode);
+            }
+            cursor = Math.max(cursor, end);
+        }
+        if (cursor < editable.length()) {
+            appendTextNode(nodes, editable.subSequence(cursor, editable.length()).toString(), buildSegmentEntities(allEntities, cursor, editable.length()));
+        }
+        return nodes;
+    }
+
+    private void appendTextNode(List<WKRichTextContent.RichNode> nodes, String text, List<WKMsgEntity> entities) {
+        if (TextUtils.isEmpty(text)) {
+            return;
+        }
+        WKRichTextContent.RichNode node = new WKRichTextContent.RichNode();
+        node.kind = WKRichTextContent.NODE_KIND_TEXT;
+        node.text = text;
+        node.entities = entities;
+        nodes.add(node);
+    }
+
+    private String buildSummaryContent(@Nullable Editable editable, List<WKRichTextContent.RichNode> nodes) {
+        String summary = editable == null ? "" : editable.toString().replace(String.valueOf(IMAGE_PLACEHOLDER), " ");
+        summary = summary.replaceAll("\\s+", " ").trim();
+        if (!TextUtils.isEmpty(summary)) {
+            return summary;
+        }
+        for (WKRichTextContent.RichNode node : nodes) {
+            if (node != null && WKRichTextContent.NODE_KIND_TEXT.equals(node.kind) && !TextUtils.isEmpty(node.text)) {
+                String text = node.text.replaceAll("\\s+", " ").trim();
+                if (!TextUtils.isEmpty(text)) {
+                    return text;
+                }
+            }
+        }
+        return nodes.isEmpty() ? "" : getString(R.string.flagship_rich_text_image_only_summary);
+    }
+
+    private List<WKMsgEntity> buildAllTextEntities(@Nullable Editable editable) {
         List<WKMsgEntity> entities = new ArrayList<>(((ContactEditText) wkVBinding.editorEt).getAllEntity());
         entities.addAll(buildRichEntities(editable, Color.BLACK));
         entities.sort(Comparator.comparingInt(entity -> entity.offset));
         return mergeEntities(entities);
+    }
+
+    private List<WKMsgEntity> buildSegmentEntities(List<WKMsgEntity> source, int start, int end) {
+        List<WKMsgEntity> result = new ArrayList<>();
+        for (WKMsgEntity entity : source) {
+            if (entity == null) {
+                continue;
+            }
+            int entityStart = entity.offset;
+            int entityEnd = entity.offset + entity.length;
+            if (entityStart < start || entityEnd > end || entityEnd <= entityStart) {
+                continue;
+            }
+            WKMsgEntity copy = copyEntity(entity);
+            copy.offset = entityStart - start;
+            result.add(copy);
+        }
+        return result;
     }
 
     private List<WKMsgEntity> buildRichEntities(@Nullable Editable editable, int defaultTextColor) {
@@ -434,15 +699,17 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     }
 
     private void chooseImages() {
-        GlideUtils.getInstance().chooseIMG(this, 9, false, ChooseMimeType.img, false, true, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false, true, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 for (ChooseResult result : paths) {
                     if (result.model == ChooseResultModel.image && !containsPendingImage(result.path)) {
-                        pendingImages.add(new PendingImageItem(result.path));
+                        PendingImageItem item = new PendingImageItem(result.path);
+                        pendingImages.add(item);
+                        insertPendingImage(item);
                     }
                 }
-                updateAttachmentState();
+                hideLegacyAttachmentPreview();
             }
 
             @Override
@@ -452,19 +719,7 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     }
 
     private void updateAttachmentState() {
-        if (pendingImages.isEmpty()) {
-            wkVBinding.attachmentHintTv.setVisibility(View.GONE);
-            wkVBinding.imagePreviewScroll.setVisibility(View.GONE);
-            wkVBinding.imagePreviewLayout.removeAllViews();
-            return;
-        }
-        wkVBinding.attachmentHintTv.setVisibility(View.VISIBLE);
-        wkVBinding.attachmentHintTv.setText(getString(R.string.flagship_rich_text_selected_images, pendingImages.size()));
-        wkVBinding.imagePreviewScroll.setVisibility(View.VISIBLE);
-        wkVBinding.imagePreviewLayout.removeAllViews();
-        for (PendingImageItem item : pendingImages) {
-            wkVBinding.imagePreviewLayout.addView(buildPreviewItem(item));
-        }
+        hideLegacyAttachmentPreview();
     }
 
     private void chooseMentionMember() {
@@ -492,6 +747,13 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
                     isInternalTextChange = false;
                     lastChangeStart = -1;
                     lastChangeCount = 0;
+                    wkVBinding.editorEt.post(() -> {
+                        wkVBinding.editorEt.requestFocus();
+                        wkVBinding.editorEt.setGravity(Gravity.TOP | Gravity.START);
+                        wkVBinding.editorEt.scrollTo(0, 0);
+                        wkVBinding.editorEt.setSelection(wkVBinding.editorEt.getText() == null ? 0 : wkVBinding.editorEt.getText().length());
+                        SoftKeyboardUtils.getInstance().showSoftKeyBoard(this, wkVBinding.editorEt);
+                    });
                 }
             }
         }
@@ -502,25 +764,32 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     }
 
     private void updateToolStates() {
+        int activeColor = getColor(com.chat.base.R.color.blue);
         updateToolLabel(wkVBinding.colorToolLabel, colorEnabled, selectedColor);
-        updateToolLabel(wkVBinding.sizeToolLabel, sizeEnabled, getColor(com.chat.base.R.color.blue));
-        updateToolLabel(wkVBinding.boldToolLabel, boldEnabled, getColor(com.chat.base.R.color.blue));
-        updateToolLabel(wkVBinding.italicToolLabel, italicEnabled, getColor(com.chat.base.R.color.blue));
-        updateToolLabel(wkVBinding.underlineToolLabel, underlineEnabled, getColor(com.chat.base.R.color.blue));
-        updateToolLabel(wkVBinding.strikeToolLabel, strikeEnabled, getColor(com.chat.base.R.color.blue));
-        updateToolLabel(wkVBinding.atToolLabel, isGroupChat(), getColor(com.chat.base.R.color.blue));
+        updateToolLabel(wkVBinding.sizeToolLabel, sizeEnabled, activeColor);
+        updateToolLabel(wkVBinding.boldToolLabel, boldEnabled, activeColor);
+        updateToolIcon(wkVBinding.imageToolLabel, false, activeColor);
+        updateToolIcon(wkVBinding.italicToolLabel, italicEnabled, activeColor);
+        updateToolLabel(wkVBinding.underlineToolLabel, underlineEnabled, activeColor);
+        updateToolLabel(wkVBinding.strikeToolLabel, strikeEnabled, activeColor);
+        updateToolLabel(wkVBinding.atToolLabel, isGroupChat(), activeColor);
         wkVBinding.sizeToolLabel.setText(String.valueOf(currentSizeSp));
         for (int i = 0; i < colorViews.size(); i++) {
             colorViews.get(i).setSelected(colorEnabled && ColorUtils.INSTANCE.getColorful().get(i) == selectedColor);
         }
         for (TextView view : sizeViews) {
-            view.setTextColor(view.getText().toString().equals(String.valueOf(currentSizeSp)) && sizeEnabled ? getColor(com.chat.base.R.color.blue) : Color.parseColor("#666666"));
+            view.setTextColor(view.getText().toString().equals(String.valueOf(currentSizeSp)) && sizeEnabled ? activeColor : Color.parseColor("#666666"));
         }
     }
 
     private void updateToolLabel(TextView textView, boolean active, int activeColor) {
         textView.setAlpha(active ? 1f : 0.65f);
         textView.setTextColor(active ? activeColor : Color.parseColor("#8A8A8A"));
+    }
+
+    private void updateToolIcon(ImageView imageView, boolean active, int activeColor) {
+        imageView.setAlpha(active ? 1f : 0.65f);
+        imageView.setColorFilter(active ? activeColor : Color.parseColor("#8A8A8A"));
     }
 
     private void selectColorIndex(int index) {
@@ -541,38 +810,7 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     }
 
     private View buildPreviewItem(PendingImageItem item) {
-        LinearLayout wrapper = new LinearLayout(this);
-        wrapper.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams wrapperParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        wrapperParams.rightMargin = AndroidUtilities.dp(10f);
-        wrapper.setLayoutParams(wrapperParams);
-
-        GradientDrawable cardDrawable = new GradientDrawable();
-        cardDrawable.setColor(Color.WHITE);
-        cardDrawable.setCornerRadius(AndroidUtilities.dp(10f));
-        cardDrawable.setStroke(AndroidUtilities.dp(1f), Color.parseColor("#FFE7E7E7"));
-
-        ImageView imageView = new ImageView(this);
-        int previewWidth = Math.max(AndroidUtilities.dp(48f), AndroidUtilities.dp(96f * item.percent / 100f));
-        int previewHeight = Math.max(AndroidUtilities.dp(36f), AndroidUtilities.dp(72f * item.percent / 100f));
-        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(previewWidth, previewHeight);
-        imageView.setLayoutParams(imageParams);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setBackground(cardDrawable);
-        GlideUtils.getInstance().showImg(this, item.path, imageView);
-        imageView.setOnClickListener(v -> showImageScaleSheet(item));
-
-        TextView percentTv = new TextView(this);
-        percentTv.setText(getString(R.string.flagship_rich_text_image_scale_option, item.percent));
-        percentTv.setTextColor(Color.parseColor("#FF666666"));
-        percentTv.setTextSize(11f);
-        LinearLayout.LayoutParams percentParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        percentParams.topMargin = AndroidUtilities.dp(4f);
-        percentTv.setLayoutParams(percentParams);
-
-        wrapper.addView(imageView);
-        wrapper.addView(percentTv);
-        return wrapper;
+        return new View(this);
     }
 
     private void showImageScaleSheet(PendingImageItem item) {
@@ -580,13 +818,137 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
         for (int percent : IMAGE_SCALE_OPTIONS) {
             list.add(new BottomSheetItem(getString(R.string.flagship_rich_text_image_scale_option, percent), 0, () -> {
                 item.percent = percent;
-                updateAttachmentState();
+                updateEditorImageSpan(item);
             }));
         }
         list.add(new BottomSheetItem(getString(R.string.flagship_rich_text_remove_image), 0, () -> {
-            pendingImages.remove(item);
-            updateAttachmentState();
+            removePendingImage(item);
         }));
         WKDialogUtils.getInstance().showBottomSheet(this, getString(R.string.flagship_rich_text_image_scale_title), false, list);
+    }
+
+    private void insertPendingImage(PendingImageItem item) {
+        Editable editable = wkVBinding.editorEt.getText();
+        if (editable == null) {
+            return;
+        }
+        int selection = Math.max(0, wkVBinding.editorEt.getSelectionStart());
+        selection = Math.min(selection, editable.length());
+        boolean needLeadingBreak = selection > 0 && editable.charAt(selection - 1) != '\n';
+        boolean needTrailingBreak = selection < editable.length() && editable.charAt(selection) != '\n';
+        StringBuilder tokenBuilder = new StringBuilder();
+        if (needLeadingBreak) {
+            tokenBuilder.append('\n');
+        }
+        int imageIndex = tokenBuilder.length();
+        tokenBuilder.append(IMAGE_PLACEHOLDER);
+        if (needTrailingBreak) {
+            tokenBuilder.append('\n');
+        }
+        String token = tokenBuilder.toString();
+        editable.insert(selection, token);
+        int spanStart = selection + imageIndex;
+        int spanEnd = spanStart + 1;
+        editable.setSpan(createImageSpan(item), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        wkVBinding.editorEt.setSelection(Math.min(editable.length(), spanEnd + (needTrailingBreak ? 1 : 0)));
+    }
+
+    private RichPendingImageSpan createImageSpan(PendingImageItem item) {
+        Drawable drawable = buildImagePreviewDrawable(item);
+        return new RichPendingImageSpan(drawable, item);
+    }
+
+    private Drawable buildImagePreviewDrawable(PendingImageItem item) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(item.path, options);
+        int maxWidth = Math.max(AndroidUtilities.dp(72f), (int) (AndroidUtilities.dp(220f) * Math.max(25, item.percent) / 100f));
+        int targetWidth = options.outWidth > 0 ? Math.min(maxWidth, options.outWidth) : maxWidth;
+        int targetHeight = options.outWidth > 0 && options.outHeight > 0
+                ? Math.max(AndroidUtilities.dp(54f), targetWidth * options.outHeight / Math.max(1, options.outWidth))
+                : AndroidUtilities.dp(140f);
+        BitmapFactory.Options decodeOptions = new BitmapFactory.Options();
+        decodeOptions.inSampleSize = calculateInSampleSize(options, targetWidth, targetHeight);
+        Bitmap bitmap = BitmapFactory.decodeFile(item.path, decodeOptions);
+        if (bitmap == null) {
+            bitmap = Bitmap.createBitmap(Math.max(1, targetWidth), Math.max(1, targetHeight), Bitmap.Config.ARGB_8888);
+            bitmap.eraseColor(Color.parseColor("#FFF2F2F2"));
+        } else if (bitmap.getWidth() != targetWidth || bitmap.getHeight() != targetHeight) {
+            bitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+        }
+        BitmapDrawable drawable = new BitmapDrawable(getResources(), bitmap);
+        drawable.setBounds(0, 0, targetWidth, targetHeight);
+        return drawable;
+    }
+
+    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        int inSampleSize = 1;
+        int height = Math.max(1, options.outHeight);
+        int width = Math.max(1, options.outWidth);
+        while ((height / inSampleSize) > reqHeight * 2 || (width / inSampleSize) > reqWidth * 2) {
+            inSampleSize *= 2;
+        }
+        return Math.max(1, inSampleSize);
+    }
+
+    private void updateEditorImageSpan(PendingImageItem item) {
+        Editable editable = wkVBinding.editorEt.getText();
+        if (editable == null) {
+            return;
+        }
+        RichPendingImageSpan[] spans = editable.getSpans(0, editable.length(), RichPendingImageSpan.class);
+        for (RichPendingImageSpan span : spans) {
+            if (span.item.localId != item.localId) {
+                continue;
+            }
+            int start = editable.getSpanStart(span);
+            int end = editable.getSpanEnd(span);
+            editable.removeSpan(span);
+            editable.setSpan(createImageSpan(item), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            break;
+        }
+    }
+
+    private void removePendingImage(PendingImageItem item) {
+        Editable editable = wkVBinding.editorEt.getText();
+        if (editable == null) {
+            pendingImages.remove(item);
+            return;
+        }
+        RichPendingImageSpan[] spans = editable.getSpans(0, editable.length(), RichPendingImageSpan.class);
+        for (RichPendingImageSpan span : spans) {
+            if (span.item.localId != item.localId) {
+                continue;
+            }
+            int start = editable.getSpanStart(span);
+            int end = editable.getSpanEnd(span);
+            editable.removeSpan(span);
+            int deleteStart = start;
+            int deleteEnd = end;
+            if (deleteStart > 0 && editable.charAt(deleteStart - 1) == '\n') {
+                deleteStart--;
+            }
+            if (deleteEnd < editable.length() && editable.charAt(deleteEnd) == '\n') {
+                deleteEnd++;
+            }
+            editable.delete(deleteStart, deleteEnd);
+            break;
+        }
+        pendingImages.remove(item);
+    }
+
+    @Nullable
+    private RichPendingImageSpan findImageSpanAtOffset(Editable editable, int offset) {
+        RichPendingImageSpan[] spans = editable.getSpans(offset, offset, RichPendingImageSpan.class);
+        if (spans != null && spans.length > 0) {
+            return spans[0];
+        }
+        if (offset > 0) {
+            spans = editable.getSpans(offset - 1, offset - 1, RichPendingImageSpan.class);
+            if (spans != null && spans.length > 0) {
+                return spans[0];
+            }
+        }
+        return null;
     }
 }

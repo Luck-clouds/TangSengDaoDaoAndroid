@@ -1,6 +1,7 @@
 package com.chat.flagship.chatbg;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 当前会话聊天背景本地配置
@@ -17,4 +18,8 @@ public class FlagshipChatBgConfig implements Serializable {
     public String localPath;
     public int isSvg;
     public boolean blur;
+    public List<String> lightColors;
+    public List<String> darkColors;
+    public int gradientStep;
+    public boolean showPattern = true;
 }

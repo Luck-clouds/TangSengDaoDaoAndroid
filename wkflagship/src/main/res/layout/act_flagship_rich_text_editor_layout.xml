@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
@@ -64,7 +65,7 @@
     <HorizontalScrollView
         android:id="@+id/sizeBar"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="58dp"
         android:background="#FFF7F7F7"
         android:fillViewport="true"
         android:scrollbars="none"
@@ -73,17 +74,20 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
+            android:gravity="bottom|center_horizontal"
             android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:paddingTop="6dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="6dp">
 
             <TextView
                 android:id="@+id/size14Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="14"
                 android:textColor="#FF666666"
                 android:textSize="14sp" />
@@ -91,9 +95,10 @@
             <TextView
                 android:id="@+id/size16Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="16"
                 android:textColor="#FF666666"
                 android:textSize="16sp" />
@@ -101,9 +106,10 @@
             <TextView
                 android:id="@+id/size18Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="18"
                 android:textColor="#FF666666"
                 android:textSize="18sp" />
@@ -111,9 +117,10 @@
             <TextView
                 android:id="@+id/size20Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="20"
                 android:textColor="#FF666666"
                 android:textSize="20sp" />
@@ -121,9 +128,10 @@
             <TextView
                 android:id="@+id/size24Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="24"
                 android:textColor="#FF666666"
                 android:textSize="24sp" />
@@ -131,9 +139,10 @@
             <TextView
                 android:id="@+id/size28Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="28"
                 android:textColor="#FF666666"
                 android:textSize="28sp" />
@@ -141,8 +150,9 @@
             <TextView
                 android:id="@+id/size32Tv"
                 android:layout_width="44dp"
-                android:layout_height="32dp"
-                android:gravity="center"
+                android:layout_height="40dp"
+                android:gravity="bottom|center_horizontal"
+                android:includeFontPadding="false"
                 android:text="32"
                 android:textColor="#FF666666"
                 android:textSize="32sp" />
@@ -217,33 +227,40 @@
     </HorizontalScrollView>
 
     <LinearLayout
+        android:id="@+id/bottomToolContainer"
         android:layout_width="match_parent"
-        android:layout_height="74dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:elevation="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:orientation="vertical">
 
         <LinearLayout
-            android:id="@+id/imageTool"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="74dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
 
-            <TextView
-                android:id="@+id/imageToolLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="图"
-                android:textColor="#FF8A8A8A"
-                android:textSize="22sp" />
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/imageTool"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-        <LinearLayout
+                <ImageView
+                    android:id="@+id/imageToolLabel"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/flagship_rich_text_image_tool"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_flagship_rich_text_image"
+                    android:tint="#FF8A8A8A" />
+            </LinearLayout>
+
+            <LinearLayout
             android:id="@+id/colorTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -261,7 +278,7 @@
                 android:textSize="24sp" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/sizeTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -278,7 +295,7 @@
                 android:textSize="18sp" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/boldTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -296,7 +313,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/italicTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -304,17 +321,17 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+            <ImageView
                 android:id="@+id/italicToolLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="I"
-                android:textColor="#FF5A5A5A"
-                android:textSize="24sp"
-                android:textStyle="italic" />
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/flagship_rich_text_italic_tool"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_flagship_rich_text_italic"
+                android:tint="#FF8A8A8A" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/underlineTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -331,7 +348,7 @@
                 android:textSize="24sp" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/strikeTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -348,7 +365,7 @@
                 android:textSize="24sp" />
         </LinearLayout>
 
-        <LinearLayout
+            <LinearLayout
             android:id="@+id/atTool"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -363,6 +380,7 @@
                 android:text="@"
                 android:textColor="#FF8A8A8A"
                 android:textSize="24sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

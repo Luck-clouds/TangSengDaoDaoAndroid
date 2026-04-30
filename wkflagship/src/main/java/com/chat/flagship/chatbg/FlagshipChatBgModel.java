@@ -2,6 +2,7 @@ package com.chat.flagship.chatbg;
 
 import com.chat.base.base.WKBaseModel;
 import com.chat.base.net.IRequestResultListener;
+import android.util.Log;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * Created by Luckclouds and chatGPT.
  */
 public class FlagshipChatBgModel extends WKBaseModel {
+    private static final String TAG = "FlagshipChatBg";
 
     private FlagshipChatBgModel() {
     }
@@ -23,6 +25,7 @@ public class FlagshipChatBgModel extends WKBaseModel {
     }
 
     public void getChatBgList(IRequestResultListener<List<FlagshipChatBgItem>> listener) {
+        Log.d(TAG, "request chat background list");
         request(createService(FlagshipChatBgService.class).getChatBgList(), listener);
     }
 }

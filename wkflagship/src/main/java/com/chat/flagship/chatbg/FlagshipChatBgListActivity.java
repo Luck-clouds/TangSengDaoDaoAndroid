@@ -3,6 +3,7 @@ package com.chat.flagship.chatbg;
 import android.app.Activity;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,12 +29,14 @@ import java.util.List;
  * Created by Luckclouds and chatGPT.
  */
 public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBgListLayoutBinding> {
+    private static final String TAG = "FlagshipChatBg";
     public static final String EXTRA_CHANNEL_ID = "channel_id";
     public static final String EXTRA_CHANNEL_TYPE = "channel_type";
 
     private String channelId;
     private byte channelType;
     private FlagshipChatBgAdapter adapter;
+    private FlagshipChatBgConfig currentConfig;
 
     private final ActivityResultLauncher<Intent> previewResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -86,6 +89,8 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
     protected void initPresenter() {
         channelId = getIntent().getStringExtra(EXTRA_CHANNEL_ID);
         channelType = getIntent().getByteExtra(EXTRA_CHANNEL_TYPE, WKChannelType.PERSONAL);
+        currentConfig = FlagshipChatBgStore.getConfig(channelId, channelType);
+        Log.d(TAG, "list init channelId=" + channelId + " channelType=" + channelType + " currentType=" + (currentConfig == null ? "default" : currentConfig.type));
     }
 
     @Override
@@ -93,6 +98,7 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
         adapter = new FlagshipChatBgAdapter();
         wkVBinding.recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         wkVBinding.recyclerView.setAdapter(adapter);
+        adapter.setCurrentConfig(currentConfig);
     }
 
     @Override
@@ -107,6 +113,7 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
             @Override
             public void onSuccess(List<FlagshipChatBgItem> result) {
                 loadingPopup.dismiss();
+                Log.d(TAG, "list api success count=" + (result == null ? 0 : result.size()));
                 List<FlagshipChatBgItem> items = new ArrayList<>();
                 FlagshipChatBgItem defaultItem = new FlagshipChatBgItem();
                 defaultItem.isDefault = true;
@@ -115,17 +122,20 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
                     items.addAll(result);
                 }
                 adapter.setData(items);
+                adapter.setCurrentConfig(currentConfig);
             }
 
             @Override
             public void onFail(int code, String msg) {
                 loadingPopup.dismiss();
+                Log.e(TAG, "list api fail code=" + code + " msg=" + msg);
                 showToast(TextUtils.isEmpty(msg) ? getString(R.string.flagship_chat_bg_load_failed) : msg);
             }
         });
     }
 
     private void openPresetPreview(FlagshipChatBgItem item) {
+        Log.d(TAG, "openPresetPreview isDefault=" + (item != null && item.isDefault) + " cover=" + (item == null ? "" : item.cover) + " url=" + (item == null ? "" : item.url) + " isSvg=" + (item == null ? -1 : item.isSvg));
         Intent intent = new Intent(this, FlagshipChatBgPreviewActivity.class);
         intent.putExtra(FlagshipChatBgPreviewActivity.EXTRA_CHANNEL_ID, channelId);
         intent.putExtra(FlagshipChatBgPreviewActivity.EXTRA_CHANNEL_TYPE, channelType);
@@ -138,6 +148,7 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
     }
 
     private void openLocalPreview(String localPath) {
+        Log.d(TAG, "openLocalPreview path=" + localPath);
         Intent intent = new Intent(this, FlagshipChatBgPreviewActivity.class);
         intent.putExtra(FlagshipChatBgPreviewActivity.EXTRA_CHANNEL_ID, channelId);
         intent.putExtra(FlagshipChatBgPreviewActivity.EXTRA_CHANNEL_TYPE, channelType);

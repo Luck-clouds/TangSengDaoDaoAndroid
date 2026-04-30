@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.chat.base.glide.GlideUtils;
 import com.chat.flagship.databinding.ItemFlagshipChatBgBinding;
 
 import java.util.ArrayList;
@@ -21,12 +20,18 @@ import java.util.List;
 public class FlagshipChatBgAdapter extends RecyclerView.Adapter<FlagshipChatBgAdapter.ChatBgViewHolder> {
     private final List<FlagshipChatBgItem> data = new ArrayList<>();
     private OnItemClickListener onItemClickListener;
+    private FlagshipChatBgConfig currentConfig;
 
     public void setData(List<FlagshipChatBgItem> list) {
         data.clear();
         if (list != null) {
             data.addAll(list);
         }
+        notifyDataSetChanged();
+    }
+
+    public void setCurrentConfig(FlagshipChatBgConfig config) {
+        this.currentConfig = config;
         notifyDataSetChanged();
     }
 
@@ -39,17 +44,16 @@ public class FlagshipChatBgAdapter extends RecyclerView.Adapter<FlagshipChatBgAd
     @Override
     public void onBindViewHolder(@NonNull ChatBgViewHolder holder, int position) {
         FlagshipChatBgItem item = data.get(position);
+        boolean isSelected = isSelected(item);
         if (item.isDefault) {
             holder.binding.previewIv.setVisibility(View.GONE);
             holder.binding.defaultLayout.setVisibility(View.VISIBLE);
-            holder.binding.nameTv.setText(com.chat.flagship.R.string.flagship_chat_bg_default);
         } else {
             holder.binding.previewIv.setVisibility(View.VISIBLE);
             holder.binding.defaultLayout.setVisibility(View.GONE);
-            String cover = TextUtils.isEmpty(item.cover) ? item.url : item.cover;
-            GlideUtils.getInstance().showImg(holder.binding.getRoot().getContext(), cover, holder.binding.previewIv);
-            holder.binding.nameTv.setText(com.chat.flagship.R.string.flagship_chat_bg_preset);
+            FlagshipChatBgManager.getInstance().loadPreviewImage(holder.binding.previewIv, item);
         }
+        holder.binding.checkedTv.setVisibility(isSelected ? View.VISIBLE : View.GONE);
         holder.binding.getRoot().setOnClickListener(v -> {
             if (onItemClickListener != null) {
                 onItemClickListener.onClick(item);
@@ -64,6 +68,18 @@ public class FlagshipChatBgAdapter extends RecyclerView.Adapter<FlagshipChatBgAd
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.onItemClickListener = listener;
+    }
+
+    private boolean isSelected(FlagshipChatBgItem item) {
+        if (item == null) {
+            return false;
+        }
+        if (item.isDefault) {
+            return currentConfig == null || currentConfig.type == FlagshipChatBgConfig.TYPE_DEFAULT;
+        }
+        return currentConfig != null
+                && currentConfig.type == FlagshipChatBgConfig.TYPE_PRESET
+                && TextUtils.equals(item.url, currentConfig.sourceUrl);
     }
 
     public interface OnItemClickListener {
