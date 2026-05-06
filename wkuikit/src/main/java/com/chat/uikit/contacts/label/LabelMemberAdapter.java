@@ -1,9 +1,13 @@
 package com.chat.uikit.contacts.label;
 
+import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.content.ContextCompat;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
@@ -27,7 +31,7 @@ public class LabelMemberAdapter extends BaseQuickAdapter<LabelMemberItem, BaseVi
         View userLayout = holder.getView(R.id.userLayout);
         AvatarView avatarView = holder.getView(R.id.avatarView);
         View badgeIv = holder.getView(R.id.badgeIv);
-        View handlerIv = holder.getView(R.id.handlerIv);
+        AppCompatImageView handlerIv = holder.getView(R.id.handlerIv);
         if (item.itemType == LabelMemberItem.TYPE_MEMBER) {
             userLayout.setVisibility(View.VISIBLE);
             handlerIv.setVisibility(View.GONE);
@@ -46,7 +50,9 @@ public class LabelMemberAdapter extends BaseQuickAdapter<LabelMemberItem, BaseVi
         handlerIv.setVisibility(View.VISIBLE);
         badgeIv.setVisibility(View.GONE);
         holder.setText(R.id.nameTv, item.itemType == LabelMemberItem.TYPE_ADD ? R.string.label_member_add : R.string.label_member_delete);
-        holder.setImageResource(R.id.handlerIv, item.itemType == LabelMemberItem.TYPE_ADD ? R.mipmap.icon_chat_add : R.mipmap.icon_chat_delete);
+        handlerIv.setImageResource(item.itemType == LabelMemberItem.TYPE_ADD ? R.mipmap.icon_chat_add : R.mipmap.icon_chat_delete);
+        handlerIv.setSupportImageTintList(ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.popupTextColor)));
+        handlerIv.setSupportImageTintMode(PorterDuff.Mode.SRC_IN);
         holder.setVisible(R.id.nameTv, true);
     }
 }

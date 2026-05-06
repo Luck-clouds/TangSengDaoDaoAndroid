@@ -1,7 +1,7 @@
 package com.chat.sticker.ui.adapter
 
+import android.content.res.ColorStateList
 import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
@@ -45,10 +45,14 @@ class StickerPackageAdapter : BaseQuickAdapter<StickerPackage, BaseViewHolder>(R
         )
         holder.setGone(R.id.actionTv, !showAction)
         sortHandleView.visibility = if (showSortHandle) View.VISIBLE else View.GONE
+        sortHandleView.imageTintList = null
         if (showSortHandle) {
             sortHandleView.clearColorFilter()
             WKImageDisplayUtils.limitResourceInside(sortHandleView, R.drawable.sticker_sort_handle_icon, 4f, 2f)
-            sortHandleView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)
+            sortHandleView.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(context, com.chat.base.R.color.titleBarIcon)
+            )
+            sortHandleView.imageTintMode = PorterDuff.Mode.SRC_IN
         }
         GlideUtils.getInstance().showImg(
             context,

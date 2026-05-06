@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0E1117"
+    android:background="@color/flagship_preview_background"
     android:orientation="vertical">
 
     <include layout="@layout/wk_title_bar_layout" />
@@ -166,7 +166,7 @@
                             android:layout_height="wrap_content"
                             android:maxWidth="220dp"
                             android:text="@string/flagship_chat_bg_preview_left"
-                            android:textColor="#313131"
+                            android:textColor="@color/receive_text_color"
                             android:textSize="14sp" />
 
                         <TextView
@@ -174,7 +174,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
-                            android:textColor="#8D8D93"
+                            android:textColor="@color/flagship_preview_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
                 </FrameLayout>
@@ -209,7 +209,7 @@
                             android:layout_height="wrap_content"
                             android:maxWidth="202dp"
                             android:text="@string/flagship_chat_bg_preview_right"
-                            android:textColor="#313131"
+                            android:textColor="@color/send_text_color"
                             android:textSize="14sp" />
 
                         <TextView
@@ -217,7 +217,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
-                            android:textColor="#8D8D93"
+                            android:textColor="@color/flagship_preview_text_secondary"
                             android:textSize="11sp" />
 
                         <ImageView
@@ -226,7 +226,7 @@
                             android:layout_height="14dp"
                             android:layout_marginStart="3dp"
                             android:src="@mipmap/msg_seen"
-                            android:tint="#8D8D93" />
+                            android:tint="@color/flagship_preview_text_secondary" />
                     </LinearLayout>
                 </FrameLayout>
             </LinearLayout>
@@ -236,7 +236,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="#F7F7F7"
+        android:background="@color/flagship_preview_bottom_bar"
         android:elevation="8dp">
 
         <TextView

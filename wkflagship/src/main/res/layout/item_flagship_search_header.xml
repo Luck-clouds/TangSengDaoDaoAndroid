@@ -8,5 +8,5 @@
     android:paddingTop="14dp"
     android:paddingEnd="15dp"
     android:paddingBottom="8dp"
-    android:textColor="#666666"
+    android:textColor="@color/flagship_search_header_text"
     android:textSize="13sp" />

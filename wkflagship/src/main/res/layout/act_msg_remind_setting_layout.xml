@@ -21,7 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@color/white"
+                android:background="@color/layoutColor"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -52,7 +52,7 @@
                     android:paddingEnd="15dp"
                     android:paddingBottom="14dp"
                     android:text="@string/flagship_screenshot_notify_desc"
-                    android:textColor="#999999"
+                    android:textColor="@color/color999"
                     android:textSize="13sp" />
 
                 <View
@@ -88,7 +88,7 @@
                     android:paddingEnd="15dp"
                     android:paddingBottom="14dp"
                     android:text="@string/flagship_revoke_notify_desc"
-                    android:textColor="#999999"
+                    android:textColor="@color/color999"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>

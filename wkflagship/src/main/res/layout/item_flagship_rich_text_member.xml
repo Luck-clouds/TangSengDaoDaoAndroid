@@ -20,7 +20,7 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="#FF222222"
+        android:textColor="@color/colorDark"
         android:textSize="16sp" />
 
 </LinearLayout>

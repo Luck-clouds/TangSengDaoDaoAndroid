@@ -34,6 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -46,6 +47,7 @@ import com.chat.base.glide.GlideUtils;
 import com.chat.base.msg.ChatContentSpanType;
 import com.chat.base.msg.IConversationContext;
 import com.chat.base.net.ud.WKUploader;
+import com.chat.base.ui.Theme;
 import com.chat.base.ui.components.ContactEditText;
 import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.SoftKeyboardUtils;
@@ -142,7 +144,7 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     @Override
     protected void initView() {
         conversationContext = FlagshipRichTextManager.getInstance().getConversationContext();
-        selectedColor = Color.BLACK;
+        selectedColor = Theme.getDarkModeStatus(this) ? Color.WHITE : Color.BLACK;
         View titleBottom = findViewById(com.chat.base.R.id.titleBottomLinView);
         if (titleBottom != null) {
             titleBottom.setVisibility(View.GONE);
@@ -765,6 +767,7 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
 
     private void updateToolStates() {
         int activeColor = getColor(com.chat.base.R.color.blue);
+        int inactiveColor = ContextCompat.getColor(this, com.chat.base.R.color.color999);
         updateToolLabel(wkVBinding.colorToolLabel, colorEnabled, selectedColor);
         updateToolLabel(wkVBinding.sizeToolLabel, sizeEnabled, activeColor);
         updateToolLabel(wkVBinding.boldToolLabel, boldEnabled, activeColor);
@@ -778,18 +781,18 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
             colorViews.get(i).setSelected(colorEnabled && ColorUtils.INSTANCE.getColorful().get(i) == selectedColor);
         }
         for (TextView view : sizeViews) {
-            view.setTextColor(view.getText().toString().equals(String.valueOf(currentSizeSp)) && sizeEnabled ? activeColor : Color.parseColor("#666666"));
+            view.setTextColor(view.getText().toString().equals(String.valueOf(currentSizeSp)) && sizeEnabled ? activeColor : inactiveColor);
         }
     }
 
     private void updateToolLabel(TextView textView, boolean active, int activeColor) {
         textView.setAlpha(active ? 1f : 0.65f);
-        textView.setTextColor(active ? activeColor : Color.parseColor("#8A8A8A"));
+        textView.setTextColor(active ? activeColor : ContextCompat.getColor(this, com.chat.base.R.color.color999));
     }
 
     private void updateToolIcon(ImageView imageView, boolean active, int activeColor) {
         imageView.setAlpha(active ? 1f : 0.65f);
-        imageView.setColorFilter(active ? activeColor : Color.parseColor("#8A8A8A"));
+        imageView.setColorFilter(active ? activeColor : ContextCompat.getColor(this, com.chat.base.R.color.color999));
     }
 
     private void selectColorIndex(int index) {

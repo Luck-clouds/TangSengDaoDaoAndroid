@@ -3,7 +3,7 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/homeColor"
     android:orientation="vertical">
 
     <include layout="@layout/wk_title_bar_layout" />
@@ -12,12 +12,12 @@
         android:id="@+id/attachmentHintTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFF7F7F7"
+        android:background="@color/layoutColor"
         android:paddingStart="18dp"
         android:paddingTop="10dp"
         android:paddingEnd="18dp"
         android:paddingBottom="10dp"
-        android:textColor="#FF666666"
+        android:textColor="@color/color999"
         android:textSize="13sp"
         android:visibility="gone" />
 
@@ -25,7 +25,7 @@
         android:id="@+id/imagePreviewScroll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFF7F7F7"
+        android:background="@color/layoutColor"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:scrollbars="none"
@@ -58,15 +58,15 @@
         android:paddingEnd="18dp"
         android:paddingBottom="18dp"
         android:scrollbars="vertical"
-        android:textColor="@android:color/black"
-        android:textColorHint="#FFB9B9B9"
+        android:textColor="@color/colorDark"
+        android:textColorHint="@color/color999"
         android:textSize="18sp" />
 
     <HorizontalScrollView
         android:id="@+id/sizeBar"
         android:layout_width="match_parent"
         android:layout_height="58dp"
-        android:background="#FFF7F7F7"
+        android:background="@color/layoutColor"
         android:fillViewport="true"
         android:scrollbars="none"
         android:visibility="gone">
@@ -89,7 +89,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="14"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="14sp" />
 
             <TextView
@@ -100,7 +100,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="16"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="16sp" />
 
             <TextView
@@ -111,7 +111,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="18"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="18sp" />
 
             <TextView
@@ -122,7 +122,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="20"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="20sp" />
 
             <TextView
@@ -133,7 +133,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="24"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="24sp" />
 
             <TextView
@@ -144,7 +144,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="28"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="28sp" />
 
             <TextView
@@ -154,7 +154,7 @@
                 android:gravity="bottom|center_horizontal"
                 android:includeFontPadding="false"
                 android:text="32"
-                android:textColor="#FF666666"
+                android:textColor="@color/color999"
                 android:textSize="32sp" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -163,7 +163,7 @@
         android:id="@+id/colorBar"
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:background="#FFF7F7F7"
+        android:background="@color/layoutColor"
         android:fillViewport="true"
         android:scrollbars="none"
         android:visibility="gone">
@@ -230,7 +230,7 @@
         android:id="@+id/bottomToolContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@color/layoutColor"
         android:elevation="10dp"
         android:orientation="vertical">
 
@@ -257,7 +257,7 @@
                     android:contentDescription="@string/flagship_rich_text_image_tool"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_flagship_rich_text_image"
-                    android:tint="#FF8A8A8A" />
+                    android:tint="@color/color999" />
             </LinearLayout>
 
             <LinearLayout
@@ -274,7 +274,7 @@
                 android:layout_height="wrap_content"
                 android:text="A"
                 android:textStyle="bold"
-                android:textColor="#FF666666"
+                android:textColor="@color/colorDark"
                 android:textSize="24sp" />
         </LinearLayout>
 
@@ -291,7 +291,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="16"
-                android:textColor="#FF8A8A8A"
+                android:textColor="@color/color999"
                 android:textSize="18sp" />
         </LinearLayout>
 
@@ -308,7 +308,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="B"
-                android:textColor="#FF5A5A5A"
+                android:textColor="@color/colorDark"
                 android:textSize="24sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -328,7 +328,7 @@
                 android:contentDescription="@string/flagship_rich_text_italic_tool"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_flagship_rich_text_italic"
-                android:tint="#FF8A8A8A" />
+                android:tint="@color/color999" />
         </LinearLayout>
 
             <LinearLayout
@@ -344,7 +344,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="U"
-                android:textColor="#FF8A8A8A"
+                android:textColor="@color/color999"
                 android:textSize="24sp" />
         </LinearLayout>
 
@@ -361,7 +361,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="S"
-                android:textColor="#FF8A8A8A"
+                android:textColor="@color/color999"
                 android:textSize="24sp" />
         </LinearLayout>
 
@@ -378,7 +378,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@"
-                android:textColor="#FF8A8A8A"
+                android:textColor="@color/color999"
                 android:textSize="24sp" />
             </LinearLayout>
         </LinearLayout>

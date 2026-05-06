@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.TextView;
 
 import com.chat.base.common.WKCommonModel;
@@ -37,7 +38,6 @@ import com.chat.base.net.HttpResponseCode;
 import com.chat.base.ui.components.SwitchView;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.flagship.chatbg.FlagshipChatBgManager;
-import com.chat.flagship.databinding.ItemMsgRemindEntryLayoutBinding;
 import com.chat.flagship.databinding.ItemFlagshipMsgReceiptEntryLayoutBinding;
 import com.chat.flagship.msgmodel.WKRichTextContent;
 import com.chat.flagship.msgmodel.WKScreenShotContent;
@@ -238,18 +238,16 @@ public class WKFlagshipApplication {
             return null;
         });
         EndpointManager.getInstance().setMethod("msg_remind_view", object -> {
-            if (!(object instanceof ChatSettingCellMenu)) {
+            if (!(object instanceof ChatSettingCellMenu menu)) {
                 return null;
             }
-            ChatSettingCellMenu menu = (ChatSettingCellMenu) object;
             byte channelType = menu.getChannelType();
             if (channelType != WKChannelType.PERSONAL && channelType != WKChannelType.GROUP) {
                 return null;
             }
             Context context = menu.getParentLayout().getContext();
-            ItemMsgRemindEntryLayoutBinding binding = ItemMsgRemindEntryLayoutBinding.inflate(LayoutInflater.from(context), menu.getParentLayout(), false);
-            binding.nameTv.setText(R.string.flagship_msg_remind_setting);
-            binding.getRoot().setOnClickListener(v -> {
+            View view = createSettingEntryView(context, context.getString(R.string.flagship_msg_remind_setting), null);
+            view.setOnClickListener(v -> {
                 Intent intent = new Intent(context, MsgRemindSettingActivity.class);
                 intent.putExtra(MsgRemindSettingActivity.EXTRA_CHANNEL_ID, menu.getChannelID());
                 intent.putExtra(MsgRemindSettingActivity.EXTRA_CHANNEL_TYPE, channelType);
@@ -258,7 +256,7 @@ public class WKFlagshipApplication {
                 }
                 context.startActivity(intent);
             });
-            return binding.getRoot();
+            return view;
         });
         EndpointManager.getInstance().setMethod("msg_receipt_view", object -> {
             if (!(object instanceof ChatSettingCellMenu menu)) {
@@ -283,10 +281,9 @@ public class WKFlagshipApplication {
                 return null;
             }
             Context context = menu.getParentLayout().getContext();
-            ItemMsgRemindEntryLayoutBinding binding = ItemMsgRemindEntryLayoutBinding.inflate(LayoutInflater.from(context), menu.getParentLayout(), false);
-            binding.nameTv.setText(R.string.flagship_chat_bg);
-            binding.getRoot().setOnClickListener(v -> FlagshipChatBgManager.getInstance().openList(context, menu.getChannelID(), channelType));
-            return binding.getRoot();
+            View view = createSettingEntryView(context, context.getString(R.string.flagship_chat_bg), null);
+            view.setOnClickListener(v -> FlagshipChatBgManager.getInstance().openList(context, menu.getChannelID(), channelType));
+            return view;
         });
         EndpointManager.getInstance().setMethod("flagship_search_message_with_video", EndpointCategory.wkSearchChatContent, 97, object -> {
             if (!(object instanceof com.xinbida.wukongim.entity.WKChannel channel)) {
@@ -341,6 +338,20 @@ public class WKFlagshipApplication {
                 && msg.type != WKContentType.WK_VIDEO
                 && msg.type != WKContentType.systemMsg
                 && msg.type != WKContentType.screenshot;
+    }
+
+    private View createSettingEntryView(Context context, String title, String subtitle) {
+        View view = LayoutInflater.from(context).inflate(com.chat.uikit.R.layout.view_group_manage_entry_layout, null, false);
+        TextView titleTv = view.findViewById(com.chat.uikit.R.id.titleTv);
+        TextView subtitleTv = view.findViewById(com.chat.uikit.R.id.subtitleTv);
+        titleTv.setText(title);
+        if (!TextUtils.isEmpty(subtitle)) {
+            subtitleTv.setVisibility(View.VISIBLE);
+            subtitleTv.setText(subtitle);
+        } else {
+            subtitleTv.setVisibility(View.GONE);
+        }
+        return view;
     }
 
     private void bindReceiptSwitch(SwitchView switchView, String channelId, byte channelType) {

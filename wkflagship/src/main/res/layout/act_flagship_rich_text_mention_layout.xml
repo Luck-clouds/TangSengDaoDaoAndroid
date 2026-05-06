@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/homeColor"
     android:orientation="vertical">
 
     <include layout="@layout/wk_title_bar_layout" />
@@ -20,8 +20,8 @@
         android:paddingStart="14dp"
         android:paddingEnd="14dp"
         android:singleLine="true"
-        android:textColor="@android:color/black"
-        android:textColorHint="#FF999999"
+        android:textColor="@color/colorDark"
+        android:textColorHint="@color/color999"
         android:textSize="15sp" />
 
     <TextView
@@ -31,7 +31,7 @@
         android:layout_marginTop="24dp"
         android:gravity="center"
         android:text="@string/flagship_rich_text_member_empty"
-        android:textColor="#FF999999"
+        android:textColor="@color/color999"
         android:textSize="14sp"
         android:visibility="gone" />
 

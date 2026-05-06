@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/flagship_search_no_data"
-            android:textColor="#999999"
+            android:textColor="@color/color999"
             android:textSize="14sp"
             android:visibility="gone" />
     </FrameLayout>

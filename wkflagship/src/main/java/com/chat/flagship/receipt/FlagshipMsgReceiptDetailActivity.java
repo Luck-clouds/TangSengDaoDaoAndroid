@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.net.HttpResponseCode;
@@ -127,7 +128,7 @@ public class FlagshipMsgReceiptDetailActivity extends WKBaseActivity<ActFlagship
     private void bindTabStyle(TextView textView, boolean isSelected, String text) {
         textView.setText(text);
         textView.setBackgroundResource(isSelected ? R.drawable.shape_flagship_receipt_tab_selected : R.drawable.shape_flagship_receipt_tab_normal);
-        textView.setTextColor(isSelected ? 0xFF1677FF : 0xFF5C6470);
+        textView.setTextColor(ContextCompat.getColor(this, isSelected ? R.color.flagship_receipt_tab_text_selected : R.color.flagship_receipt_tab_text_normal));
     }
 
     private void renderList() {

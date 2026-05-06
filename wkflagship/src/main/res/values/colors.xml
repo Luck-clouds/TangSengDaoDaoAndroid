@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="flagship_preview_background">#0E1117</color>
+    <color name="flagship_preview_bottom_bar">#F7F7F7</color>
+    <color name="flagship_preview_text_primary">#313131</color>
+    <color name="flagship_preview_text_secondary">#8D8D93</color>
+    <color name="flagship_receipt_tab_text_selected">#1677FF</color>
+    <color name="flagship_receipt_tab_text_normal">#5C6470</color>
+    <color name="flagship_receipt_divider">#EEF1F5</color>
+    <color name="flagship_search_header_text">#666666</color>
+</resources>

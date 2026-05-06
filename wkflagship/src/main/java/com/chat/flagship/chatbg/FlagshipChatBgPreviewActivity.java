@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.glide.GlideUtils;
@@ -81,6 +82,7 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
 
     @Override
     protected void initView() {
+        applyTitleBarStyle();
         updateBlurState(showBlur);
         updatePreviewStatus();
         configureActionButtons();
@@ -327,5 +329,33 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
         Log.d(TAG, "finishSuccess");
         setResult(Activity.RESULT_OK);
         finish();
+    }
+
+    private void applyTitleBarStyle() {
+        View titleBar = findViewById(com.chat.base.R.id.titleBarLayout);
+        View statusBar = findViewById(com.chat.base.R.id.statusBarView);
+        TextView titleCenterTv = findViewById(com.chat.base.R.id.titleCenterTv);
+        TextView titleRightTv = findViewById(com.chat.base.R.id.titleRightTv);
+        ImageView backIv = findViewById(com.chat.base.R.id.backIv);
+        ImageView rightIv = findViewById(com.chat.base.R.id.titleRightIv);
+        int white = ContextCompat.getColor(this, com.chat.base.R.color.white);
+        if (titleBar != null) {
+            titleBar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        }
+        if (statusBar != null) {
+            statusBar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        }
+        if (titleCenterTv != null) {
+            titleCenterTv.setTextColor(white);
+        }
+        if (titleRightTv != null) {
+            titleRightTv.setTextColor(white);
+        }
+        if (backIv != null) {
+            backIv.setColorFilter(white);
+        }
+        if (rightIv != null) {
+            rightIv.setColorFilter(white);
+        }
     }
 }
