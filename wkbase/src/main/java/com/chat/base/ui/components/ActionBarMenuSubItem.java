@@ -56,7 +56,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
 
         imageView = new RLottieImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
-        imageView.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.MULTIPLY));
+        imageView.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
         addView(imageView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.CENTER_VERTICAL | (AndroidUtilities.isRTL ? Gravity.END : Gravity.START)));
 
         textView = new TextView(context);
@@ -110,7 +110,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
         if (rightIcon == null) {
             rightIcon = new ImageView(getContext());
             rightIcon.setScaleType(ImageView.ScaleType.CENTER);
-            rightIcon.setColorFilter(iconColor, PorterDuff.Mode.MULTIPLY);
+            rightIcon.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
             if (AndroidUtilities.isRTL) {
                 rightIcon.setScaleX(-1);
             }
@@ -161,7 +161,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
 
     public void setIconColor(int iconColor) {
         if (this.iconColor != iconColor) {
-            imageView.setColorFilter(new PorterDuffColorFilter(this.iconColor = iconColor, PorterDuff.Mode.MULTIPLY));
+            imageView.setColorFilter(new PorterDuffColorFilter(this.iconColor = iconColor, PorterDuff.Mode.SRC_IN));
         }
     }
 

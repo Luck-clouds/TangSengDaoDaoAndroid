@@ -547,13 +547,12 @@ public class WKDialogUtils {
               if (drawable != null) {
                   imageView.setImageDrawable(drawable);
               }
-              if (item.getColor() == 0) {
-                  imageView.clearColorFilter();
-              } else {
-                  // Popup menu items may use black PNG assets. The default MULTIPLY tint in
-                  // ActionBarMenuSubItem keeps black assets black, so override with SRC_IN here.
-                  imageView.setColorFilter(new PorterDuffColorFilter(item.getColor(), PorterDuff.Mode.SRC_IN));
-              }
+              int iconColor = item.getColor() == 0
+                      ? ContextCompat.getColor(view.getContext(), R.color.popupTextColor)
+                      : item.getColor();
+              // Popup menu icons are monochrome assets, including white and black PNGs.
+              // Use SRC_IN so they follow the current theme in both light and dark mode.
+              imageView.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
             subItem.setOnClickListener(view1 -> {
                 if (scrimPopupWindow != null) {
                     scrimPopupWindow.dismiss(true);

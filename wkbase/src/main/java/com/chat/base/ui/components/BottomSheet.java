@@ -812,7 +812,7 @@ public class BottomSheet extends Dialog {
 
             imageView = new ImageView(context);
             imageView.setScaleType(ImageView.ScaleType.CENTER);
-            imageView.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(context, R.color.popupTextColor), PorterDuff.Mode.MULTIPLY));
+            imageView.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(context, R.color.popupTextColor), PorterDuff.Mode.SRC_IN));
             addView(imageView, LayoutHelper.createFrame(56, 48, Gravity.CENTER_VERTICAL | (AndroidUtilities.isRTL ? Gravity.RIGHT : Gravity.LEFT)));
 
             textView = new TextView(context);
@@ -854,7 +854,7 @@ public class BottomSheet extends Dialog {
         }
 
         public void setIconColor(int color) {
-            imageView.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+            imageView.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
         }
 
         public void setGravity(int gravity) {
@@ -1457,7 +1457,7 @@ public class BottomSheet extends Dialog {
         }
         BottomSheetCell cell = itemViews.get(item);
         cell.textView.setTextColor(color);
-        cell.imageView.setColorFilter(new PorterDuffColorFilter(icon, PorterDuff.Mode.MULTIPLY));
+        cell.imageView.setColorFilter(new PorterDuffColorFilter(icon, PorterDuff.Mode.SRC_IN));
     }
 
     public ArrayList<BottomSheetCell> getItemViews() {
