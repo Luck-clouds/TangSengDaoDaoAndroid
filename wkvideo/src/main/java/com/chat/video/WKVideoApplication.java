@@ -7,7 +7,6 @@ package com.chat.video;
 
 import android.Manifest;
 import android.app.Application;
-import android.content.res.Configuration;
 
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
@@ -77,14 +76,8 @@ public class WKVideoApplication {
     }
 
     private int getFunctionIcon() {
-        Application application = getApplication();
-        if (application == null) {
-            return R.drawable.video_func_capture_light;
-        }
-        int mode = application.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return mode == Configuration.UI_MODE_NIGHT_YES
-                ? R.drawable.video_func_capture_dark
-                : R.drawable.video_func_capture_light;
+        // 交给 drawable / drawable-night 自动切换，避免功能面板入口只在 init 时取一次图标。
+        return R.drawable.video_func_capture;
     }
 
     private void openCapture(IConversationContext conversationContext) {
