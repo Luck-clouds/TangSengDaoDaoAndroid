@@ -40,7 +40,7 @@ class MyStickerEntryAdapter : BaseQuickAdapter<MyStickerEntry, BaseViewHolder>(R
         iconView.background = null
         if (item.type == "custom") {
             WKImageDisplayUtils.limitResourceInside(iconView, R.mipmap.sticker_add_icon, 8f, 4f)
-            iconView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.black), PorterDuff.Mode.MULTIPLY)
+            iconView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.colorDark), PorterDuff.Mode.MULTIPLY)
         } else if (item.icon.isNotEmpty()) {
             WKImageDisplayUtils.prepareImageSlot(iconView, 3f)
             GlideUtils.getInstance().showImg(context, WKApiConfig.getShowUrl(item.icon), iconView)

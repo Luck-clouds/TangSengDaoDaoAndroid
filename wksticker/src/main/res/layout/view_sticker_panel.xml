@@ -60,7 +60,7 @@
         android:id="@+id/bottomBarLayout"
         android:layout_width="match_parent"
         android:layout_height="45dp"
-        android:background="@android:color/white"
+        android:background="@color/layoutColor"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:paddingStart="12dp"
