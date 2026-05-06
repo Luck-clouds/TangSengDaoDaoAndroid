@@ -1,13 +1,15 @@
 package com.chat.uikit.group.manage;
 
+import android.content.res.ColorStateList;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -112,8 +114,7 @@ public class GroupBlacklistActivity extends WKBaseActivity<ActGroupManageMemberL
         nameTv.setPadding(AndroidUtilities.dp(12), 0, 0, 0);
         rootView.addView(nameTv, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL));
 
-        ImageView deleteIv = new ImageView(this);
-        deleteIv.setImageResource(R.mipmap.icon_chat_delete);
+        AppCompatImageView deleteIv = createActionIcon(R.drawable.ic_group_manage_remove);
         rootView.addView(deleteIv, LayoutHelper.createLinear(22, 22, Gravity.CENTER_VERTICAL));
         deleteIv.setOnClickListener(v -> removeBlacklist(member));
         return rootView;
@@ -125,8 +126,7 @@ public class GroupBlacklistActivity extends WKBaseActivity<ActGroupManageMemberL
         rootView.setGravity(Gravity.CENTER_VERTICAL);
         rootView.setPadding(AndroidUtilities.dp(15), AndroidUtilities.dp(15), AndroidUtilities.dp(15), AndroidUtilities.dp(15));
 
-        ImageView addIv = new ImageView(this);
-        addIv.setImageResource(R.mipmap.icon_chat_add);
+        AppCompatImageView addIv = createActionIcon(R.drawable.ic_group_manage_add);
         rootView.addView(addIv, LayoutHelper.createLinear(22, 22, Gravity.CENTER_VERTICAL));
 
         TextView addTv = new TextView(this);
@@ -144,6 +144,15 @@ public class GroupBlacklistActivity extends WKBaseActivity<ActGroupManageMemberL
         lineView.setBackgroundColor(ContextCompat.getColor(this, R.color.homeColor));
         lineView.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1));
         return lineView;
+    }
+
+    private AppCompatImageView createActionIcon(int resId) {
+        AppCompatImageView imageView = new AppCompatImageView(this);
+        imageView.setImageResource(resId);
+        imageView.setScaleType(AppCompatImageView.ScaleType.FIT_CENTER);
+        imageView.setSupportImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.titleBarIcon)));
+        imageView.setSupportImageTintMode(PorterDuff.Mode.SRC_IN);
+        return imageView;
     }
 
     private void openMemberSelect() {

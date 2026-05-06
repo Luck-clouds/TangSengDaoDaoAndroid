@@ -1,14 +1,16 @@
 package com.chat.uikit.group.manage;
 
+import android.content.res.ColorStateList;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -199,8 +201,7 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
         rootView.addView(nameTv, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL));
 
         if (isOwner && member.role == WKChannelMemberRole.manager) {
-            ImageView deleteIv = new ImageView(this);
-            deleteIv.setImageResource(R.mipmap.icon_chat_delete);
+            AppCompatImageView deleteIv = createActionIcon(R.drawable.ic_group_manage_remove);
             LinearLayout.LayoutParams deleteParams = LayoutHelper.createLinear(22, 22, Gravity.CENTER_VERTICAL);
             deleteParams.leftMargin = AndroidUtilities.dp(12);
             rootView.addView(deleteIv, deleteParams);
@@ -215,8 +216,7 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
         rootView.setGravity(Gravity.CENTER_VERTICAL);
         rootView.setPadding(AndroidUtilities.dp(15), AndroidUtilities.dp(15), AndroidUtilities.dp(15), AndroidUtilities.dp(15));
 
-        ImageView addIv = new ImageView(this);
-        addIv.setImageResource(R.mipmap.icon_chat_add);
+        AppCompatImageView addIv = createActionIcon(R.drawable.ic_group_manage_add);
         rootView.addView(addIv, LayoutHelper.createLinear(22, 22, Gravity.CENTER_VERTICAL));
 
         TextView addTv = new TextView(this);
@@ -234,6 +234,15 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
         line.setBackgroundColor(ContextCompat.getColor(this, R.color.homeColor));
         line.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1));
         return line;
+    }
+
+    private AppCompatImageView createActionIcon(int resId) {
+        AppCompatImageView imageView = new AppCompatImageView(this);
+        imageView.setImageResource(resId);
+        imageView.setScaleType(AppCompatImageView.ScaleType.FIT_CENTER);
+        imageView.setSupportImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.titleBarIcon)));
+        imageView.setSupportImageTintMode(PorterDuff.Mode.SRC_IN);
+        return imageView;
     }
 
     private GradientDrawable createRoleBg(int color) {

@@ -21,7 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@color/white"
+                android:background="@drawable/layout_bg"
                 android:orientation="vertical">
 
                 <LinearLayout style="@style/layoutBgPaddingSmall">
@@ -181,7 +181,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@color/white"
+                android:background="@drawable/layout_bg"
                 android:orientation="vertical">
 
                 <TextView
