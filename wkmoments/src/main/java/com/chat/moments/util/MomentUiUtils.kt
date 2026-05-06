@@ -56,7 +56,6 @@ import java.util.Locale
 import java.util.TimeZone
 
 object MomentUiUtils {
-    private const val NAME_COLOR = "#556C94"
 
     fun resolveUrl(path: String?): String {
         if (path.isNullOrEmpty()) return ""
@@ -324,7 +323,7 @@ object MomentUiUtils {
     fun bindLikesText(textView: TextView, likes: List<MomentLike>) {
         textView.highlightColor = Color.TRANSPARENT
         textView.movementMethod = LinkMovementMethod.getInstance()
-        textView.text = buildLikesSpannable(likes) { uid ->
+        textView.text = buildLikesSpannable(textView.context, likes) { uid ->
             openUserCard(textView.context, uid)
         }
     }
@@ -346,13 +345,14 @@ object MomentUiUtils {
     }
 
     private fun buildLikesSpannable(
+        context: Context,
         likes: List<MomentLike>,
         onUserClick: (String) -> Unit
     ): SpannableStringBuilder {
         val builder = SpannableStringBuilder()
         likes.forEachIndexed { index, like ->
             if (index > 0) builder.append("、")
-            appendUserName(builder, like.name.ifEmpty { like.uid }, like.uid, onUserClick)
+            appendUserName(context, builder, like.name.ifEmpty { like.uid }, like.uid, onUserClick)
         }
         return builder
     }
@@ -366,7 +366,7 @@ object MomentUiUtils {
         val builder = SpannableStringBuilder()
         comments.forEachIndexed { index, comment ->
             if (index > 0) builder.append("\n")
-            appendUserName(builder, comment.user.name.ifEmpty { comment.user.uid }, comment.user.uid, onUserClick)
+            appendUserName(context, builder, comment.user.name.ifEmpty { comment.user.uid }, comment.user.uid, onUserClick)
             if (comment.replyUser == null || TextUtils.isEmpty(comment.replyUser?.uid)) {
                 builder.append(" : ")
             } else {
@@ -374,6 +374,7 @@ object MomentUiUtils {
                 builder.append(context.getString(R.string.moment_reply))
                 builder.append(" ")
                 appendUserName(
+                    context,
                     builder,
                     comment.replyUser?.name?.ifEmpty { comment.replyUser?.uid } ?: "",
                     comment.replyUser?.uid.orEmpty(),
@@ -383,12 +384,13 @@ object MomentUiUtils {
             }
             val replyStart = builder.length
             builder.append(comment.content)
-            appendReplySpan(builder, replyStart, builder.length, comment, onCommentClick)
+            appendReplySpan(context, builder, replyStart, builder.length, comment, onCommentClick)
         }
         return builder
     }
 
     private fun appendReplySpan(
+        context: Context,
         builder: SpannableStringBuilder,
         start: Int,
         end: Int,
@@ -396,19 +398,21 @@ object MomentUiUtils {
         onCommentClick: ((MomentComment) -> Unit)?
     ) {
         if (onCommentClick == null || end <= start) return
+        val replyColor = ContextCompat.getColor(context, R.color.moment_text_primary)
         builder.setSpan(object : ClickableSpan() {
             override fun onClick(widget: View) {
                 onCommentClick(comment)
             }
 
             override fun updateDrawState(ds: TextPaint) {
-                ds.color = Color.parseColor("#2F2F2F")
+                ds.color = replyColor
                 ds.isUnderlineText = false
             }
         }, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 
     private fun appendUserName(
+        context: Context,
         builder: SpannableStringBuilder,
         name: String,
         uid: String,
@@ -417,7 +421,7 @@ object MomentUiUtils {
         val start = builder.length
         builder.append(name)
         val end = builder.length
-        val color = Color.parseColor(NAME_COLOR)
+        val color = ContextCompat.getColor(context, R.color.moment_link_text)
         builder.setSpan(ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         builder.setSpan(object : ClickableSpan() {
             override fun onClick(widget: View) {

@@ -22,7 +22,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_marginEnd="4dp"
-            android:background="@color/homeColor"
+            android:background="@color/moment_surface_soft_bg"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -31,7 +31,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_marginEnd="4dp"
-            android:background="@color/homeColor"
+            android:background="@color/moment_surface_soft_bg"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -40,7 +40,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_marginEnd="4dp"
-            android:background="@color/homeColor"
+            android:background="@color/moment_surface_soft_bg"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -48,7 +48,7 @@
             android:id="@+id/previewIv4"
             android:layout_width="35dp"
             android:layout_height="35dp"
-            android:background="@color/homeColor"
+            android:background="@color/moment_surface_soft_bg"
             android:scaleType="centerCrop"
             android:visibility="gone" />
     </LinearLayout>

@@ -5,8 +5,10 @@ package com.chat.moments.store
  * Created by Luckclouds.
  */
 
+import com.alibaba.fastjson.JSON
 import com.chat.base.config.WKConfig
 import com.chat.base.config.WKSharedPreferencesUtil
+import com.chat.moments.entity.MomentNotice
 
 object MomentPrefs {
     private fun key(suffix: String): String {
@@ -36,6 +38,23 @@ object MomentPrefs {
 
     fun latestNoticePreview(): String {
         return WKSharedPreferencesUtil.getInstance().getSP(key("moment_latest_notice_preview"))
+    }
+
+    fun saveNoticeList(list: List<MomentNotice>) {
+        WKSharedPreferencesUtil.getInstance().putSP(
+            key("moment_notice_list"),
+            JSON.toJSONString(list)
+        )
+    }
+
+    fun noticeList(): MutableList<MomentNotice> {
+        val value = WKSharedPreferencesUtil.getInstance().getSP(key("moment_notice_list"))
+        if (value.isEmpty()) return mutableListOf()
+        return try {
+            JSON.parseArray(value, MomentNotice::class.java)?.toMutableList() ?: mutableListOf()
+        } catch (_: Exception) {
+            mutableListOf()
+        }
     }
 
     fun saveUserState(uid: String, blockMe: Boolean, hideHim: Boolean) {

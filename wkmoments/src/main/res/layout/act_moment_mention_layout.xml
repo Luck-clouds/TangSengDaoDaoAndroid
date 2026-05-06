@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/homeColor"
+    android:background="@color/moment_page_bg"
     android:orientation="vertical">
 
     <include layout="@layout/wk_title_bar_layout" />
@@ -10,7 +10,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@color/moment_surface_bg"
         android:orientation="vertical">
 
         <TextView
@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:padding="18dp"
             android:text="@string/moment_select_contacts"
-            android:textColor="#556C94"
+            android:textColor="@color/moment_link_text"
             android:textSize="18sp" />
 
         <TextView
@@ -31,7 +31,7 @@
             android:paddingEnd="18dp"
             android:paddingBottom="18dp"
             android:text="@string/moment_select_tags"
-            android:textColor="#556C94"
+            android:textColor="@color/moment_link_text"
             android:textSize="18sp" />
 
         <TextView

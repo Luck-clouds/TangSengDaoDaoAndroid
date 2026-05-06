@@ -11,8 +11,6 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaMetadataRetriever
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -47,7 +45,6 @@ import com.chat.moments.entity.MomentMedia
 import com.chat.moments.entity.MomentComposeMedia
 import com.chat.moments.entity.MomentPost
 import com.chat.moments.service.MomentModel
-import com.chat.moments.store.MomentPrefs
 import com.chat.moments.ui.adapter.MomentPostAdapter
 import com.chat.moments.util.MomentPullRefreshHelper
 import com.chat.moments.util.MomentUiUtils
@@ -89,6 +86,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
     private lateinit var headerView: View
     private lateinit var coverIv: ImageView
     private lateinit var coverScrimView: View
+    private lateinit var headerBackIv: ImageView
     private lateinit var headerCameraIv: ImageView
     private lateinit var headerNameTv: TextView
     private lateinit var headerAvatarView: com.chat.base.ui.components.AvatarView
@@ -104,16 +102,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
     private var currentHeaderOffset = 0
     private var currentHeaderCoverPath: String = ""
     private var currentHeaderCoverVersion: Long = 0L
-    private var latestNoticeUid: String = ""
-    private val noticePollHandler = Handler(Looper.getMainLooper())
-    private val noticePollIntervalMs = 10_000L
-    private val noticePollRunnable = object : Runnable {
-        override fun run() {
-            if (!isSelfTimeline) return
-            syncNoticeBadge()
-            noticePollHandler.postDelayed(this, noticePollIntervalMs)
-        }
-    }
+    private val noticeListenerTag = "moment_timeline_banner"
 
     private val composeLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == RESULT_OK) {
@@ -174,10 +163,12 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         titleWrap.background = ColorDrawable(android.graphics.Color.TRANSPARENT)
         titleWrap.alpha = 1f
         titleTv.alpha = 0f
+        backIv.visibility = View.INVISIBLE
         wkVBinding.recyclerView.layoutManager = LinearLayoutManager(this)
         headerView = LayoutInflater.from(this).inflate(R.layout.view_moment_header, wkVBinding.recyclerView, false)
         coverIv = headerView.findViewById(R.id.coverIv)
         coverScrimView = headerView.findViewById(R.id.coverScrimView)
+        headerBackIv = headerView.findViewById(R.id.headerBackIv)
         headerCameraIv = headerView.findViewById(R.id.headerCameraIv)
         headerNameTv = headerView.findViewById(R.id.nameTv)
         headerAvatarView = headerView.findViewById(R.id.avatarView)
@@ -198,7 +189,9 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         wkVBinding.refreshLayout.setDragRate(1f)
         wkVBinding.refreshLayout.setReboundDuration(520)
         headerCameraIv.visibility = if (isSelfTimeline) View.VISIBLE else View.GONE
-        MomentUiUtils.limitIconInside(headerCameraIv, R.drawable.icon_moment_camera_white, insetDp = 2.5f)
+        // Keep the outer touch target stable and only constrain the drawable inside,
+        // which is the same strategy used on other moment icons to reduce rough edges.
+        MomentUiUtils.limitIconInside(headerCameraIv, R.drawable.icon_moment_publish_nav, insetDp = 7.0f)
         noticeBannerLayout.visibility = View.GONE
         updateTitleBar(0f)
     }
@@ -256,6 +249,9 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         SingleClickUtil.onSingleClick(headerCameraIv) {
             showComposeBottomSheet()
         }
+        SingleClickUtil.onSingleClick(headerBackIv) {
+            finish()
+        }
         if (isAllFriendsTimeline) {
             SingleClickUtil.onSingleClick(headerAvatarView) {
                 val selfUid = WKConfig.getInstance().uid
@@ -286,7 +282,6 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
     override fun initData() {
         refreshTimeline()
         if (isSelfTimeline) {
-            syncNoticeBadge()
             renderNoticeBanner()
         }
     }
@@ -294,16 +289,18 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
     override fun onResume() {
         super.onResume()
         if (isSelfTimeline) {
+            WKMomentsApplication.getInstance().addNoticeStateListener(noticeListenerTag) {
+                renderNoticeBanner()
+            }
             renderNoticeBanner()
-            // Temporarily disable polling. Keep only the one-shot sync when entering
-            // the timeline page so the banner entry logic can be verified first.
-            // startNoticePolling()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        // stopNoticePolling()
+        if (isSelfTimeline) {
+            WKMomentsApplication.getInstance().removeNoticeStateListener(noticeListenerTag)
+        }
     }
 
     private fun refreshTimeline() {
@@ -362,47 +359,26 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         }
     }
 
-    private fun syncNoticeBadge() {
-        MomentModel.instance.syncNotices(0, 50) { code, _, list, version ->
-            if (code != HttpResponseCode.success.toInt()) return@syncNotices
-            val unreadList = list.filter { !it.isRead }
-            val unread = unreadList.size
-            MomentPrefs.saveUnreadCount(unread)
-            MomentPrefs.saveNoticeVersion(version)
-            MomentPrefs.saveLatestNoticePreview(
-                unreadList.firstOrNull()?.let { MomentUiUtils.noticePreview(this, it) }.orEmpty()
-            )
-            latestNoticeUid = unreadList.firstOrNull()?.fromUser?.uid.orEmpty()
-            WKMomentsApplication.getInstance().refreshMomentEntry()
-            renderNoticeBanner()
-        }
-    }
-
+    /**
+     * The banner only reflects the local notice cache managed by WKMomentsApplication.
+     * Homepage should not trigger the old full-sync behavior anymore.
+     */
     private fun renderNoticeBanner() {
         if (!isSelfTimeline) {
             noticeBannerLayout.visibility = View.GONE
             return
         }
-        val unreadCount = MomentPrefs.unreadCount()
-        if (unreadCount <= 0) {
+        val unreadList = WKMomentsApplication.getInstance().cachedNotices().filter { !it.isRead }
+        if (unreadList.isEmpty()) {
             noticeBannerLayout.visibility = View.GONE
             return
         }
-        if (latestNoticeUid.isNotEmpty()) {
-            noticeBannerAvatarView.showAvatar(latestNoticeUid, WKChannelType.PERSONAL)
+        val firstNotice = unreadList.firstOrNull()
+        if (!firstNotice?.fromUser?.uid.isNullOrEmpty()) {
+            noticeBannerAvatarView.showAvatar(firstNotice!!.fromUser.uid, WKChannelType.PERSONAL)
         }
-        noticeBannerTv.text = getString(R.string.moment_notice_banner_count, unreadCount)
+        noticeBannerTv.text = getString(R.string.moment_notice_banner_count, unreadList.size)
         noticeBannerLayout.visibility = View.VISIBLE
-    }
-
-    private fun startNoticePolling() {
-        if (!isSelfTimeline) return
-        noticePollHandler.removeCallbacks(noticePollRunnable)
-        noticePollHandler.postDelayed(noticePollRunnable, noticePollIntervalMs)
-    }
-
-    private fun stopNoticePolling() {
-        noticePollHandler.removeCallbacks(noticePollRunnable)
     }
 
     private fun updateTitleBar(progress: Float) {
@@ -455,18 +431,19 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         bottomSheet.show()
         bottomSheet.itemViews.forEachIndexed { index, cell ->
             val imageView = cell.imageView
-            imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            imageView.setPadding(0, 0, 0, 0)
-            val drawable = ContextCompat.getDrawable(this, icons[index]) ?: return@forEachIndexed
-            imageView.setImageDrawable(drawable)
             (imageView.layoutParams as? FrameLayout.LayoutParams)?.let { params ->
-                params.width = AndroidUtilities.dp(16f)
-                params.height = AndroidUtilities.dp(16f)
+                params.width = AndroidUtilities.dp(22f)
+                params.height = AndroidUtilities.dp(22f)
                 params.marginStart = AndroidUtilities.dp(20f)
                 params.topMargin = 0
                 params.bottomMargin = 0
                 imageView.layoutParams = params
             }
+            // Bottom-sheet icons use the same "large source image + constrained inner drawable"
+            // approach as the homepage button, so the icon can be resized without showing
+            // jagged PNG edges.
+            MomentUiUtils.limitIconInside(imageView, icons[index], insetDp = 2.5f)
+            imageView.setColorFilter(ContextCompat.getColor(this, R.color.moment_menu_icon_tint), PorterDuff.Mode.SRC_IN)
         }
     }
 
@@ -646,16 +623,25 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
     }
 
     private fun showActionPopup(anchor: View, post: MomentPost) {
-        val list = arrayListOf(
-            PopupMenuItem(
-                getString(if (post.likedByMe) R.string.moment_cancel_action else R.string.moment_like_action),
-                if (post.likedByMe) R.drawable.icon_moment_like_menu_active else R.drawable.icon_moment_like_outline
-            ) {
-                toggleLike(post)
-            },
-            PopupMenuItem(getString(R.string.moment_comment_action), R.drawable.icon_moment_comment) {
-                showCommentInput(post, null)
+        val defaultIconColor = ContextCompat.getColor(this, R.color.moment_icon_dark)
+        val likeItem = PopupMenuItem(
+            getString(if (post.likedByMe) R.string.moment_cancel_action else R.string.moment_like_action),
+            if (post.likedByMe) R.drawable.icon_moment_like_menu_active else R.drawable.icon_moment_like_outline
+        ) {
+            toggleLike(post)
+        }.apply {
+            if (!post.likedByMe) {
+                color = defaultIconColor
             }
+        }
+        val commentItem = PopupMenuItem(getString(R.string.moment_comment_action), R.drawable.icon_moment_comment) {
+            showCommentInput(post, null)
+        }.apply {
+            color = defaultIconColor
+        }
+        val list = arrayListOf(
+            likeItem,
+            commentItem
         )
         WKDialogUtils.getInstance().showScreenPopup(anchor, list)
     }

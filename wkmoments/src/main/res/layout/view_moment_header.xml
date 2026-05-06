@@ -20,14 +20,36 @@
             android:layout_height="244dp"
             android:background="@drawable/bg_moment_cover_scrim" />
 
-        <ImageView
-            android:id="@+id/headerCameraIv"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_gravity="end|top"
-            android:layout_marginTop="60dp"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/icon_moment_camera_white" />
+        <LinearLayout
+            android:id="@+id/headerTopBar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="50dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/headerBackIv"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@mipmap/ic_ab_back"
+                android:tint="@android:color/white" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/headerCameraIv"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:padding="4dp"
+                android:src="@drawable/icon_moment_publish_nav" />
+        </LinearLayout>
 
         <com.chat.base.ui.components.AvatarView
             android:id="@+id/avatarView"

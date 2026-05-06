@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="moment_page_bg">@color/homeColor</color>
+    <color name="moment_surface_bg">#FFFFFFFF</color>
+    <color name="moment_surface_soft_bg">#FFF4F5F7</color>
+    <color name="moment_more_btn_bg">#FFF5F6F8</color>
+    <color name="moment_add_media_bg">#FFFAFAFA</color>
+    <color name="moment_add_media_stroke">#FFDADADA</color>
+    <color name="moment_pull_bg">#FF3F3F3F</color>
+    <color name="moment_link_text">#FF556C94</color>
+    <color name="moment_action_text">#FF4A72B8</color>
+    <color name="moment_divider_soft">#FFE1E5EC</color>
+    <color name="moment_text_primary">#FF242424</color>
+    <color name="moment_text_secondary">#FF999999</color>
+    <color name="moment_icon_dark">#FF242424</color>
+    <color name="moment_icon_light">#FFD0D0D0</color>
+    <color name="moment_notice_banner_bg">#CC1F1F1F</color>
+    <color name="moment_notice_fab_bg">@android:color/white</color>
+    <color name="moment_notice_fab_stroke">#EEF2F7</color>
+    <color name="moment_notice_icon">#4A72B8</color>
+    <color name="moment_menu_icon_tint">#999999</color>
+</resources>

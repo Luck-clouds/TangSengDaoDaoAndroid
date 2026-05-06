@@ -14,13 +14,13 @@ import com.chat.moments.R
 import com.chat.moments.WKMomentsApplication
 import com.chat.moments.databinding.ActMomentNoticeLayoutBinding
 import com.chat.moments.service.MomentModel
-import com.chat.moments.store.MomentPrefs
 import com.chat.moments.ui.adapter.MomentNoticeAdapter
 
 class MomentNoticeActivity : WKBaseActivity<ActMomentNoticeLayoutBinding>() {
 
     private val adapter = MomentNoticeAdapter()
     private val postCache = mutableMapOf<String, com.chat.moments.entity.MomentPost>()
+    private val noticeListenerTag = "moment_notice_page"
 
     override fun getViewBinding(): ActMomentNoticeLayoutBinding {
         return ActMomentNoticeLayoutBinding.inflate(layoutInflater)
@@ -36,24 +36,34 @@ class MomentNoticeActivity : WKBaseActivity<ActMomentNoticeLayoutBinding>() {
     }
 
     override fun initData() {
-        MomentModel.instance.syncNotices(0, 100) { code, msg, list, version ->
-            if (code != HttpResponseCode.success.toInt()) {
-                showToast(msg)
-                return@syncNotices
-            }
-            val ordered = list.sortedByDescending { it.version }
-            enrichNoticeContent(ordered) { enriched ->
-                enriched.forEach { it.isRead = true }
-                adapter.setList(enriched)
-                wkVBinding.noDataTv.visibility = if (enriched.isEmpty()) View.VISIBLE else View.GONE
-                MomentPrefs.saveUnreadCount(0)
-                MomentPrefs.saveNoticeVersion(version)
-                MomentPrefs.saveLatestNoticePreview("")
-                WKMomentsApplication.getInstance().refreshMomentEntry()
-                if (enriched.isNotEmpty()) {
-                    MomentModel.instance.markNoticesRead(emptyList(), true) { _, _ -> }
-                }
-            }
+        renderFromLocal()
+        WKMomentsApplication.getInstance().requestMomentNoticeSync(debounce = false, force = true) {
+            renderFromLocal()
+            WKMomentsApplication.getInstance().markAllMomentNoticesRead()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        WKMomentsApplication.getInstance().addNoticeStateListener(noticeListenerTag) {
+            renderFromLocal()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        WKMomentsApplication.getInstance().removeNoticeStateListener(noticeListenerTag)
+    }
+
+    /**
+     * Notice page always renders from the unified local cache.
+     * Realtime CMD sync updates this cache, and the page only enriches display fields.
+     */
+    private fun renderFromLocal() {
+        val ordered = WKMomentsApplication.getInstance().cachedNotices().sortedByDescending { it.version }
+        enrichNoticeContent(ordered) { enriched ->
+            adapter.setList(enriched)
+            wkVBinding.noDataTv.visibility = if (enriched.isEmpty()) View.VISIBLE else View.GONE
         }
     }
 

@@ -7,6 +7,8 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -542,12 +544,16 @@ public class WKDialogUtils {
             }
             imageView.setPadding(0, 0, 0, 0);
             Drawable drawable = ContextCompat.getDrawable(view.getContext(), item.getIconResourceID());
-            if (drawable != null) {
-                imageView.setImageDrawable(drawable);
-            }
-            if (item.getColor() == 0) {
-                imageView.clearColorFilter();
-            }
+              if (drawable != null) {
+                  imageView.setImageDrawable(drawable);
+              }
+              if (item.getColor() == 0) {
+                  imageView.clearColorFilter();
+              } else {
+                  // Popup menu items may use black PNG assets. The default MULTIPLY tint in
+                  // ActionBarMenuSubItem keeps black assets black, so override with SRC_IN here.
+                  imageView.setColorFilter(new PorterDuffColorFilter(item.getColor(), PorterDuff.Mode.SRC_IN));
+              }
             subItem.setOnClickListener(view1 -> {
                 if (scrimPopupWindow != null) {
                     scrimPopupWindow.dismiss(true);

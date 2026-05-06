@@ -5,7 +5,6 @@ package com.chat.moments.ui.adapter
  * Created by Luckclouds.
  */
 
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -17,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import androidx.recyclerview.widget.GridLayoutManager
@@ -42,7 +42,6 @@ class MomentPostAdapter(
 
     companion object {
         private const val CONTENT_COLLAPSE_COUNT = 100
-        private val CONTENT_ACTION_COLOR = Color.parseColor("#556C94")
     }
 
     override fun convert(holder: BaseViewHolder, item: MomentPost) {
@@ -118,7 +117,14 @@ class MomentPostAdapter(
             if (hasLikes) R.drawable.icon_moment_like_active else R.drawable.icon_moment_like_outline,
             insetDp = 2f
         )
-        likeIv.clearColorFilter()
+        if (hasLikes) {
+            likeIv.clearColorFilter()
+        } else {
+            likeIv.setColorFilter(
+                ContextCompat.getColor(context, R.color.moment_icon_dark),
+                android.graphics.PorterDuff.Mode.SRC_IN
+            )
+        }
         likesLayout.setOnClickListener(null)
         commentsTv.setOnClickListener(null)
         holder.itemView.setOnLongClickListener {
@@ -129,9 +135,10 @@ class MomentPostAdapter(
 
     private fun bindContentText(contentTv: TextView, item: MomentPost) {
         val fullText = item.text
+        val actionColor = ContextCompat.getColor(contentTv.context, R.color.moment_link_text)
         if (fullText.length <= CONTENT_COLLAPSE_COUNT) {
             contentTv.movementMethod = null
-            contentTv.highlightColor = Color.TRANSPARENT
+            contentTv.highlightColor = android.graphics.Color.TRANSPARENT
             contentTv.text = fullText
             contentTv.setOnClickListener(null)
             return
@@ -157,18 +164,18 @@ class MomentPostAdapter(
 
                 override fun updateDrawState(ds: android.text.TextPaint) {
                     ds.isUnderlineText = false
-                    ds.color = CONTENT_ACTION_COLOR
+                    ds.color = actionColor
                 }
             }, start, displayText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             setSpan(
-                ForegroundColorSpan(CONTENT_ACTION_COLOR),
+                ForegroundColorSpan(actionColor),
                 start,
                 displayText.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             setSpan(StyleSpan(Typeface.BOLD), start, displayText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-        contentTv.highlightColor = Color.TRANSPARENT
+        contentTv.highlightColor = android.graphics.Color.TRANSPARENT
         contentTv.movementMethod = LinkMovementMethod.getInstance()
         contentTv.setText(span, TextView.BufferType.SPANNABLE)
     }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="moment_page_bg">#FF17181A</color>
+    <color name="moment_surface_bg">#FF202225</color>
+    <color name="moment_surface_soft_bg">#FF2A2D31</color>
+    <color name="moment_more_btn_bg">#FF2D3136</color>
+    <color name="moment_add_media_bg">#FF26292D</color>
+    <color name="moment_add_media_stroke">#FF41454C</color>
+    <color name="moment_pull_bg">#FF121314</color>
+    <color name="moment_link_text">#FF8CA5D6</color>
+    <color name="moment_action_text">#FF8FB5FF</color>
+    <color name="moment_divider_soft">#FF3A3D45</color>
+    <color name="moment_text_primary">#FFFFFFFF</color>
+    <color name="moment_text_secondary">#FF9AA0A8</color>
+    <color name="moment_icon_dark">#FFFFFFFF</color>
+    <color name="moment_icon_light">#FF8A8F98</color>
+    <color name="moment_notice_banner_bg">#CC2A2D31</color>
+    <color name="moment_notice_fab_bg">#FF202225</color>
+    <color name="moment_notice_fab_stroke">#FF3A3D45</color>
+    <color name="moment_notice_icon">#FF8FB5FF</color>
+    <color name="moment_menu_icon_tint">#FF9AA0A8</color>
+</resources>

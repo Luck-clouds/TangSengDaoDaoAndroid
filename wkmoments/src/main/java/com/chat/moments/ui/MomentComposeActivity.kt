@@ -8,6 +8,7 @@ package com.chat.moments.ui
 import android.Manifest
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.PorterDuff
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.text.Editable
@@ -16,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -211,6 +213,11 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
         MomentUiUtils.limitIconInside(wkVBinding.visibilityIconIv, R.drawable.icon_moment_visibility, insetDp = 2.5f)
         MomentUiUtils.limitIconInside(wkVBinding.mentionArrowIv, com.chat.base.R.mipmap.ic_arrow_right, insetDp = 2.5f)
         MomentUiUtils.limitIconInside(wkVBinding.visibilityArrowIv, com.chat.base.R.mipmap.ic_arrow_right, insetDp = 2.5f)
+        val composeIconTint = ContextCompat.getColor(this, R.color.moment_icon_dark)
+        wkVBinding.mentionIconIv.setColorFilter(composeIconTint, PorterDuff.Mode.SRC_IN)
+        wkVBinding.visibilityIconIv.setColorFilter(composeIconTint, PorterDuff.Mode.SRC_IN)
+        wkVBinding.mentionArrowIv.setColorFilter(composeIconTint, PorterDuff.Mode.SRC_IN)
+        wkVBinding.visibilityArrowIv.setColorFilter(composeIconTint, PorterDuff.Mode.SRC_IN)
         val initialMedias = intent.getParcelableArrayListExtra<MomentComposeMedia>(EXTRA_INITIAL_MEDIAS)
         if (!initialMedias.isNullOrEmpty()) {
             medias.clear()
