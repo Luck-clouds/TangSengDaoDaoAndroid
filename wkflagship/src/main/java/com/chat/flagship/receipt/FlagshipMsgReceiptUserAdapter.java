@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 消息回执成员列表
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipMsgReceiptUserAdapter extends RecyclerView.Adapter<FlagshipMsgReceiptUserAdapter.ViewHolder> {
     private final List<FlagshipReceiptUser> data = new ArrayList<>();

@@ -45,8 +45,6 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
         wkVBinding.refreshLayout.setEnableLoadMore(false);
         wkVBinding.refreshLayout.setEnableRefresh(false);
         wkVBinding.chatPwdLayout.setVisibility(View.GONE);
-        wkVBinding.lockScreenPwdLayout.setVisibility(View.GONE);
-        wkVBinding.offlineProtectionLayout.setVisibility(View.GONE);
         renderSetting();
     }
 
@@ -76,8 +74,11 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
             if (!buttonView.isPressed()) {
                 return;
             }
-            showToast(R.string.security_not_open);
-            wkVBinding.offlineProtectionSwitch.post(() -> wkVBinding.offlineProtectionSwitch.setChecked(userInfoEntity.setting.offline_protection == 1));
+            updateSearchSetting("offline_protection", isChecked, () -> {
+                        userInfoEntity.setting.offline_protection = isChecked ? 1 : 0;
+                        SecurityPrivacyManager.getInstance().refreshProtectionState();
+                    },
+                    () -> wkVBinding.offlineProtectionSwitch.setChecked(userInfoEntity.setting.offline_protection == 1));
         });
         wkVBinding.disableScreenshotSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (!buttonView.isPressed()) {
@@ -93,7 +94,13 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
             }
         });
         SingleClickUtil.onSingleClick(wkVBinding.chatPwdLayout, v -> showToast(R.string.security_not_open));
-        SingleClickUtil.onSingleClick(wkVBinding.lockScreenPwdLayout, v -> showToast(R.string.security_not_open));
+        SingleClickUtil.onSingleClick(wkVBinding.lockScreenPwdLayout, v -> {
+            if (TextUtils.isEmpty(userInfoEntity.lock_screen_pwd)) {
+                startActivity(LockScreenPasswordActivity.buildIntent(this, LockScreenPasswordActivity.SCENE_CREATE));
+            } else {
+                startActivity(LockScreenPasswordActivity.buildIntent(this, LockScreenPasswordActivity.SCENE_VERIFY_SETTINGS));
+            }
+        });
         SingleClickUtil.onSingleClick(wkVBinding.deviceLockLayout, v -> startActivity(new Intent(this, DeviceLockActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.blacklistLayout, v -> startActivity(new Intent(this, BlacklistActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.destroyAccountLayout, v -> startActivity(new Intent(this, DestroyAccountActivity.class)));
@@ -126,6 +133,7 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
                 userInfoEntity.setting = setting;
                 WKConfig.getInstance().saveUserInfo(userInfoEntity);
                 renderSetting();
+                SecurityPrivacyManager.getInstance().refreshProtectionState();
             });
         } catch (Exception e) {
             showToast(R.string.unknown_error);

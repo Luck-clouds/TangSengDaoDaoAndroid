@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 聊天背景列表适配器
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgAdapter extends RecyclerView.Adapter<FlagshipChatBgAdapter.ChatBgViewHolder> {
     private final List<FlagshipChatBgItem> data = new ArrayList<>();

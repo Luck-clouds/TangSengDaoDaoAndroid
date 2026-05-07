@@ -2,7 +2,7 @@ package com.chat.flagship.provider
 
 /**
  * 富文本图文气泡
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.content.Intent

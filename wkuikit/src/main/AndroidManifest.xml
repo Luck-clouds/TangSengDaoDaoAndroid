@@ -34,6 +34,13 @@
         <activity android:name=".favorite.FavoriteListActivity" />
         <activity android:name=".favorite.FavoriteDetailActivity" />
         <activity android:name=".setting.SecurityPrivacyActivity" />
+        <activity
+            android:name=".setting.LockScreenPasswordActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".setting.LockScreenPwdSettingActivity" />
+        <activity
+            android:name=".setting.OfflineProtectionActivity"
+            android:launchMode="singleTask" />
         <activity android:name=".setting.DeviceLockActivity" />
         <activity android:name=".setting.BlacklistActivity" />
         <activity android:name=".setting.DestroyAccountActivity" />

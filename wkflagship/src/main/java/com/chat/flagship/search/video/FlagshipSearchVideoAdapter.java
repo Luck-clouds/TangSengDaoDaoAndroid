@@ -12,7 +12,7 @@ import com.chat.flagship.R;
 
 /**
  * 视频记录搜索适配器
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class FlagshipSearchVideoAdapter extends BaseMultiItemQuickAdapter<FlagshipSearchVideoEntity, BaseViewHolder> {
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -31,6 +32,7 @@ public class AvatarView extends FrameLayout {
     public TextView defaultAvatarTv;
     public View spotView;
     public TextView onlineTv;
+    private boolean followHostSize;
 
     public AvatarView(Context context) {
         super(context);
@@ -88,7 +90,15 @@ public class AvatarView extends FrameLayout {
         imageView.setStrokeColorResource(colorResource);
     }
 
+    public void setFollowHostSize(boolean followHostSize) {
+        this.followHostSize = followHostSize;
+        if (followHostSize) {
+            post(this::updateSizeFromHostBounds);
+        }
+    }
+
     public void setSize(float size) {
+        followHostSize = false;
         float cornerSize = size * 0.4F;
         imageView.getLayoutParams().width = AndroidUtilities.dp(size);
         imageView.getLayoutParams().height = AndroidUtilities.dp(size);
@@ -101,6 +111,7 @@ public class AvatarView extends FrameLayout {
     }
 
     public void setSize(float size, float cornerSize) {
+        followHostSize = false;
         imageView.getLayoutParams().width = AndroidUtilities.dp(size);
         imageView.getLayoutParams().height = AndroidUtilities.dp(size);
         imageView.setShapeAppearanceModel(imageView.getShapeAppearanceModel()
@@ -111,6 +122,36 @@ public class AvatarView extends FrameLayout {
         defaultAvatarTv.getLayoutParams().height = AndroidUtilities.dp(size);
         defaultAvatarTv.getLayoutParams().width = AndroidUtilities.dp(size);
 
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (followHostSize && (w != oldw || h != oldh)) {
+            updateSizeFromHostBounds();
+        }
+    }
+
+    private void updateSizeFromHostBounds() {
+        if (!followHostSize) {
+            return;
+        }
+        int hostSize = Math.min(getWidth(), getHeight());
+        if (hostSize <= 0) {
+            return;
+        }
+        float cornerSize = hostSize * 0.4F;
+        imageView.getLayoutParams().width = hostSize;
+        imageView.getLayoutParams().height = hostSize;
+        imageView.setShapeAppearanceModel(imageView.getShapeAppearanceModel()
+                .toBuilder()
+                .setAllCorners(CornerFamily.ROUNDED, cornerSize)
+                .build());
+        defaultAvatarTv.getLayoutParams().width = hostSize;
+        defaultAvatarTv.getLayoutParams().height = hostSize;
+        defaultAvatarTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, hostSize * 0.32f);
+        imageView.requestLayout();
+        defaultAvatarTv.requestLayout();
     }
 
     public void showAvatar(String channelID, byte channelType, String avatarCacheKey) {

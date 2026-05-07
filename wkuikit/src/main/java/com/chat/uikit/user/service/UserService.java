@@ -62,6 +62,15 @@ public interface UserService {
     @GET("user/my/setting")
     Observable<UserInfoSetting> getMySetting();
 
+    @PUT("user/lock_after_minute")
+    Observable<CommonResponse> updateLockAfterMinute(@Body JSONObject jsonObject);
+
+    @POST("user/lockscreenpwd")
+    Observable<CommonResponse> setLockScreenPwd(@Body JSONObject jsonObject);
+
+    @DELETE("user/lockscreenpwd")
+    Observable<CommonResponse> deleteLockScreenPwd();
+
     @GET("user/qrcode")
     Observable<UserQr> userQr();
 

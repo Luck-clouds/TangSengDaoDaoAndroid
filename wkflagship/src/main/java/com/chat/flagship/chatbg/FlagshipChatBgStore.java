@@ -10,7 +10,7 @@ import java.io.File;
 
 /**
  * 聊天背景本地存储
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgStore {
     private static final String KEY_PREFIX = "chat_bg_";

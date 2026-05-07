@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * 当前会话聊天背景本地配置
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgConfig implements Serializable {
     public static final int TYPE_DEFAULT = 0;

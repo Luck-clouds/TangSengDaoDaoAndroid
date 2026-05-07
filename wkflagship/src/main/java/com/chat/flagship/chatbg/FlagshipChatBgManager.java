@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * 聊天背景管理
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgManager {
     private static final String TAG = "FlagshipChatBg";

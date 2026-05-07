@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * 聊天背景列表项
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgItem implements Serializable {
     public boolean isDefault;

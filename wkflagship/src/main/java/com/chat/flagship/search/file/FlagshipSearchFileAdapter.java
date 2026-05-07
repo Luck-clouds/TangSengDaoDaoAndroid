@@ -15,7 +15,7 @@ import java.util.Locale;
 
 /**
  * 文件记录搜索适配器
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 class FlagshipSearchFileAdapter extends BaseMultiItemQuickAdapter<FlagshipSearchFileEntity, BaseViewHolder> {
 

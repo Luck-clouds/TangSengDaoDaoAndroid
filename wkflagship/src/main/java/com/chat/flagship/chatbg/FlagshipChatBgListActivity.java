@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * 聊天背景列表页
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBgListLayoutBinding> {
     private static final String TAG = "FlagshipChatBg";

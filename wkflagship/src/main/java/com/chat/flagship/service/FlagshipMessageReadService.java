@@ -9,7 +9,7 @@ import retrofit2.http.POST;
 
 /**
  * 消息已读上报接口
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public interface FlagshipMessageReadService {
     @POST("message/readed")

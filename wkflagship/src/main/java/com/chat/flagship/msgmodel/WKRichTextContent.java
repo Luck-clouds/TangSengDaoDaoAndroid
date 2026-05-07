@@ -2,7 +2,7 @@ package com.chat.flagship.msgmodel;
 
 /**
  * 富文本消息体
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.os.Parcel;

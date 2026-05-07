@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * 视频记录搜索页
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipSearchVideoActivity extends WKBaseActivity<ActFlagshipSearchRecordLayoutBinding> {
     private String channelID;

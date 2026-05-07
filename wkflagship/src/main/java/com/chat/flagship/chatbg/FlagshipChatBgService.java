@@ -7,7 +7,7 @@ import retrofit2.http.GET;
 
 /**
  * 聊天背景接口
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public interface FlagshipChatBgService {
 

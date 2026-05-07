@@ -28,7 +28,7 @@ import java.util.Locale;
 
 /**
  * 聊天背景预览页
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipChatBgPreviewLayoutBinding> {
     private static final String TAG = "FlagshipChatBg";

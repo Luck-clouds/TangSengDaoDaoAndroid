@@ -2,7 +2,7 @@ package com.chat.flagship.richtext;
 
 /**
  * 富文本@成员选择适配器
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 
 import android.text.TextUtils;

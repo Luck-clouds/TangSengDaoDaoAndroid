@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <!-- 锁屏密码设置页 -->
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/autoLockLayout"
+            style="@style/layoutBg">
+
+            <TextView
+                style="@style/leftTextView"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/security_auto_lock" />
+
+            <TextView
+                android:id="@+id/autoLockValueTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="10dp"
+                android:textColor="@color/color999"
+                android:textSize="@dimen/font_size_14" />
+
+            <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/updatePwdLayout"
+            style="@style/layoutBg">
+
+            <TextView
+                style="@style/leftTextView"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/security_update_lock_screen_password" />
+
+            <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/closePwdLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@color/white"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/security_close_lock_screen_password"
+            android:textColor="@color/red"
+            android:textSize="@dimen/font_size_16" />
+    </LinearLayout>
+
+</LinearLayout>

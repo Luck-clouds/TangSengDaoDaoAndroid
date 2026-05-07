@@ -31,7 +31,7 @@ import java.util.Map;
 
 /**
  * 文件记录搜索页
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipSearchFileActivity extends WKBaseActivity<ActFlagshipSearchRecordLayoutBinding> {
     private String channelID;

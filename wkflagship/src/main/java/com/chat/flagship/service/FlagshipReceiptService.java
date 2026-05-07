@@ -11,7 +11,7 @@ import retrofit2.http.Query;
 
 /**
  * 消息回执接口
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public interface FlagshipReceiptService {
     @GET("messages/{messageId}/receipt")

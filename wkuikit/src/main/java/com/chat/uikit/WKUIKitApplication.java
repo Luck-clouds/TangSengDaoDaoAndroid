@@ -125,6 +125,7 @@ import com.chat.uikit.group.service.GroupModel;
 import com.chat.uikit.message.MsgModel;
 import com.chat.uikit.message.ProhibitWordModel;
 import com.chat.uikit.search.AddFriendsActivity;
+import com.chat.uikit.setting.SecurityPrivacyManager;
 import com.chat.uikit.setting.SecurityPrivacyActivity;
 import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
@@ -174,6 +175,7 @@ public class WKUIKitApplication {
     public void init(Application mContext) {
         this.mContext = new WeakReference<>(mContext);
         initIM();
+        SecurityPrivacyManager.getInstance().init(mContext);
         //初始化im事件及监听
         WKIMUtils.getInstance().initIMListener();
         initKitModuleListener();

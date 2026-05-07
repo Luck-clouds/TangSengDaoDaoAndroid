@@ -5,7 +5,7 @@ import com.chat.base.entity.GlobalMessage;
 
 /**
  * 文件搜索页数据项
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipSearchFileEntity implements MultiItemEntity {
     public static final int TYPE_ITEM = 0;

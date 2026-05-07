@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 消息回执数据模型
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipReceiptModel extends WKBaseModel {
 

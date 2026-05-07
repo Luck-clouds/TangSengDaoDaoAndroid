@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * 消息已读上报
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipMessageReadModel extends WKBaseModel {
 

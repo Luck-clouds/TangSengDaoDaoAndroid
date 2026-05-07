@@ -339,6 +339,21 @@
     <string name="security_login_password">Login Password</string>
     <string name="security_lock_screen_password">Lock Screen Password</string>
     <string name="security_offline_protection">Offline Protection</string>
+    <string name="security_set_lock_screen_password">Set Lock Screen Password</string>
+    <string name="security_confirm_lock_screen_password">Confirm Lock Screen Password</string>
+    <string name="security_update_lock_screen_password">Change Lock Screen Password</string>
+    <string name="security_lock_password_input_again">Enter the lock screen password again</string>
+    <string name="security_lock_password_not_match">The two lock screen passwords do not match</string>
+    <string name="security_lock_password_error_with_count">Wrong password. %1$d attempts remaining</string>
+    <string name="security_forget_lock_screen_password_title">Forgot Lock Screen Password</string>
+    <string name="security_forget_lock_screen_password_desc">This action will clear the current lock screen password. Set it again if needed.</string>
+    <string name="security_auto_lock">Auto Lock</string>
+    <string name="security_close_lock_screen_password">Turn Off Lock Screen Password</string>
+    <string name="security_close_lock_screen_password_confirm">Are you sure you want to turn off the lock screen password?</string>
+    <string name="security_lock_immediately">Immediately</string>
+    <string name="security_lock_after_one_minute">After 1 minute away</string>
+    <string name="security_lock_after_minutes">After %1$d minutes away</string>
+    <string name="security_lock_after_one_hour">After 1 hour away</string>
     <string name="security_disable_screenshot">Disable Screenshots</string>
     <string name="security_disable_screenshot_desc">When enabled, screenshots and screen recording are blocked in the app</string>
     <string name="security_device_lock">Device Lock</string>
@@ -364,6 +379,9 @@
     <string name="security_resend_code_countdown">Resend (%1$ds)</string>
     <string name="security_destroy_success">Account deleted</string>
     <string name="security_not_open">Not available yet</string>
+    <string name="security_disconnect_screen_title">Network disconnected. Please reconnect</string>
+    <string name="security_disconnect_screen_timer">Offline duration: %1$s</string>
+    <string name="security_disconnect_screen_bottom_tips">%1$s is fully protecting your information security</string>
     <string name="unknown_error">Operation failed. Please try again later.</string>
 </resources>
 

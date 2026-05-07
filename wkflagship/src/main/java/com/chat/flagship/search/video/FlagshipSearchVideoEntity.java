@@ -5,7 +5,7 @@ import com.chat.base.entity.GlobalMessage;
 
 /**
  * 视频搜索页数据项
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipSearchVideoEntity implements MultiItemEntity {
     public static final int TYPE_ITEM = 0;

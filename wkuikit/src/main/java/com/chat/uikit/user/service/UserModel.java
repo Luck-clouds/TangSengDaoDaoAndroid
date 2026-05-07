@@ -98,6 +98,64 @@ public class UserModel extends WKBaseModel {
         });
     }
 
+    public void updateLockAfterMinute(int value, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("lock_after_minute", value);
+        request(createService(UserService.class).updateLockAfterMinute(jsonObject), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
+    public void setLockScreenPwd(String lockScreenPwd, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("lock_screen_pwd", lockScreenPwd);
+        request(createService(UserService.class).setLockScreenPwd(jsonObject), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
+    public void deleteLockScreenPwd(final ICommonListener iCommonListener) {
+        request(createService(UserService.class).deleteLockScreenPwd(), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
     public interface IGetUserSetting {
         void onResult(int code, String msg, UserInfoSetting setting);
     }

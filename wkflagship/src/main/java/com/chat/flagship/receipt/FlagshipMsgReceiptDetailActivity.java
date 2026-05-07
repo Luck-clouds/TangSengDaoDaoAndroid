@@ -2,7 +2,7 @@ package com.chat.flagship.receipt;
 
 /**
  * 消息回执详情页
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 import android.text.TextUtils;
 import android.view.View;

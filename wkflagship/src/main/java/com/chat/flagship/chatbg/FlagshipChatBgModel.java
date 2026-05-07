@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 聊天背景数据模型
- * Created by Luckclouds and chatGPT.
+ * Created by Luckclouds .
  */
 public class FlagshipChatBgModel extends WKBaseModel {
     private static final String TAG = "FlagshipChatBg";
