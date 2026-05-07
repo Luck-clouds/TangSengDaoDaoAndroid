@@ -3,6 +3,7 @@ package com.chat.uikit.setting;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -55,7 +56,7 @@ public class LockScreenPasswordActivity extends WKBaseActivity<ActLockScreenPass
 
     @Override
     protected boolean supportSlideBack() {
-        return getScene() != SCENE_UNLOCK;
+        return false;
     }
 
     @Override
@@ -200,6 +201,7 @@ public class LockScreenPasswordActivity extends WKBaseActivity<ActLockScreenPass
                 } else {
                     holder = (KeyViewHolder) convertView.getTag();
                 }
+                final int itemPosition = position;
                 holder.keyTv.setText(position == 11 ? "" : keyValues.get(position));
                 if (position == 9) {
                     holder.keyTv.setVisibility(View.GONE);
@@ -211,19 +213,29 @@ public class LockScreenPasswordActivity extends WKBaseActivity<ActLockScreenPass
                     holder.keyTv.setVisibility(View.VISIBLE);
                     holder.deleteIv.setVisibility(View.GONE);
                 }
+                convertView.setClickable(position != 9);
+                convertView.setFocusable(false);
+                convertView.setOnClickListener(v -> handleKeyboardItemClick(itemPosition));
                 return convertView;
             }
         });
-        wkVBinding.keyboardGridView.setOnItemClickListener((parent, view, position, id) -> {
-            if (position == 9) {
-                return;
+        wkVBinding.keyboardGridView.setOnTouchListener((v, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
             }
-            if (position == 11) {
-                deleteDigit();
-                return;
-            }
-            appendDigit(keyValues.get(position));
+            return false;
         });
+    }
+
+    private void handleKeyboardItemClick(int position) {
+        if (position == 9) {
+            return;
+        }
+        if (position == 11) {
+            deleteDigit();
+            return;
+        }
+        appendDigit(keyValues.get(position));
     }
 
     private void appendDigit(String digit) {
