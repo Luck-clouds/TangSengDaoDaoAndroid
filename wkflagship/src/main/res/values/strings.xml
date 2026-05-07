@@ -54,6 +54,8 @@
     <string name="flagship_rich_text_upload_failed">图片上传失败，请重试</string>
     <string name="flagship_rich_text_image_tool">插入图片</string>
     <string name="flagship_rich_text_italic_tool">斜体</string>
+    <string name="flagship_mutual_delete">双向删除</string>
+    <string name="flagship_mutual_delete_failed">双向删除失败</string>
     <string name="flagship_search_video">视频</string>
     <string name="flagship_search_file">文件</string>
     <string name="flagship_search_no_data">暂无相关记录</string>

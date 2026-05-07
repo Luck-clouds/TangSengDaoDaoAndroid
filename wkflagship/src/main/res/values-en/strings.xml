@@ -45,4 +45,6 @@
     <string name="flagship_rich_text_upload_failed">Image upload failed. Try again.</string>
     <string name="flagship_rich_text_image_tool">Insert image</string>
     <string name="flagship_rich_text_italic_tool">Italic</string>
+    <string name="flagship_mutual_delete">Delete for Both</string>
+    <string name="flagship_mutual_delete_failed">Failed to delete for both</string>
 </resources>

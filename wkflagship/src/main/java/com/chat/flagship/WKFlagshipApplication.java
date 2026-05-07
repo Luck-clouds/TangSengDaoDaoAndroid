@@ -40,6 +40,7 @@ import com.chat.base.utils.WKToastUtils;
 import com.chat.flagship.chatbg.FlagshipChatBgManager;
 import com.chat.flagship.databinding.ItemFlagshipMsgReceiptEntryLayoutBinding;
 import com.chat.flagship.msgmodel.WKRichTextContent;
+import com.chat.flagship.mutualdelete.FlagshipMutualDeleteManager;
 import com.chat.flagship.msgmodel.WKScreenShotContent;
 import com.chat.flagship.picture.FlagshipPictureEditorManager;
 import com.chat.flagship.provider.WKRichTextProvider;
@@ -200,6 +201,8 @@ public class WKFlagshipApplication {
                 }
             });
         });
+        // 双向删除作为旗舰模块自定义菜单项接入，保持和现有编辑、复制入口同一注册方式。
+        EndpointManager.getInstance().setMethod("flagship_mutual_delete_msg", EndpointCategory.wkChatPopupItem, 70, FlagshipMutualDeleteManager.getInstance()::buildMenu);
         EndpointManager.getInstance().setMethod("reaction_sticker", object -> FlagshipReactionManager.getReactionStickers());
         EndpointManager.getInstance().setMethod("is_show_reaction", object -> canShowReaction(object));
         EndpointManager.getInstance().setMethod("wk_msg_reaction", object -> {
