@@ -334,26 +334,39 @@ class StickerPanelView @JvmOverloads constructor(
                 WKToastUtils.getInstance().showToastNormal(if (msg.isEmpty()) context.getString(R.string.sticker_request_failed) else msg)
                 return@getPanel
             }
-            StickerTrace.d("STICKER_TRACE_PANEL_RESPONSE favoriteCount=${panel.favoriteCount} customCount=${panel.customCount} myPackages=${panel.myPackages.size}")
-            currentTabs = mutableListOf(
-                StickerTabItem("favorites", context.getString(R.string.sticker_favorites), iconRes = R.drawable.ic_sticker_favorite_nav, selected = currentTabKey == "favorites"),
-            )
-            panel.myPackages.forEach {
-                currentTabs += StickerTabItem(
-                    "package:${it.packageId}",
-                    it.name,
-                    iconUrl = if (it.icon.isNotEmpty()) it.icon else it.cover,
-                    selected = currentTabKey == "package:${it.packageId}"
-                )
+            StickerTrace.d("STICKER_TRACE_PANEL_RESPONSE favoriteCount=${panel.favoriteCount} customCount=${panel.customCount} panelMyPackages=${panel.myPackages.size}")
+            // 面板 tab 以“我的表情包”接口为准，避免商店添加成功后 panel 接口延迟导致面板不刷新。
+            StickerModel.instance.getMyPackages { packageCode, packageMsg, packages ->
+                if (packageCode == com.chat.base.net.HttpResponseCode.success.toInt()) {
+                    StickerTrace.d("STICKER_TRACE_PANEL_MY_PACKAGES count=${packages.size}")
+                    applyPanelPackages(packages)
+                } else {
+                    StickerTrace.e("STICKER_TRACE_PANEL_MY_PACKAGES_FAIL code=$packageCode msg=$packageMsg fallbackCount=${panel.myPackages.size}")
+                    applyPanelPackages(panel.myPackages)
+                }
             }
-            StickerTrace.d("STICKER_TRACE_PANEL_TABS keys=${currentTabs.joinToString { it.key }}")
-            if (currentTabs.none { it.selected }) {
-                currentTabs.firstOrNull()?.selected = true
-                currentTabKey = currentTabs.firstOrNull()?.key ?: "favorites"
-            }
-            tabAdapter.setList(currentTabs)
-            loadStickerSections(panel.myPackages)
         }
+    }
+
+    private fun applyPanelPackages(packages: MutableList<com.chat.sticker.entity.StickerPackage>) {
+        currentTabs = mutableListOf(
+            StickerTabItem("favorites", context.getString(R.string.sticker_favorites), iconRes = R.drawable.ic_sticker_favorite_nav, selected = currentTabKey == "favorites"),
+        )
+        packages.forEach {
+            currentTabs += StickerTabItem(
+                "package:${it.packageId}",
+                it.name,
+                iconUrl = if (it.icon.isNotEmpty()) it.icon else it.cover,
+                selected = currentTabKey == "package:${it.packageId}"
+            )
+        }
+        StickerTrace.d("STICKER_TRACE_PANEL_TABS keys=${currentTabs.joinToString { it.key }}")
+        if (currentTabs.none { it.selected }) {
+            currentTabs.firstOrNull()?.selected = true
+            currentTabKey = currentTabs.firstOrNull()?.key ?: "favorites"
+        }
+        tabAdapter.setList(currentTabs)
+        loadStickerSections(packages)
     }
 
     private fun loadStickerSections(packages: MutableList<com.chat.sticker.entity.StickerPackage>) {

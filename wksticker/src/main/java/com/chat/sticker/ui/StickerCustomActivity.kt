@@ -125,13 +125,12 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
 
     private fun updateCustomDisplay() {
         val data = mutableListOf<StickerItem>()
-        if (!editMode) {
-            data += StickerItem(isAddCell = true)
-        }
+        // 添加入口固定占第一位，避免在空列表或编辑态下入口消失。
+        data += StickerItem(isAddCell = true)
         data += customItems
         adapter.editMode = editMode
         adapter.setList(data)
-        wkVBinding.noDataTv.visibility = if (customItems.isEmpty()) View.VISIBLE else View.GONE
+        wkVBinding.noDataTv.visibility = View.GONE
         updateBottomActionState()
     }
 

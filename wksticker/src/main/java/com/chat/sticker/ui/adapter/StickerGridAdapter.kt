@@ -50,7 +50,7 @@ class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layou
         val titleView = holder.getView<androidx.appcompat.widget.AppCompatTextView>(R.id.nameTv)
         if (item.isAddCell) {
             imageView.background = null
-            WKImageDisplayUtils.limitResourceInside(imageView, R.mipmap.sticker_plus_icon, 14f, 4f)
+            WKImageDisplayUtils.limitResourceInside(imageView, R.mipmap.sticker_plus_icon, 11f, 3f)
             imageView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)
             titleView.isVisible = showTitles
             titleView.text = context.getString(R.string.sticker_add)
