@@ -156,6 +156,27 @@ public class UserModel extends WKBaseModel {
         });
     }
 
+    public void setChatPwd(String loginPwd, String chatPwd, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("login_pwd", loginPwd);
+        jsonObject.put("chat_pwd", chatPwd);
+        request(createService(UserService.class).setChatPwd(jsonObject), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
     public interface IGetUserSetting {
         void onResult(int code, String msg, UserInfoSetting setting);
     }

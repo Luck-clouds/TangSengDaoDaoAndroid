@@ -44,7 +44,7 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
         wkVBinding.refreshLayout.setEnableOverScrollDrag(true);
         wkVBinding.refreshLayout.setEnableLoadMore(false);
         wkVBinding.refreshLayout.setEnableRefresh(false);
-        wkVBinding.chatPwdLayout.setVisibility(View.GONE);
+        wkVBinding.chatPwdLayout.setVisibility(View.VISIBLE);
         renderSetting();
     }
 
@@ -93,7 +93,9 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
                 showToast(R.string.security_not_open);
             }
         });
-        SingleClickUtil.onSingleClick(wkVBinding.chatPwdLayout, v -> showToast(R.string.security_not_open));
+        SingleClickUtil.onSingleClick(wkVBinding.chatPwdLayout, v -> {
+            startActivity(ChatPwdSettingActivity.buildIntent(this));
+        });
         SingleClickUtil.onSingleClick(wkVBinding.lockScreenPwdLayout, v -> {
             if (TextUtils.isEmpty(userInfoEntity.lock_screen_pwd)) {
                 startActivity(LockScreenPasswordActivity.buildIntent(this, LockScreenPasswordActivity.SCENE_CREATE));

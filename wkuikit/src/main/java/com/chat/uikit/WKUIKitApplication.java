@@ -127,6 +127,7 @@ import com.chat.uikit.message.ProhibitWordModel;
 import com.chat.uikit.search.AddFriendsActivity;
 import com.chat.uikit.setting.SecurityPrivacyManager;
 import com.chat.uikit.setting.SecurityPrivacyActivity;
+import com.chat.uikit.setting.ChatPwdManager;
 import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
@@ -221,6 +222,12 @@ public class WKUIKitApplication {
 
     private void initKitModuleListener() {
         EndpointManager.getInstance().setMethod("add_security_module", object -> true);
+        EndpointManager.getInstance().setMethod("show_set_chat_pwd", object -> {
+            Context context = object instanceof Context ? (Context) object : getContext();
+            ChatPwdManager.getInstance().openSetting(context);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("chat_pwd_view", ChatPwdManager.getInstance()::buildSettingView);
         // 注册消息model到sdk
         WKIM.getInstance().getMsgManager().registerContentMsg(WKGifContent.class);
         WKIM.getInstance().getMsgManager().registerContentMsg(WKCardContent.class);

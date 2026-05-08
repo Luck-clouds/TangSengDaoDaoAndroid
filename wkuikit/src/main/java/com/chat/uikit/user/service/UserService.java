@@ -71,6 +71,9 @@ public interface UserService {
     @DELETE("user/lockscreenpwd")
     Observable<CommonResponse> deleteLockScreenPwd();
 
+    @POST("user/chatpwd")
+    Observable<CommonResponse> setChatPwd(@Body JSONObject jsonObject);
+
     @GET("user/qrcode")
     Observable<UserQr> userQr();
 

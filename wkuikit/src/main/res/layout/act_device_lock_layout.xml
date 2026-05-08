@@ -22,7 +22,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@drawable/layout_bg"
         android:orientation="vertical">
 
         <LinearLayout
@@ -58,7 +58,7 @@
         android:id="@+id/deviceListContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@drawable/layout_bg"
         android:orientation="vertical"
         android:visibility="gone">
 

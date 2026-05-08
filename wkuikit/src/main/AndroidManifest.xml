@@ -35,6 +35,9 @@
         <activity android:name=".favorite.FavoriteDetailActivity" />
         <activity android:name=".setting.SecurityPrivacyActivity" />
         <activity
+            android:name=".setting.ChatPwdSettingActivity"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".setting.LockScreenPasswordActivity"
             android:launchMode="singleTask" />
         <activity android:name=".setting.LockScreenPwdSettingActivity" />

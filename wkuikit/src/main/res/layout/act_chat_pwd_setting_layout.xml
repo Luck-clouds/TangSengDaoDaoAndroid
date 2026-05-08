@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <!-- 聊天密码设置页，结构参考登录密码修改页并贴近 7.png -->
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="36dp"
+            android:paddingTop="52dp"
+            android:paddingEnd="36dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/chat_pwd_setting_header_title"
+                android:textColor="@color/colorDark"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/chat_pwd_setting_desc"
+                android:textColor="@color/color999"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/loginPwdEt"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="92dp"
+                android:background="@android:color/transparent"
+                android:gravity="center_vertical"
+                android:hint="@string/chat_pwd_login_hint"
+                android:imeOptions="actionNext"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:textColor="@color/colorDark"
+                android:textColorHint="@color/color999"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E6E6E6" />
+
+            <EditText
+                android:id="@+id/chatPwdEt"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="28dp"
+                android:background="@android:color/transparent"
+                android:digits="0123456789"
+                android:gravity="center_vertical"
+                android:hint="@string/chat_pwd_new_hint"
+                android:imeOptions="actionNext"
+                android:inputType="numberPassword"
+                android:maxLength="6"
+                android:maxLines="1"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:textColor="@color/colorDark"
+                android:textColorHint="@color/color999"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E6E6E6" />
+
+            <EditText
+                android:id="@+id/confirmChatPwdEt"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="28dp"
+                android:background="@android:color/transparent"
+                android:digits="0123456789"
+                android:gravity="center_vertical"
+                android:hint="@string/chat_pwd_confirm_hint"
+                android:imeOptions="actionDone"
+                android:inputType="numberPassword"
+                android:maxLength="6"
+                android:maxLines="1"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:textColor="@color/colorDark"
+                android:textColorHint="@color/color999"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E6E6E6" />
+
+            <Button
+                android:id="@+id/saveBtn"
+                style="@style/buttonNormal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="64dp"
+                android:alpha="0.2"
+                android:enabled="false"
+                android:text="@string/sure" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
