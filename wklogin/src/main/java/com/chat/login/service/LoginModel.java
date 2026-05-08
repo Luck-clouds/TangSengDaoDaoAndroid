@@ -16,6 +16,7 @@ import com.chat.base.net.IRequestResultErrorInfoListener;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
 import com.chat.base.net.ud.WKUploader;
+import com.chat.base.utils.WKCommonUtils;
 import com.chat.base.utils.WKDeviceUtils;
 import com.chat.base.utils.WKTimeUtils;
 import com.chat.login.entity.CountryCodeEntity;
@@ -53,7 +54,8 @@ public class LoginModel extends WKBaseModel {
     void loginApp(String name, String pwd, final ILoginListener iLoginListener) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("username", name);
-        jsonObject.put("password", pwd);
+        // 登录密码按后端约定在提交前先做一次 MD5。
+        jsonObject.put("password", WKCommonUtils.digest(pwd));
         JSONObject deviceJson = new JSONObject();
         deviceJson.put("device_id", WKConstants.getDeviceID());
         deviceJson.put("device_name", WKDeviceUtils.getInstance().getDeviceName());
@@ -169,7 +171,8 @@ public class LoginModel extends WKBaseModel {
         jsonObject.put("zone", zone);
         jsonObject.put("phone", phone);
         jsonObject.put("code", code);
-        jsonObject.put("pwd", pwd);
+        // 找回登录密码后的新密码也按统一规则先做一次 MD5。
+        jsonObject.put("pwd", WKCommonUtils.digest(pwd));
         request(createService(LoginService.class).pwdForget(jsonObject), new IRequestResultListener<>() {
             @Override
             public void onSuccess(CommonResponse result) {
@@ -193,7 +196,8 @@ public class LoginModel extends WKBaseModel {
         jsonObject.put("zone", zone);
         jsonObject.put("name", name);
         jsonObject.put("phone", phone);
-        jsonObject.put("password", password);
+        // 注册时登录密码也需要在前端先做一次 MD5。
+        jsonObject.put("password", WKCommonUtils.digest(password));
         jsonObject.put("invite_code", inviteCode);
         JSONObject deviceJson = new JSONObject();
         deviceJson.put("device_id", WKConstants.getDeviceID());

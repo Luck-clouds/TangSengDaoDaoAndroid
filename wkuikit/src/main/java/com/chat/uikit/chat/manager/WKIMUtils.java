@@ -599,8 +599,7 @@ public class WKIMUtils {
         NumPwdDialog.getInstance().showNumPwdDialog(chatViewMenu.activity, chatViewMenu.activity.getString(R.string.chat_pwd), chatViewMenu.activity.getString(R.string.input_chat_pwd), channel.channelName, new NumPwdDialog.IPwdInputResult() {
             @Override
             public void onResult(String numPwd) {
-                // 聊天密码沿用旧规则：输入密码与 uid 拼接后再做 MD5，本地和服务端保持一致。
-                if (!WKCommonUtils.digest(numPwd + WKConfig.getInstance().getUid()).equals(WKConfig.getInstance().getUserInfo().chat_pwd)) {
+                if (!WKCommonUtils.digest(numPwd).equals(WKConfig.getInstance().getUserInfo().chat_pwd)) {
                     int remainCount = WKSharedPreferencesUtil.getInstance().getInt("wk_chat_pwd_count", 3) - 1;
                     WKSharedPreferencesUtil.getInstance().putInt("wk_chat_pwd_count", Math.max(remainCount, 0));
                     if (remainCount <= 0) {

@@ -43,7 +43,7 @@
             <EditText
                 android:id="@+id/loginPwdEt"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="40dp"
                 android:layout_marginTop="92dp"
                 android:background="@android:color/transparent"
                 android:gravity="center_vertical"
@@ -55,7 +55,7 @@
                 android:paddingEnd="0dp"
                 android:textColor="@color/colorDark"
                 android:textColorHint="@color/color999"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="match_parent"
@@ -65,7 +65,7 @@
             <EditText
                 android:id="@+id/chatPwdEt"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="40dp"
                 android:layout_marginTop="28dp"
                 android:background="@android:color/transparent"
                 android:digits="0123456789"
@@ -79,7 +79,7 @@
                 android:paddingEnd="0dp"
                 android:textColor="@color/colorDark"
                 android:textColorHint="@color/color999"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="match_parent"
@@ -89,7 +89,7 @@
             <EditText
                 android:id="@+id/confirmChatPwdEt"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="40dp"
                 android:layout_marginTop="28dp"
                 android:background="@android:color/transparent"
                 android:digits="0123456789"
@@ -103,7 +103,7 @@
                 android:paddingEnd="0dp"
                 android:textColor="@color/colorDark"
                 android:textColorHint="@color/color999"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="match_parent"

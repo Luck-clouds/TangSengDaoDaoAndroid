@@ -57,7 +57,6 @@ public class ChatPwdSettingActivity extends WKBaseActivity<ActChatPwdSettingLayo
 
     /**
      * 校验输入并提交聊天密码设置。
-     * 登录密码只做 MD5，聊天密码沿用“密码 + uid”后再做 MD5 的历史规则。
      */
     private void submit() {
         if (isSaving) {
@@ -78,17 +77,10 @@ public class ChatPwdSettingActivity extends WKBaseActivity<ActChatPwdSettingLayo
             showToast(R.string.chat_pwd_not_match);
             return;
         }
-        String uid = WKConfig.getInstance().getUid();
-        if (TextUtils.isEmpty(uid)) {
-            showToast(R.string.unknown_error);
-            return;
-        }
         isSaving = true;
         wkVBinding.saveBtn.setEnabled(false);
-//        聊天密码暂时解除加密
         String loginPwdDigest = WKCommonUtils.digest(loginPwd);
-//        String chatPwdDigest = WKCommonUtils.digest(chatPwd + uid);
-        String chatPwdDigest =chatPwd ;
+        String chatPwdDigest = WKCommonUtils.digest(chatPwd);
         UserModel.getInstance().setChatPwd(loginPwdDigest, chatPwdDigest, (code, msg) -> {
             isSaving = false;
             wkVBinding.saveBtn.setEnabled(true);
