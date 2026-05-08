@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.glide.GlideUtils;
@@ -82,7 +81,6 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
 
     @Override
     protected void initView() {
-        applyTitleBarStyle();
         updateBlurState(showBlur);
         updatePreviewStatus();
         configureActionButtons();
@@ -195,13 +193,19 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
     }
 
     private void savePresetImage() {
-        if (chatBgItem == null || TextUtils.isEmpty(chatBgItem.url)) {
+        if (chatBgItem == null) {
             onSaveFail();
             return;
         }
-        String targetPath = FlagshipChatBgManager.getInstance().createCacheTargetPath(chatBgItem.url, chatBgItem.isSvg);
-        java.util.List<String> candidates = FlagshipChatBgManager.getInstance().buildRemoteAssetCandidates(chatBgItem.url);
-        Log.d(TAG, "savePresetImage candidates=" + candidates + " targetPath=" + targetPath);
+        String sourcePath = resolvePresetSaveSource();
+        java.util.List<String> candidates = buildPresetSaveCandidates();
+        if (TextUtils.isEmpty(sourcePath) || candidates.isEmpty()) {
+            Log.e(TAG, "savePresetImage source empty url=" + chatBgItem.url + " cover=" + chatBgItem.cover);
+            onSaveFail();
+            return;
+        }
+        String targetPath = FlagshipChatBgManager.getInstance().createCacheTargetPath(sourcePath, chatBgItem.isSvg);
+        Log.d(TAG, "savePresetImage source=" + sourcePath + " candidates=" + candidates + " targetPath=" + targetPath);
         new Thread(() -> {
             boolean success = false;
             Exception lastException = null;
@@ -253,7 +257,7 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
                 }
                 FlagshipChatBgConfig config = new FlagshipChatBgConfig();
                 config.type = chatBgItem.isDefault ? FlagshipChatBgConfig.TYPE_DEFAULT : FlagshipChatBgConfig.TYPE_PRESET;
-                config.sourceUrl = chatBgItem.url;
+                config.sourceUrl = sourcePath;
                 config.cover = chatBgItem.cover;
                 config.localPath = targetPath;
                 config.isSvg = chatBgItem.isSvg;
@@ -268,6 +272,46 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
                 runOnUiThread(this::onSaveFail);
             }
         }).start();
+    }
+
+    /**
+     * 纯图片背景预览优先使用 cover，因此保存时也要兼容 cover-only 或 url 不可用的返回。
+     */
+    private String resolvePresetSaveSource() {
+        if (chatBgItem == null) {
+            return null;
+        }
+        if (chatBgItem.isSvg == 1) {
+            return chatBgItem.url;
+        }
+        if (!TextUtils.isEmpty(chatBgItem.cover)) {
+            return chatBgItem.cover;
+        }
+        return chatBgItem.url;
+    }
+
+    private java.util.List<String> buildPresetSaveCandidates() {
+        java.util.List<String> candidates = new java.util.ArrayList<>();
+        if (chatBgItem == null) {
+            return candidates;
+        }
+        if (chatBgItem.isSvg == 1) {
+            return FlagshipChatBgManager.getInstance().buildRemoteAssetCandidates(chatBgItem.url);
+        }
+        appendCandidates(candidates, chatBgItem.cover);
+        appendCandidates(candidates, chatBgItem.url);
+        return candidates;
+    }
+
+    private void appendCandidates(java.util.List<String> candidates, String source) {
+        if (TextUtils.isEmpty(source)) {
+            return;
+        }
+        for (String candidate : FlagshipChatBgManager.getInstance().buildRemoteAssetCandidates(source)) {
+            if (!candidates.contains(candidate)) {
+                candidates.add(candidate);
+            }
+        }
     }
 
     private void onSaveSuccess(@NonNull FlagshipChatBgConfig config) {
@@ -331,31 +375,4 @@ public class FlagshipChatBgPreviewActivity extends WKBaseActivity<ActFlagshipCha
         finish();
     }
 
-    private void applyTitleBarStyle() {
-        View titleBar = findViewById(com.chat.base.R.id.titleBarLayout);
-        View statusBar = findViewById(com.chat.base.R.id.statusBarView);
-        TextView titleCenterTv = findViewById(com.chat.base.R.id.titleCenterTv);
-        TextView titleRightTv = findViewById(com.chat.base.R.id.titleRightTv);
-        ImageView backIv = findViewById(com.chat.base.R.id.backIv);
-        ImageView rightIv = findViewById(com.chat.base.R.id.titleRightIv);
-        int white = ContextCompat.getColor(this, com.chat.base.R.color.white);
-        if (titleBar != null) {
-            titleBar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        }
-        if (statusBar != null) {
-            statusBar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        }
-        if (titleCenterTv != null) {
-            titleCenterTv.setTextColor(white);
-        }
-        if (titleRightTv != null) {
-            titleRightTv.setTextColor(white);
-        }
-        if (backIv != null) {
-            backIv.setColorFilter(white);
-        }
-        if (rightIv != null) {
-            rightIv.setColorFilter(white);
-        }
-    }
 }
