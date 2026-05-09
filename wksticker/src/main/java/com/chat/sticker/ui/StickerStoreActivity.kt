@@ -11,6 +11,7 @@ import com.chat.sticker.R
 import com.chat.sticker.databinding.ActStickerStoreLayoutBinding
 import com.chat.sticker.service.StickerModel
 import com.chat.sticker.ui.adapter.StickerPackageAdapter
+import com.chat.sticker.utils.StickerTrace
 import com.scwang.smart.refresh.layout.api.RefreshLayout
 import com.scwang.smart.refresh.layout.listener.OnRefreshLoadMoreListener
 
@@ -57,9 +58,12 @@ class StickerStoreActivity : WKBaseActivity<ActStickerStoreLayoutBinding>() {
         adapter.setOnItemChildClickListener { _, view, position ->
             if (view.id != R.id.actionTv) return@setOnItemChildClickListener
             val item = adapter.getItem(position) ?: return@setOnItemChildClickListener
+            StickerTrace.d("STICKER_TRACE_STORE_ACTION click packageId=${item.packageId} isAdded=${item.isAdded} position=$position")
             val callback: (Int, String) -> Unit = { code, msg ->
+                StickerTrace.d("STICKER_TRACE_STORE_ACTION_RESULT packageId=${item.packageId} beforeToggle=${item.isAdded} code=$code msg=$msg")
                 if (code == HttpResponseCode.success.toInt()) {
                     item.isAdded = !item.isAdded
+                    StickerTrace.d("STICKER_TRACE_STORE_ACTION_SUCCESS packageId=${item.packageId} afterToggle=${item.isAdded} notifyPanel=true")
                     adapter.notifyItemChanged(position)
                     StickerPanelView.notifyDataChanged()
                 } else {
@@ -98,9 +102,11 @@ class StickerStoreActivity : WKBaseActivity<ActStickerStoreLayoutBinding>() {
     }
 
     private fun loadData() {
+        StickerTrace.d("STICKER_TRACE_STORE_LOAD pageIndex=$pageIndex pageSize=$pageSize adapterCount=${adapter.data.size}")
         StickerModel.instance.getStorePackages("", pageIndex, pageSize) { code, msg, count, list ->
             if (pageIndex == 1) wkVBinding.refreshLayout.finishRefresh()
             if (code != HttpResponseCode.success.toInt()) {
+                StickerTrace.e("STICKER_TRACE_STORE_LOAD_FAIL pageIndex=$pageIndex code=$code msg=$msg")
                 if (pageIndex > 1) {
                     pageIndex--
                     wkVBinding.refreshLayout.finishLoadMore(false)
@@ -108,6 +114,7 @@ class StickerStoreActivity : WKBaseActivity<ActStickerStoreLayoutBinding>() {
                 showToast(msg)
                 return@getStorePackages
             }
+            StickerTrace.d("STICKER_TRACE_STORE_LOAD_SUCCESS pageIndex=$pageIndex totalCount=$count listSize=${list.size} firstPackage=${list.firstOrNull()?.packageId.orEmpty()}")
             totalCount = count
             if (pageIndex == 1) adapter.setList(list) else adapter.addData(list)
             val hasData = WKReader.isNotEmpty(adapter.data)

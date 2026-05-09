@@ -113,7 +113,7 @@
         android:layout_gravity="center|bottom"
         android:layout_marginBottom="50dp"
         android:gravity="center"
-        android:text=" Copyright © 2024 \n上海信必达网络科技有限公司 版权所有"
+        android:text=" Copyright © 2024 \n卿航IM 版权所有"
         android:textColor="@color/color999"
         android:textSize="12sp" />
 </LinearLayout>

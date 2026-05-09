@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.chat.base.net.entity.CommonResponse;
 
 import io.reactivex.rxjava3.core.Observable;
+import okhttp3.ResponseBody;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -35,7 +36,7 @@ public interface StickerService {
     Observable<CommonResponse> removeFavorite(@Body JSONObject body);
 
     @GET("sticker/custom")
-    Observable<JSONArray> customList();
+    Observable<ResponseBody> customList();
 
     @POST("sticker/custom")
     Observable<JSONObject> createCustom(@Body JSONObject body);

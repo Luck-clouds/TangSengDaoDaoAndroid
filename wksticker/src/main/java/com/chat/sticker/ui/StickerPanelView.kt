@@ -56,7 +56,11 @@ class StickerPanelView @JvmOverloads constructor(
         fun notifyDataChanged() {
             listeners.removeAll { it.get() == null }
             StickerTrace.d("STICKER_TRACE_PANEL_NOTIFY activeViews=${listeners.size}")
-            listeners.forEach { it.get()?.refreshTabsAndData() }
+            listeners.forEachIndexed { index, reference ->
+                val panelView = reference.get()
+                StickerTrace.d("STICKER_TRACE_PANEL_NOTIFY_TARGET index=$index exists=${panelView != null} hash=${panelView?.hashCode()}")
+                panelView?.refreshTabsAndData()
+            }
         }
 
         private const val PAGE_SWITCH_PROGRESS_THRESHOLD = 0.28f
@@ -327,7 +331,7 @@ class StickerPanelView @JvmOverloads constructor(
     }
 
     fun refreshTabsAndData() {
-        StickerTrace.d("STICKER_TRACE_PANEL_REFRESH currentTab=$currentTabKey currentPage=$currentPage")
+        StickerTrace.d("STICKER_TRACE_PANEL_REFRESH currentTab=$currentTabKey currentPage=$currentPage hash=${hashCode()}")
         StickerModel.instance.getPanel { code, msg, panel ->
             if (code != com.chat.base.net.HttpResponseCode.success.toInt()) {
                 StickerTrace.e("STICKER_TRACE_PANEL_REFRESH fail code=$code msg=$msg")
@@ -360,7 +364,7 @@ class StickerPanelView @JvmOverloads constructor(
                 selected = currentTabKey == "package:${it.packageId}"
             )
         }
-        StickerTrace.d("STICKER_TRACE_PANEL_TABS keys=${currentTabs.joinToString { it.key }}")
+        StickerTrace.d("STICKER_TRACE_PANEL_TABS keys=${currentTabs.joinToString { it.key }} packageIds=${packages.joinToString { it.packageId }}")
         if (currentTabs.none { it.selected }) {
             currentTabs.firstOrNull()?.selected = true
             currentTabKey = currentTabs.firstOrNull()?.key ?: "favorites"
@@ -376,7 +380,9 @@ class StickerPanelView @JvmOverloads constructor(
         var pending = 2 + packages.size
         fun finishOne() {
             pending--
+            StickerTrace.d("STICKER_TRACE_SECTION_PENDING left=$pending packageCount=${packages.size}")
             if (pending == 0) {
+                StickerTrace.d("STICKER_TRACE_SECTION_READY favorites=${favorites.size} custom=${customItems.size} packageKeys=${packageItems.keys.joinToString()}")
                 renderStickerSections(packages, favorites, customItems, packageItems)
             }
         }
@@ -440,7 +446,12 @@ class StickerPanelView @JvmOverloads constructor(
         stickerAdapter.editMode = false
         stickerAdapter.setList(data)
         binding.emptyTv.visibility = if (data.size <= sectionPositions.size) View.VISIBLE else View.GONE
-        StickerTrace.d("STICKER_TRACE_PANEL_RENDER_SECTIONS count=${data.size} sections=${sectionPositions.keys.joinToString()} first=${StickerTrace.itemSummary(data.firstOrNull { !it.isSectionHeader })}")
+        StickerTrace.d(
+            "STICKER_TRACE_PANEL_RENDER_SECTIONS count=${data.size} sectionCount=${sectionPositions.size} " +
+                "favorites=${favorites.size} custom=${customItems.size} packageItemCounts=${packageItems.mapValues { it.value.size }} " +
+                "emptyVisible=${binding.emptyTv.visibility == View.VISIBLE} sections=${sectionPositions.keys.joinToString()} " +
+                "first=${StickerTrace.itemSummary(data.firstOrNull { !it.isSectionHeader })}"
+        )
         selectStickerSection(currentTabKey.takeIf { sectionPositions.containsKey(it) } ?: "favorites", false)
     }
 
@@ -450,6 +461,7 @@ class StickerPanelView @JvmOverloads constructor(
         tabAdapter.notifyDataSetChanged()
         if (scroll) {
             val position = sectionPositions[key] ?: return
+            StickerTrace.d("STICKER_TRACE_PANEL_SELECT key=$key scroll=$scroll position=$position")
             ignoreStickerScroll = true
             val smoothScroller = object : LinearSmoothScroller(context) {
                 override fun getVerticalSnapPreference(): Int = SNAP_TO_START
@@ -460,6 +472,8 @@ class StickerPanelView @JvmOverloads constructor(
             smoothScroller.targetPosition = position
             binding.stickerRecyclerView.layoutManager?.startSmoothScroll(smoothScroller)
             binding.stickerRecyclerView.postDelayed({ ignoreStickerScroll = false }, 840)
+        } else {
+            StickerTrace.d("STICKER_TRACE_PANEL_SELECT key=$key scroll=$scroll position=${sectionPositions[key] ?: -1}")
         }
     }
 

@@ -10,6 +10,7 @@ import com.chat.sticker.databinding.ActStickerMyLayoutBinding
 import com.chat.sticker.service.StickerModel
 import com.chat.sticker.ui.adapter.MyStickerEntry
 import com.chat.sticker.ui.adapter.MyStickerEntryAdapter
+import com.chat.sticker.utils.StickerTrace
 
 /**
  * 我的表情页
@@ -66,8 +67,10 @@ class StickerMyStickersActivity : WKBaseActivity<ActStickerMyLayoutBinding>() {
     }
 
     private fun loadData() {
+        StickerTrace.d("STICKER_TRACE_MY_LOAD start")
         StickerModel.instance.getMyPackages { code, msg, list ->
             if (code != HttpResponseCode.success.toInt()) {
+                StickerTrace.e("STICKER_TRACE_MY_LOAD_FAIL code=$code msg=$msg")
                 showToast(msg)
                 return@getMyPackages
             }
@@ -80,6 +83,7 @@ class StickerMyStickersActivity : WKBaseActivity<ActStickerMyLayoutBinding>() {
             adapter.setList(data)
             val hasData = WKReader.isNotEmpty(data)
             wkVBinding.noDataTv.visibility = if (hasData) android.view.View.GONE else android.view.View.VISIBLE
+            StickerTrace.d("STICKER_TRACE_MY_LOAD_SUCCESS packageCount=${list.size} adapterCount=${data.size} firstPackage=${list.firstOrNull()?.packageId.orEmpty()}")
         }
     }
 }

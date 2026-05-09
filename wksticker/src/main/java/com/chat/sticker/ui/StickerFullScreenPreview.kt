@@ -2,11 +2,14 @@ package com.chat.sticker.ui
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.chat.base.config.WKApiConfig
-import com.chat.base.glide.GlideUtils
 import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.sticker.databinding.DialogStickerFullPreviewBinding
 import com.chat.sticker.entity.StickerItem
@@ -19,6 +22,7 @@ object StickerFullScreenPreview {
     private var previewContext: Context? = null
     private var moveResolver: ((Float, Float) -> StickerItem?)? = null
     private var switchedOnMove: Boolean = false
+    private val transparentDrawable = ColorDrawable(Color.TRANSPARENT)
 
     fun isShowing(): Boolean = dialog?.isShowing == true
 
@@ -97,10 +101,23 @@ object StickerFullScreenPreview {
             || previewUrl.contains(".gif", true)
 
         StickerTrace.d("STICKER_TRACE_FULLSCREEN_PREVIEW url=$previewUrl useGif=$useGif ${StickerTrace.itemSummary(item)}")
+        Glide.with(context).clear(binding.previewIv)
+        binding.previewIv.setImageDrawable(null)
         if (useGif) {
-            GlideUtils.getInstance().showGif(context, previewUrl, binding.previewIv, null)
+            Glide.with(context)
+                .asGif()
+                .load(previewUrl)
+                .placeholder(transparentDrawable)
+                .error(transparentDrawable)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(binding.previewIv)
         } else {
-            GlideUtils.getInstance().showImg(context, previewUrl, binding.previewIv)
+            Glide.with(context)
+                .load(previewUrl)
+                .placeholder(transparentDrawable)
+                .error(transparentDrawable)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(binding.previewIv)
         }
     }
 

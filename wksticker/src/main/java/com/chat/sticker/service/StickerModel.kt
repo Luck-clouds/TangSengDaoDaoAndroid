@@ -1,6 +1,7 @@
 package com.chat.sticker.service
 
 import android.text.TextUtils
+import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import com.chat.base.base.WKBaseModel
@@ -21,6 +22,7 @@ import com.chat.sticker.utils.StickerTrace
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.ResponseBody
 import java.io.File
 
 /**
@@ -114,15 +116,35 @@ class StickerModel private constructor() : WKBaseModel() {
     }
 
     fun getCustom(callback: (Int, String, MutableList<StickerItem>) -> Unit) {
-        StickerTrace.d("STICKER_TRACE_API_REQUEST GET /v1/sticker/custom")
-        requestAndErrorBack(createService(StickerService::class.java).customList(), object : IRequestResultErrorInfoListener<JSONArray> {
-            override fun onSuccess(result: JSONArray) {
-                StickerTrace.d("STICKER_TRACE_API_RESPONSE GET /v1/sticker/custom body=$result")
-                callback(HttpResponseCode.success.toInt(), "", StickerItem.fromArray(result))
+        requestAndErrorBack(createService(StickerService::class.java).customList(), object : IRequestResultErrorInfoListener<ResponseBody> {
+            override fun onSuccess(result: ResponseBody) {
+                val body = result.string().trim()
+                // 新账号或从未上传过自定义表情时，后端这里可能直接返回空串或 null，统一按空列表处理。
+                if (body.isEmpty() || body.equals("null", true)) {
+                    callback(HttpResponseCode.success.toInt(), "", mutableListOf())
+                    return
+                }
+                val array = runCatching {
+                    when {
+                        body.startsWith("[") -> JSON.parseArray(body)
+                        body.startsWith("{") -> {
+                            val jsonObject = JSON.parseObject(body)
+                            jsonObject?.getJSONArray("list")
+                                ?: jsonObject?.getJSONArray("data")
+                                ?: jsonObject?.getJSONArray("items")
+                                ?: JSONArray()
+                        }
+                        else -> JSONArray()
+                    }
+                }.getOrNull()
+                if (array == null) {
+                    callback(HttpResponseCode.success.toInt(), "", mutableListOf())
+                    return
+                }
+                callback(HttpResponseCode.success.toInt(), "", StickerItem.fromArray(array))
             }
 
             override fun onFail(code: Int, msg: String?, errJson: String?) {
-                StickerTrace.e("STICKER_TRACE_API_FAIL GET /v1/sticker/custom code=$code msg=${msg.orEmpty()} err=${errJson.orEmpty()}")
                 callback(code, msg.orEmpty(), mutableListOf())
             }
         })
@@ -215,22 +237,26 @@ class StickerModel private constructor() : WKBaseModel() {
     }
 
     fun addMyPackage(packageId: String, callback: (Int, String) -> Unit) {
+        StickerTrace.d("STICKER_TRACE_API_REQUEST POST /v1/sticker/store/packages/$packageId/add")
         requestAndErrorBack(createService(StickerService::class.java).addMyPackage(packageId), commonCallback(callback))
     }
 
     fun removeMyPackage(packageId: String, callback: (Int, String) -> Unit) {
+        StickerTrace.d("STICKER_TRACE_API_REQUEST DELETE /v1/sticker/store/packages/$packageId/add")
         requestAndErrorBack(createService(StickerService::class.java).removeMyPackage(packageId), commonCallback(callback))
     }
 
     fun deleteCustom(ids: List<String>, callback: (Int, String) -> Unit) {
         val body = JSONObject()
         body["custom_ids"] = ids
+        StickerTrace.d("STICKER_TRACE_API_REQUEST DELETE /v1/sticker/custom body=$body")
         requestAndErrorBack(createService(StickerService::class.java).deleteCustom(body), commonCallback(callback))
     }
 
     fun reorderCustom(ids: List<String>, callback: (Int, String) -> Unit) {
         val body = JSONObject()
         body["ids"] = ids
+        StickerTrace.d("STICKER_TRACE_API_REQUEST PUT /v1/sticker/custom/reorder body=$body")
         requestAndErrorBack(createService(StickerService::class.java).reorderCustom(body), commonCallback(callback))
     }
 

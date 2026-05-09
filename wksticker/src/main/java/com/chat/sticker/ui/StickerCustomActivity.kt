@@ -18,6 +18,7 @@ import com.chat.sticker.databinding.ActStickerCustomLayoutBinding
 import com.chat.sticker.entity.StickerItem
 import com.chat.sticker.service.StickerModel
 import com.chat.sticker.ui.adapter.StickerGridAdapter
+import com.chat.sticker.utils.StickerTrace
 
 /**
  * 自定义表情管理页
@@ -45,6 +46,7 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
         if (!editMode) {
             customItems = customItems.map { it.copy(selected = false) }.toMutableList()
         }
+        StickerTrace.d("STICKER_TRACE_CUSTOM_TOGGLE_EDIT editMode=$editMode customCount=${customItems.size}")
         updateCustomDisplay()
         wkVBinding.bottomActionLayout.visibility = if (editMode) View.VISIBLE else View.GONE
         updateBottomActionState()
@@ -113,11 +115,14 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
     }
 
     private fun loadData() {
+        StickerTrace.d("STICKER_TRACE_CUSTOM_LOAD start")
         StickerModel.instance.getCustom { code, msg, list ->
             if (code != HttpResponseCode.success.toInt()) {
+                StickerTrace.e("STICKER_TRACE_CUSTOM_LOAD_FAIL code=$code msg=$msg")
                 showToast(msg)
                 return@getCustom
             }
+            StickerTrace.d("STICKER_TRACE_CUSTOM_LOAD_SUCCESS count=${list.size} first=${StickerTrace.itemSummary(list.firstOrNull())}")
             customItems = list.map { it.copy(selected = false) }.toMutableList()
             updateCustomDisplay()
         }
@@ -131,6 +136,7 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
         adapter.editMode = editMode
         adapter.setList(data)
         wkVBinding.noDataTv.visibility = View.GONE
+        StickerTrace.d("STICKER_TRACE_CUSTOM_RENDER editMode=$editMode customCount=${customItems.size} adapterCount=${data.size} firstIsAdd=${data.firstOrNull()?.isAddCell == true}")
         updateBottomActionState()
     }
 

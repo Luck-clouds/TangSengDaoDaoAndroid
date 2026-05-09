@@ -35,8 +35,10 @@ class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layou
             contentLayout.visibility = View.GONE
             holder.setText(R.id.sectionTitleTv, item.sectionName)
             sectionAddIv.visibility = if (item.showAddButton) View.VISIBLE else View.GONE
+            StickerTrace.d("STICKER_TRACE_GRID_HEADER section=${item.sectionKey} title=${item.sectionName} showAdd=${item.showAddButton} position=${holder.bindingAdapterPosition}")
             sectionAddIv.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)
             sectionAddIv.setOnClickListener {
+                StickerTrace.d("STICKER_TRACE_GRID_HEADER_ADD_CLICK section=${item.sectionKey}")
                 context.startActivity(Intent(context, StickerCustomActivity::class.java))
             }
             holder.itemView.setOnLongClickListener(null)
@@ -49,6 +51,7 @@ class StickerGridAdapter : BaseQuickAdapter<StickerItem, BaseViewHolder>(R.layou
         val checkView = holder.getView<CheckBox>(R.id.checkIv)
         val titleView = holder.getView<androidx.appcompat.widget.AppCompatTextView>(R.id.nameTv)
         if (item.isAddCell) {
+            StickerTrace.d("STICKER_TRACE_GRID_ADD_CELL position=${holder.bindingAdapterPosition}")
             imageView.background = null
             WKImageDisplayUtils.limitResourceInside(imageView, R.mipmap.sticker_plus_icon, 11f, 3f)
             imageView.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(context, com.chat.base.R.color.color999), PorterDuff.Mode.MULTIPLY)

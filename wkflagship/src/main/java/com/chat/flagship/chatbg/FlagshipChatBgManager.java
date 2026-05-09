@@ -23,6 +23,7 @@ import com.chat.base.utils.SvgHelper;
 import com.chat.base.utils.WKFileUtils;
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -380,7 +381,7 @@ public class FlagshipChatBgManager {
                 return null;
             }
             inputStream = connection.getInputStream();
-            byte[] bytes = inputStream.readAllBytes();
+            byte[] bytes = readStreamBytes(inputStream);
             Log.d(TAG, "downloadText bytes=" + bytes.length + " url=" + remoteUrl);
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
@@ -489,5 +490,15 @@ public class FlagshipChatBgManager {
         hsv[1] = Math.min(1f, hsv[1] * (0.92f + step * 0.03f));
         hsv[2] = Math.min(1f, hsv[2] * (0.95f + step * 0.02f));
         return Color.HSVToColor(Color.alpha(color), hsv);
+    }
+
+    private byte[] readStreamBytes(@NonNull InputStream inputStream) throws Exception {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, length);
+        }
+        return outputStream.toByteArray();
     }
 }

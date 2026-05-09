@@ -1,5 +1,4 @@
 package com.chat.sticker.utils
-
 import com.chat.base.msg.model.WKGifContent
 import com.chat.sticker.entity.StickerItem
 
