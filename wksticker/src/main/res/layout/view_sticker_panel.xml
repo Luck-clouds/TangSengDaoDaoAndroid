@@ -77,8 +77,8 @@
 
             <LinearLayout
                 android:id="@+id/emojiTabLayout"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:gravity="center"
@@ -86,8 +86,8 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/emojiTabIv"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:adjustViewBounds="true"
                     android:padding="0dp"
                     android:scaleType="centerInside"
@@ -96,8 +96,8 @@
 
             <LinearLayout
                 android:id="@+id/stickerTabLayout"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:gravity="center"
@@ -105,8 +105,8 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/stickerTabIv"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
                     android:adjustViewBounds="true"
                     android:padding="0dp"
                     android:scaleType="centerInside"
@@ -116,8 +116,8 @@
 
         <LinearLayout
             android:id="@+id/actionLayout"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_gravity="end|center_vertical"
             android:clipChildren="false"
             android:clipToPadding="false"
@@ -126,8 +126,8 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/actionIv"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:adjustViewBounds="true"
                 android:padding="0dp"
                 android:scaleType="centerInside"

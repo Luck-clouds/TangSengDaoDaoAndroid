@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
@@ -79,7 +80,9 @@ class StickerPanelView @JvmOverloads constructor(
     private var pageProgress = 0f
     private var isDraggingPage = false
     private var pageAnimator: ValueAnimator? = null
+    private var bottomBarAnimator: ValueAnimator? = null
     private var bottomBarVisible = true
+    private var bottomBarBaseHeight = 0
     private var swipeStartPage = Page.EMOJI
 
     private enum class Page {
@@ -191,6 +194,9 @@ class StickerPanelView @JvmOverloads constructor(
     }
 
     private fun initBottomBar() {
+        binding.bottomBarLayout.post {
+            bottomBarBaseHeight = binding.bottomBarLayout.height.takeIf { it > 0 } ?: AndroidUtilities.dp(45f)
+        }
         val pressedColor = ContextCompat.getColor(context, com.chat.base.R.color.layoutColorSelected)
         binding.emojiTabLayout.background = Theme.createSelectorDrawable(pressedColor, 3)
         binding.stickerTabLayout.background = Theme.createSelectorDrawable(pressedColor, 3)
@@ -480,28 +486,53 @@ class StickerPanelView @JvmOverloads constructor(
     private fun setBottomBarVisible(visible: Boolean) {
         if (bottomBarVisible == visible) return
         bottomBarVisible = visible
-        val barHeight = binding.bottomBarLayout.height.takeIf { it > 0 } ?: AndroidUtilities.dp(45f)
-        val hideOffset = (barHeight + AndroidUtilities.dp(20f)).toFloat()
-        binding.bottomBarLayout.animate().cancel()
+        val targetHeight = bottomBarBaseHeight.takeIf { it > 0 }
+            ?: binding.bottomBarLayout.height.takeIf { it > 0 }
+            ?: AndroidUtilities.dp(45f)
+        bottomBarBaseHeight = targetHeight
+        bottomBarAnimator?.cancel()
+        val layoutParams = binding.bottomBarLayout.layoutParams
+        val startHeight = layoutParams.height.takeIf { it >= 0 }?.coerceAtMost(targetHeight)
+            ?: targetHeight
+        val endHeight = if (visible) targetHeight else 0
         if (visible) {
             binding.bottomBarLayout.visibility = View.VISIBLE
-            binding.bottomBarLayout.translationY = hideOffset
-            binding.bottomBarLayout.alpha = 0f
+            binding.bottomBarLayout.alpha = if (startHeight == 0) 0f else binding.bottomBarLayout.alpha
         }
-        binding.bottomBarLayout.animate()
-            .translationY(if (visible) 0f else hideOffset)
-            .alpha(if (visible) 1f else 0f)
-            .setDuration(220)
-            .setInterpolator(DecelerateInterpolator())
-            .setListener(object : AnimatorListenerAdapter() {
+        if (startHeight == endHeight) {
+            layoutParams.height = endHeight
+            binding.bottomBarLayout.layoutParams = layoutParams
+            binding.bottomBarLayout.alpha = if (visible) 1f else 0f
+            binding.bottomBarLayout.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+            return
+        }
+        bottomBarAnimator = ValueAnimator.ofInt(startHeight, endHeight).apply {
+            duration = 220
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { animator ->
+                val height = animator.animatedValue as Int
+                val fraction = if (targetHeight == 0) 0f else height / targetHeight.toFloat()
+                val params = binding.bottomBarLayout.layoutParams
+                params.height = height
+                binding.bottomBarLayout.layoutParams = params
+                binding.bottomBarLayout.alpha = fraction
+            }
+            addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    if (!bottomBarVisible) {
-                        binding.bottomBarLayout.visibility = View.GONE
-                    }
-                    binding.bottomBarLayout.animate().setListener(null)
+                    val params = binding.bottomBarLayout.layoutParams
+                    params.height = endHeight
+                    binding.bottomBarLayout.layoutParams = params
+                    binding.bottomBarLayout.alpha = if (visible) 1f else 0f
+                    binding.bottomBarLayout.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+                    bottomBarAnimator = null
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+                    bottomBarAnimator = null
                 }
             })
-            .start()
+            start()
+        }
     }
 
     private fun updateTabByScroll() {

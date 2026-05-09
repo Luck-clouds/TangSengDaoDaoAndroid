@@ -3,6 +3,7 @@ package com.chat.sticker.ui
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.NonNull
+import android.view.ViewGroup
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.net.HttpResponseCode
 import com.chat.base.utils.AndroidUtilities
@@ -33,8 +34,11 @@ class StickerStoreActivity : WKBaseActivity<ActStickerStoreLayoutBinding>() {
 
     override fun getRightIvResourceId(imageView: ImageView): Int {
         imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-        val padding = AndroidUtilities.dp(2f)
-        imageView.setPadding(padding, padding, padding, padding)
+        imageView.layoutParams = imageView.layoutParams?.apply {
+            width = AndroidUtilities.dp(20f)
+            height = AndroidUtilities.dp(20f)
+        } ?: ViewGroup.LayoutParams(AndroidUtilities.dp(18f), AndroidUtilities.dp(18f))
+        imageView.setPadding(0, 0, 0, 0)
         return R.mipmap.sticker_settings_icon
     }
 
