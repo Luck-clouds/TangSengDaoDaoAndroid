@@ -47,4 +47,5 @@
     <string name="flagship_rich_text_italic_tool">Italic</string>
     <string name="flagship_mutual_delete">Delete for Both</string>
     <string name="flagship_mutual_delete_failed">Failed to delete for both</string>
+    <string name="flagship_batch_mutual_delete_limit">You can delete at most 100 messages for both at a time</string>
 </resources>

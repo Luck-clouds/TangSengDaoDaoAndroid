@@ -203,6 +203,20 @@ public class WKFlagshipApplication {
         });
         // 双向删除作为旗舰模块自定义菜单项接入，保持和现有编辑、复制入口同一注册方式。
         EndpointManager.getInstance().setMethod("flagship_mutual_delete_msg", EndpointCategory.wkChatPopupItem, 70, FlagshipMutualDeleteManager.getInstance()::buildMenu);
+        EndpointManager.getInstance().setMethod("flagship_batch_mutual_delete_available", object -> FlagshipMutualDeleteManager.getInstance().isBatchMutualDeleteAvailable());
+        EndpointManager.getInstance().setMethod("flagship_batch_mutual_delete_title", object -> FlagshipMutualDeleteManager.getInstance().getBatchMutualDeleteTitle());
+        EndpointManager.getInstance().setMethod("flagship_can_batch_mutual_delete", object -> {
+            if (object instanceof java.util.List<?> list) {
+                return FlagshipMutualDeleteManager.getInstance().canBatchMutualDelete((java.util.List<WKMsg>) list);
+            }
+            return false;
+        });
+        EndpointManager.getInstance().setMethod("flagship_batch_mutual_delete", object -> {
+            if (object instanceof com.chat.base.endpoint.entity.BatchMutualDeleteMenu menu) {
+                FlagshipMutualDeleteManager.getInstance().batchMutualDelete(menu);
+            }
+            return null;
+        });
         EndpointManager.getInstance().setMethod("reaction_sticker", object -> FlagshipReactionManager.getReactionStickers());
         EndpointManager.getInstance().setMethod("is_show_reaction", object -> canShowReaction(object));
         EndpointManager.getInstance().setMethod("wk_msg_reaction", object -> {

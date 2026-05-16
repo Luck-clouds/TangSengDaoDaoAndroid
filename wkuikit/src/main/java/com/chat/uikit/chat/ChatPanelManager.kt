@@ -43,6 +43,7 @@ import com.chat.base.emoji.MoonUtil
 import com.chat.base.endpoint.EndpointCategory
 import com.chat.base.endpoint.EndpointManager
 import com.chat.base.endpoint.EndpointSID
+import com.chat.base.endpoint.entity.BatchMutualDeleteMenu
 import com.chat.base.endpoint.entity.ChatChooseContacts
 import com.chat.base.endpoint.entity.ChatToolBarMenu
 import com.chat.base.endpoint.entity.ChooseChatMenu
@@ -214,59 +215,22 @@ class ChatPanelManager(
 
     fun updateForwardView(num: Int) {
         val forwardView = multipleChoiceView?.findViewWithTag<View>("forwardView")
+        val deleteView = multipleChoiceView?.findViewWithTag<View>("deleteView")
+        val mutualDeleteView = multipleChoiceView?.findViewWithTag<View>("mutualDeleteView")
         val deleteIv = multipleChoiceView?.findViewWithTag<AppCompatImageView>("deleteIv")
         val forwardIv = multipleChoiceView?.findViewWithTag<AppCompatImageView>("forwardIv")
+        val mutualDeleteIv = multipleChoiceView?.findViewWithTag<AppCompatImageView>("mutualDeleteIv")
         val forwardTv = multipleChoiceView?.findViewWithTag<AppCompatTextView>("forwardTv")
         val deleteTv = multipleChoiceView?.findViewWithTag<AppCompatTextView>("deleteTv")
-        if (num > 0) {
-            forwardView?.isEnabled = true
-            deleteTv?.setTextColor(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity,
-                    R.color.colorDark
-                )
-            )
-            forwardTv?.setTextColor(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity,
-                    R.color.colorDark
-                )
-            )
-            deleteIv?.colorFilter = PorterDuffColorFilter(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity, R.color.colorDark
-                ), PorterDuff.Mode.MULTIPLY
-            )
-            forwardIv?.colorFilter = PorterDuffColorFilter(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity, R.color.colorDark
-                ), PorterDuff.Mode.MULTIPLY
-            )
-        } else {
-            forwardView?.isEnabled = false
-            deleteTv?.setTextColor(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity,
-                    R.color.color999
-                )
-            )
-            forwardTv?.setTextColor(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity,
-                    R.color.color999
-                )
-            )
-            deleteIv?.colorFilter = PorterDuffColorFilter(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity, R.color.color999
-                ), PorterDuff.Mode.MULTIPLY
-            )
-            forwardIv?.colorFilter = PorterDuffColorFilter(
-                ContextCompat.getColor(
-                    iConversationContext.chatActivity, R.color.color999
-                ), PorterDuff.Mode.MULTIPLY
-            )
-        }
+        val mutualDeleteTv = multipleChoiceView?.findViewWithTag<AppCompatTextView>("mutualDeleteTv")
+        val enableNormalAction = num > 0
+        val selectedMsgList = getSelectedMessages()
+        val enableMutualDelete = enableNormalAction && (EndpointManager.getInstance()
+            .invoke("flagship_can_batch_mutual_delete", selectedMsgList) as? Boolean == true)
+
+        updateMultipleChoiceActionState(forwardView, forwardIv, forwardTv, enableNormalAction)
+        updateMultipleChoiceActionState(deleteView, deleteIv, deleteTv, enableNormalAction)
+        updateMultipleChoiceActionState(mutualDeleteView, mutualDeleteIv, mutualDeleteTv, enableMutualDelete)
     }
 
     fun isCanBack(): Boolean {
@@ -1923,6 +1887,13 @@ class ChatPanelManager(
         forwardView.orientation = LinearLayout.VERTICAL
         val deleteView = LinearLayout(iConversationContext.chatActivity)
         deleteView.orientation = LinearLayout.VERTICAL
+        val supportBatchMutualDelete = EndpointManager.getInstance()
+            .invoke("flagship_batch_mutual_delete_available", null) as? Boolean == true
+        val mutualDeleteView = if (supportBatchMutualDelete) {
+            LinearLayout(iConversationContext.chatActivity).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+        } else null
         multipleChoiceView?.addView(
             forwardView,
             LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER)
@@ -1931,6 +1902,12 @@ class ChatPanelManager(
             deleteView,
             LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER)
         )
+        if (mutualDeleteView != null) {
+            multipleChoiceView?.addView(
+                mutualDeleteView,
+                LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER)
+            )
+        }
 
         val forwardIV = AppCompatImageView(iConversationContext.chatActivity)
         forwardIV.colorFilter = PorterDuffColorFilter(
@@ -2015,8 +1992,82 @@ class ChatPanelManager(
             )
         )
 
+        if (mutualDeleteView != null) {
+            val mutualDeleteIv = AppCompatImageView(iConversationContext.chatActivity)
+            mutualDeleteIv.setImageResource(R.mipmap.msg_delete)
+            mutualDeleteIv.colorFilter = PorterDuffColorFilter(
+                ContextCompat.getColor(
+                    iConversationContext.chatActivity, R.color.color999
+                ), PorterDuff.Mode.MULTIPLY
+            )
+            mutualDeleteView.addView(
+                mutualDeleteIv,
+                LayoutHelper.createLinear(
+                    LayoutHelper.WRAP_CONTENT,
+                    LayoutHelper.WRAP_CONTENT,
+                    Gravity.CENTER
+                )
+            )
+            val mutualDeleteTv = AppCompatTextView(iConversationContext.chatActivity)
+            val mutualDeleteTitle = EndpointManager.getInstance()
+                .invoke("flagship_batch_mutual_delete_title", null) as? String
+            mutualDeleteTv.text =
+                mutualDeleteTitle ?: iConversationContext.chatActivity.getString(R.string.delete)
+            mutualDeleteTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, pSize)
+            mutualDeleteTv.setTextColor(
+                ContextCompat.getColor(
+                    iConversationContext.chatActivity,
+                    R.color.color999
+                )
+            )
+            mutualDeleteView.addView(
+                mutualDeleteTv,
+                LayoutHelper.createLinear(
+                    LayoutHelper.WRAP_CONTENT,
+                    LayoutHelper.WRAP_CONTENT,
+                    Gravity.CENTER,
+                    0,
+                    3,
+                    0,
+                    0
+                )
+            )
+            mutualDeleteView.tag = "mutualDeleteView"
+            mutualDeleteIv.tag = "mutualDeleteIv"
+            mutualDeleteTv.tag = "mutualDeleteTv"
+            mutualDeleteView.isEnabled = false
+            mutualDeleteView.setOnClickListener {
+                val selectedMsgList = getSelectedMessages()
+                if (selectedMsgList.isEmpty()) {
+                    return@setOnClickListener
+                }
+                WKDialogUtils.getInstance().showDialog(
+                    iConversationContext.chatActivity,
+                    mutualDeleteTitle ?: iConversationContext.chatActivity.getString(R.string.delete),
+                    iConversationContext.chatActivity.getString(R.string.delete_select_msg),
+                    true,
+                    "",
+                    mutualDeleteTitle ?: iConversationContext.chatActivity.getString(R.string.delete),
+                    0,
+                    ContextCompat.getColor(iConversationContext.chatActivity, R.color.red)
+                ) { index: Int ->
+                    if (index == 1) {
+                        EndpointManager.getInstance().invoke(
+                            "flagship_batch_mutual_delete",
+                            BatchMutualDeleteMenu(selectedMsgList, iConversationContext) { success ->
+                                if (success) {
+                                    resetMultipleChoiceStatus()
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
 
         forwardView.tag = "forwardView"
+        deleteView.tag = "deleteView"
         deleteTV.tag = "deleteTv"
         deleteIV.tag = "deleteIv"
         forwardIV.tag = "forwardIv"
@@ -2247,25 +2298,58 @@ class ChatPanelManager(
                     if (index == 1) {
                         WKIM.getInstance().msgManager.deleteWithClientMsgNos(ids)
                         MsgModel.getInstance().deleteMsg(list, null)
-                        resetTitleViewListener()
-                        multipleChoiceView?.visibility = View.GONE
-                        toolbarRecyclerView.visibility = View.VISIBLE
-                        CommonAnim.getInstance().showBottom2Top(chatView)
-                        var i = 0
-                        val itemCount: Int = chatAdapter.itemCount
-                        while (i < itemCount) {
-                            chatAdapter.getItem(i).isChoose = false
-                            chatAdapter.getItem(i).isChecked = false
-                            chatAdapter.notifyItemChanged(i)
-                            i++
-                        }
-                        resetMenuIv()
-                        resetToolBar()
-                        iConversationContext.deleteOperationMsg()
+                        resetMultipleChoiceStatus()
                     }
                 }
             }
         }
+        updateForwardView(0)
+    }
+
+    private fun getSelectedMessages(): MutableList<WKMsg> {
+        val chatAdapter = iConversationContext.chatAdapter
+        val msgList: MutableList<WKMsg> = ArrayList()
+        var i = 0
+        val itemCount = chatAdapter.itemCount
+        while (i < itemCount) {
+            if (chatAdapter.getItem(i).isChecked) {
+                msgList.add(chatAdapter.getItem(i).wkMsg)
+            }
+            i++
+        }
+        return msgList
+    }
+
+    private fun updateMultipleChoiceActionState(
+        actionView: View?,
+        iconView: AppCompatImageView?,
+        textView: AppCompatTextView?,
+        enabled: Boolean
+    ) {
+        actionView?.isEnabled = enabled
+        val colorRes = if (enabled) R.color.colorDark else R.color.color999
+        val color = ContextCompat.getColor(iConversationContext.chatActivity, colorRes)
+        textView?.setTextColor(color)
+        iconView?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY)
+    }
+
+    private fun resetMultipleChoiceStatus() {
+        val chatAdapter = iConversationContext.chatAdapter
+        resetTitleViewListener()
+        multipleChoiceView?.visibility = View.GONE
+        toolbarRecyclerView.visibility = View.VISIBLE
+        CommonAnim.getInstance().showBottom2Top(chatView)
+        var i = 0
+        val itemCount: Int = chatAdapter.itemCount
+        while (i < itemCount) {
+            chatAdapter.getItem(i).isChoose = false
+            chatAdapter.getItem(i).isChecked = false
+            chatAdapter.notifyItemChanged(i)
+            i++
+        }
+        resetMenuIv()
+        resetToolBar()
+        iConversationContext.deleteOperationMsg()
     }
 
     private fun initBanView() {

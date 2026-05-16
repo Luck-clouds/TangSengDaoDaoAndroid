@@ -56,6 +56,7 @@
     <string name="flagship_rich_text_italic_tool">斜体</string>
     <string name="flagship_mutual_delete">双向删除</string>
     <string name="flagship_mutual_delete_failed">双向删除失败</string>
+    <string name="flagship_batch_mutual_delete_limit">单次最多双向删除 100 条消息</string>
     <string name="flagship_search_video">视频</string>
     <string name="flagship_search_file">文件</string>
     <string name="flagship_search_no_data">暂无相关记录</string>

@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import com.chat.base.WKBaseApplication;
 import com.chat.base.endpoint.EndpointManager;
+import com.chat.base.endpoint.entity.BatchMutualDeleteMenu;
 import com.chat.base.endpoint.entity.ChatItemPopupMenu;
 import com.chat.base.msg.ChatAdapter;
 import com.chat.base.msg.IConversationContext;
@@ -18,7 +19,9 @@ import com.chat.uikit.message.MsgModel;
 import com.xinbida.wukongim.entity.WKChannelType;
 import com.xinbida.wukongim.entity.WKMsg;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 负责旗舰模块里的“双向删除”菜单展示和交互。
@@ -45,6 +48,66 @@ public class FlagshipMutualDeleteManager {
         return new ChatItemPopupMenu(com.chat.base.R.mipmap.msg_delete, title, this::mutualDelete);
     }
 
+    public boolean isBatchMutualDeleteAvailable() {
+        return true;
+    }
+
+    public String getBatchMutualDeleteTitle() {
+        Context context = WKBaseApplication.getInstance().getContext();
+        return context == null ? "双向删除" : context.getString(R.string.flagship_mutual_delete);
+    }
+
+    public boolean canBatchMutualDelete(List<WKMsg> msgList) {
+        if (msgList == null || msgList.isEmpty() || msgList.size() > 100) {
+            return false;
+        }
+        for (WKMsg msg : msgList) {
+            if (!canMutualDelete(msg)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void batchMutualDelete(BatchMutualDeleteMenu menu) {
+        if (menu == null || menu.getConversationContext() == null) {
+            return;
+        }
+        List<WKMsg> msgList = menu.getMessages();
+        Activity activity = menu.getConversationContext().getChatActivity();
+        if (!canBatchMutualDelete(msgList)) {
+            if (activity != null) {
+                String tip = msgList != null && msgList.size() > 100
+                        ? activity.getString(R.string.flagship_batch_mutual_delete_limit)
+                        : activity.getString(R.string.flagship_mutual_delete_failed);
+                WKToastUtils.getInstance().showToastNormal(tip);
+            }
+            if (menu.getResult() != null) {
+                menu.getResult().onResult(false);
+            }
+            return;
+        }
+        FlagshipMutualDeleteModel.getInstance().batchMutualDelete(msgList, (code, errorMsg) -> {
+            if (code == HttpResponseCode.success || code == 0) {
+                removeMsgFromAdapter(msgList, menu.getConversationContext().getChatAdapter());
+                syncExtraMsg(msgList);
+                if (menu.getResult() != null) {
+                    menu.getResult().onResult(true);
+                }
+                return;
+            }
+            if (activity != null) {
+                String showMsg = TextUtils.isEmpty(errorMsg)
+                        ? activity.getString(R.string.flagship_mutual_delete_failed)
+                        : errorMsg;
+                WKToastUtils.getInstance().showToastNormal(showMsg);
+            }
+            if (menu.getResult() != null) {
+                menu.getResult().onResult(false);
+            }
+        });
+    }
+
     private void mutualDelete(WKMsg msg, IConversationContext conversationContext) {
         Activity activity = conversationContext.getChatActivity();
         FlagshipMutualDeleteModel.getInstance().mutualDelete(msg, (code, errorMsg) -> {
@@ -63,7 +126,7 @@ public class FlagshipMutualDeleteManager {
         });
     }
 
-    private boolean canMutualDelete(WKMsg msg) {
+    public boolean canMutualDelete(WKMsg msg) {
         if (msg == null || TextUtils.isEmpty(msg.channelID) || TextUtils.isEmpty(msg.messageID) || msg.messageSeq <= 0) {
             return false;
         }
@@ -80,6 +143,22 @@ public class FlagshipMutualDeleteManager {
             return false;
         }
         return msg.type != WKContentType.screenshot && msg.type != WKContentType.approveGroupMember;
+    }
+
+    private void syncExtraMsg(List<WKMsg> msgList) {
+        if (msgList == null || msgList.isEmpty()) {
+            return;
+        }
+        Set<String> syncKeys = new LinkedHashSet<>();
+        for (WKMsg msg : msgList) {
+            if (msg == null || TextUtils.isEmpty(msg.channelID)) {
+                continue;
+            }
+            String key = msg.channelID + "_" + msg.channelType;
+            if (syncKeys.add(key)) {
+                MsgModel.getInstance().syncExtraMsg(msg.channelID, msg.channelType);
+            }
+        }
     }
 
     private void removeMsgFromAdapter(WKMsg msg, ChatAdapter chatAdapter) {
@@ -124,6 +203,15 @@ public class FlagshipMutualDeleteManager {
                         timeIndex - 1 >= 0 ? chatAdapter.getData().get(timeIndex - 1).wkMsg : null;
             }
             chatAdapter.removeAt(timeIndex);
+        }
+    }
+
+    private void removeMsgFromAdapter(List<WKMsg> msgList, ChatAdapter chatAdapter) {
+        if (msgList == null || msgList.isEmpty()) {
+            return;
+        }
+        for (WKMsg msg : msgList) {
+            removeMsgFromAdapter(msg, chatAdapter);
         }
     }
 }

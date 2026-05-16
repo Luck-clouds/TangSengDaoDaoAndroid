@@ -9,6 +9,9 @@ import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
 import com.xinbida.wukongim.entity.WKMsg;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 双向删除业务模型。
  */
@@ -38,6 +41,45 @@ public class FlagshipMutualDeleteModel extends WKBaseModel {
         jsonObject.put("message_id", msg.messageID);
         jsonObject.put("message_seq", msg.messageSeq);
         request(createService(FlagshipMutualDeleteService.class).mutualDelete(jsonObject), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (listener != null) {
+                    listener.onResult(result == null ? 0 : result.status, result == null ? "" : result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msgText) {
+                if (listener != null) {
+                    listener.onResult(code, msgText);
+                }
+            }
+        });
+    }
+
+    public void batchMutualDelete(List<WKMsg> msgList, ICommonListener listener) {
+        if (msgList == null || msgList.isEmpty()) {
+            if (listener != null) {
+                listener.onResult(-1, "");
+            }
+            return;
+        }
+        List<FlagshipMutualDeleteRequest> requestList = new ArrayList<>();
+        for (WKMsg msg : msgList) {
+            if (msg == null || TextUtils.isEmpty(msg.channelID) || TextUtils.isEmpty(msg.messageID) || msg.messageSeq <= 0) {
+                if (listener != null) {
+                    listener.onResult(-1, "");
+                }
+                return;
+            }
+            FlagshipMutualDeleteRequest request = new FlagshipMutualDeleteRequest();
+            request.channel_id = msg.channelID;
+            request.channel_type = msg.channelType;
+            request.message_id = msg.messageID;
+            request.message_seq = msg.messageSeq;
+            requestList.add(request);
+        }
+        request(createService(FlagshipMutualDeleteService.class).batchMutualDelete(requestList), new IRequestResultListener<CommonResponse>() {
             @Override
             public void onSuccess(CommonResponse result) {
                 if (listener != null) {
