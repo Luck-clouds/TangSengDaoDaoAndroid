@@ -5,4 +5,8 @@ package com.chat.uikit.message;
  */
 public class Ipentity {
     public String tcp_addr;
+    public String tcpAddr;
+    public String ws_addr;
+    public String wss_addr;
+    public String addr;
 }

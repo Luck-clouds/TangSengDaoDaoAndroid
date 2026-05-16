@@ -7,96 +7,107 @@
 
     <application>
 
-        <activity android:name=".group.DeleteGroupMemberActivity" />
-        <activity android:name=".group.manage.GroupAvatarActivity" />
-        <activity android:name=".group.manage.GroupBlacklistActivity" />
-        <activity android:name=".group.manage.GroupForbiddenDurationActivity" />
-        <activity android:name=".group.manage.GroupManageMemberSelectActivity" />
-        <activity android:name=".group.manage.GroupManagerActivity" />
+        <activity android:name=".group.DeleteGroupMemberActivity" android:exported="false" />
+        <activity android:name=".group.manage.GroupAvatarActivity" android:exported="false" />
+        <activity android:name=".group.manage.GroupBlacklistActivity" android:exported="false" />
+        <activity android:name=".group.manage.GroupForbiddenDurationActivity" android:exported="false" />
+        <activity android:name=".group.manage.GroupManageMemberSelectActivity" android:exported="false" />
+        <activity android:name=".group.manage.GroupManagerActivity" android:exported="false" />
         <activity
             android:name=".group.GroupNoticeActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".group.GroupDetailActivity" />
-        <activity android:name=".group.SavedGroupsActivity" />
-        <activity android:name=".group.UpdateGroupNameActivity" />
+        <activity android:name=".group.GroupDetailActivity" android:exported="false" />
+        <activity android:name=".group.SavedGroupsActivity" android:exported="false" />
+        <activity android:name=".group.UpdateGroupNameActivity" android:exported="false" />
         <activity
             android:name=".chat.ChooseChatActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustPan|stateHidden" />
-        <activity android:name=".search.SearchUserActivity" />
-        <activity android:name=".chat.ChatPersonalActivity" />
+        <activity android:name=".search.SearchUserActivity" android:exported="false" />
+        <activity android:name=".chat.ChatPersonalActivity" android:exported="false" />
         <activity
             android:name=".contacts.ChooseContactsActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustPan|stateHidden" />
 
-        <activity android:name=".contacts.NewFriendsActivity" />
-        <activity android:name=".contacts.label.LabelListActivity" />
-        <activity android:name=".contacts.label.LabelEditActivity" />
-        <activity android:name=".favorite.FavoriteListActivity" />
-        <activity android:name=".favorite.FavoriteDetailActivity" />
-        <activity android:name=".setting.SecurityPrivacyActivity" />
+        <activity android:name=".contacts.NewFriendsActivity" android:exported="false" />
+        <activity android:name=".contacts.label.LabelListActivity" android:exported="false" />
+        <activity android:name=".contacts.label.LabelEditActivity" android:exported="false" />
+        <activity android:name=".favorite.FavoriteListActivity" android:exported="false" />
+        <activity android:name=".favorite.FavoriteDetailActivity" android:exported="false" />
+        <activity android:name=".setting.SecurityPrivacyActivity" android:exported="false" />
         <activity
             android:name=".setting.ChatPwdSettingActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".setting.LockScreenPasswordActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
-        <activity android:name=".setting.LockScreenPwdSettingActivity" />
+        <activity android:name=".setting.LockScreenPwdSettingActivity" android:exported="false" />
         <activity
             android:name=".setting.OfflineProtectionActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
-        <activity android:name=".setting.DeviceLockActivity" />
-        <activity android:name=".setting.BlacklistActivity" />
-        <activity android:name=".setting.DestroyAccountActivity" />
-        <activity android:name=".setting.DestroyAccountVerifyActivity" />
-        <activity android:name=".setting.SettingActivity" />
-        <activity android:name=".group.GroupQrActivity" />
-        <activity android:name=".search.SearchAllActivity" />
-        <activity android:name=".user.MyInfoActivity" />
-        <activity android:name=".user.UserQrActivity" />
-        <activity android:name=".user.MyHeadPortraitActivity" />
-        <activity android:name=".setting.MsgNoticesSettingActivity" />
+        <activity android:name=".setting.DeviceLockActivity" android:exported="false" />
+        <activity android:name=".setting.BlacklistActivity" android:exported="false" />
+        <activity android:name=".setting.DestroyAccountActivity" android:exported="false" />
+        <activity android:name=".setting.DestroyAccountVerifyActivity" android:exported="false" />
+        <activity android:name=".setting.SettingActivity" android:exported="false" />
+        <activity android:name=".group.GroupQrActivity" android:exported="false" />
+        <activity android:name=".search.SearchAllActivity" android:exported="false" />
+        <activity android:name=".user.MyInfoActivity" android:exported="false" />
+        <activity android:name=".user.UserQrActivity" android:exported="false" />
+        <activity android:name=".user.MyHeadPortraitActivity" android:exported="false" />
+        <activity android:name=".setting.MsgNoticesSettingActivity" android:exported="false" />
         <activity
             android:name=".user.UserDetailActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
-        <activity android:name=".user.UpdateUserInfoActivity" />
-        <activity android:name=".user.SetUserRemarkActivity" />
-        <activity android:name=".search.AddFriendsActivity" />
-        <activity android:name=".chat.PreviewNewImgActivity" />
-        <activity android:name=".search.SearchMsgResultActivity" />
-        <activity android:name=".chat.ChatMultiForwardDetailActivity" />
-        <activity android:name=".chat.file.RecentFileActivity" />
-        <activity android:name=".chat.file.FileDetailActivity" />
-        <activity android:name=".setting.WKThemeSettingActivity" />
-        <activity android:name=".setting.WKLanguageActivity" />
-        <activity android:name=".group.WKAllMembersActivity" />
-        <activity android:name=".user.WKFileHelperActivity" />
-        <activity android:name=".user.WKSystemTeamActivity" />
-        <activity android:name=".group.WKSetGroupRemarkActivity" />
-        <activity android:name=".setting.WKSetFontSizeActivity" />
+        <activity android:name=".user.UpdateUserInfoActivity" android:exported="false" />
+        <activity android:name=".user.SetUserRemarkActivity" android:exported="false" />
+        <activity android:name=".search.AddFriendsActivity" android:exported="false" />
+        <activity android:name=".chat.PreviewNewImgActivity" android:exported="false" />
+        <activity android:name=".search.SearchMsgResultActivity" android:exported="false" />
+        <activity android:name=".chat.ChatMultiForwardDetailActivity" android:exported="false" />
+        <activity android:name=".chat.file.RecentFileActivity" android:exported="false" />
+        <activity android:name=".chat.file.FileDetailActivity" android:exported="false" />
+        <activity android:name=".setting.WKThemeSettingActivity" android:exported="false" />
+        <activity android:name=".setting.WKLanguageActivity" android:exported="false" />
+        <activity android:name=".group.WKAllMembersActivity" android:exported="false" />
+        <activity android:name=".user.WKFileHelperActivity" android:exported="false" />
+        <activity android:name=".user.WKSystemTeamActivity" android:exported="false" />
+        <activity android:name=".group.WKSetGroupRemarkActivity" android:exported="false" />
+        <activity android:name=".setting.WKSetFontSizeActivity" android:exported="false" />
         <activity
             android:name=".group.ChooseVideoCallMembersActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustPan|stateHidden" />
-        <activity android:name=".setting.WKAboutActivity" />
+        <activity android:name=".setting.WKAboutActivity" android:exported="false" />
 
-        <activity android:name=".search.MailListActivity" />
-        <activity android:name=".message.BackupRestoreMessageActivity" />
-        <activity android:name=".setting.AppModulesActivity" />
-        <activity android:name=".setting.ErrorLogsActivity" />
+        <activity android:name=".search.MailListActivity" android:exported="false" />
+        <activity android:name=".message.BackupRestoreMessageActivity" android:exported="false" />
+        <activity android:name=".setting.AppModulesActivity" android:exported="false" />
+        <activity android:name=".setting.ErrorLogsActivity" android:exported="false" />
         <activity
             android:name="com.chat.uikit.TabActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan"
             android:launchMode="singleTask"/>
         <activity android:name="com.chat.uikit.chat.ChatActivity"
+            android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize" />
-        <activity android:name="com.chat.uikit.search.remote.GlobalActivity" />
-        <activity android:name="com.chat.uikit.chat.search.MessageRecordActivity" />
-        <activity android:name="com.chat.uikit.chat.search.member.SearchWithMemberActivity" />
-        <activity android:name="com.chat.uikit.chat.search.date.SearchWithDateActivity" />
-        <activity android:name="com.chat.uikit.chat.search.image.SearchWithImgActivity" />
+        <activity android:name="com.chat.uikit.search.remote.GlobalActivity" android:exported="false" />
+        <activity android:name="com.chat.uikit.chat.search.MessageRecordActivity" android:exported="false" />
+        <activity android:name="com.chat.uikit.chat.search.member.SearchWithMemberActivity" android:exported="false" />
+        <activity android:name="com.chat.uikit.chat.search.date.SearchWithDateActivity" android:exported="false" />
+        <activity android:name="com.chat.uikit.chat.search.image.SearchWithImgActivity" android:exported="false" />
 
         <service
             android:name="com.chat.uikit.AliveJobService"
+            android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
     </application>

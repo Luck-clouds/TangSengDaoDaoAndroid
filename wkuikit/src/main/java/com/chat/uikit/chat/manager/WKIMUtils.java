@@ -145,7 +145,17 @@ public class WKIMUtils {
 //        });
 
         //监听sdk获取IP和port
-        WKIM.getInstance().getConnectionManager().addOnGetIpAndPortListener(andPortListener -> MsgModel.getInstance().getChatIp((code, ip, port) -> andPortListener.onGetSocketIpAndPort(ip, Integer.parseInt(port))));
+        WKIM.getInstance().getConnectionManager().addOnGetIpAndPortListener(andPortListener -> MsgModel.getInstance().getChatIp((code, ip, port) -> {
+            int socketPort = 0;
+            if (!TextUtils.isEmpty(port)) {
+                try {
+                    socketPort = Integer.parseInt(port);
+                } catch (NumberFormatException e) {
+                    WKLogUtils.e("WKIMUtils", "invalid socket port: " + port);
+                }
+            }
+            andPortListener.onGetSocketIpAndPort(ip, socketPort);
+        }));
         //消息存库拦截器监听
         WKIM.getInstance().getMsgManager().addMessageStoreBeforeIntercept(msg -> {
             if (msg != null && msg.type == WKContentType.screenshot) {

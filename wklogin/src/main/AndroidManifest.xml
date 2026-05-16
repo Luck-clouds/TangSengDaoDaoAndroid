@@ -3,23 +3,42 @@
     <application
         android:allowBackup="true"
         android:supportsRtl="true">
-        <activity android:name=".ui.LoginAuthActivity" />
-        <activity android:name=".ui.ChooseAreaCodeActivity"
+        <activity
+            android:name=".ui.LoginAuthActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ChooseAreaCodeActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustPan|stateHidden"/>
         <activity
             android:name=".ui.WKLoginActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
         <activity
             android:name=".ui.WKRegisterActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
         <activity
             android:name=".ui.WKWebLoginConfirmActivity"
+            android:exported="false"
             android:launchMode="singleTask" />
-        <activity android:name=".ui.PerfectUserInfoActivity" />
-        <activity android:name=".ui.InputLoginAuthVerificationCodeActivity" />
-        <activity android:name=".ui.WKResetLoginPwdActivity" />
-        <activity android:name=".ui.PCLoginViewActivity" />
-        <activity android:name=".ui.WKWebLoginActivity" />
-        <activity android:name="com.chat.login.ui.ThirdLoginActivity" />
+        <activity
+            android:name=".ui.PerfectUserInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.InputLoginAuthVerificationCodeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.WKResetLoginPwdActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.PCLoginViewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.WKWebLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.chat.login.ui.ThirdLoginActivity"
+            android:exported="false" />
     </application>
 </manifest>

@@ -264,10 +264,14 @@ public class MsgModel extends WKBaseModel {
         request(createService(MsgService.class).getImIp(WKConfig.getInstance().getUid()), new IRequestResultListener<>() {
             @Override
             public void onSuccess(Ipentity result) {
-                if (result != null && !TextUtils.isEmpty(result.tcp_addr)) {
-                    String[] strings = result.tcp_addr.split(":");
-                    iChatIp.onResult(HttpResponseCode.success, strings[0], strings[1]);
+                String socketAddress = getSocketAddress(result);
+                HostPort hostPort = parseHostPort(socketAddress);
+                if (hostPort != null) {
+                    iChatIp.onResult(HttpResponseCode.success, hostPort.host, hostPort.port);
+                    return;
                 }
+                WKLogUtils.e("MsgModel", "invalid im socket address: " + socketAddress);
+                iChatIp.onResult(HttpResponseCode.error, "", "0");
             }
 
             @Override
@@ -275,6 +279,59 @@ public class MsgModel extends WKBaseModel {
                 iChatIp.onResult(code, "", "0");
             }
         });
+    }
+
+    @Nullable
+    private String getSocketAddress(@Nullable Ipentity result) {
+        if (result == null) {
+            return null;
+        }
+        if (!TextUtils.isEmpty(result.tcp_addr)) {
+            return result.tcp_addr;
+        }
+        if (!TextUtils.isEmpty(result.tcpAddr)) {
+            return result.tcpAddr;
+        }
+        if (!TextUtils.isEmpty(result.ws_addr)) {
+            return result.ws_addr;
+        }
+        if (!TextUtils.isEmpty(result.wss_addr)) {
+            return result.wss_addr;
+        }
+        return result.addr;
+    }
+
+    @Nullable
+    private HostPort parseHostPort(@Nullable String socketAddress) {
+        if (TextUtils.isEmpty(socketAddress)) {
+            return null;
+        }
+        String address = socketAddress.trim();
+        if (address.startsWith("tcp://") || address.startsWith("ws://") || address.startsWith("wss://")) {
+            address = address.substring(address.indexOf("://") + 3);
+        }
+        if (address.startsWith("[")) {
+            int end = address.indexOf("]:");
+            if (end > 1 && end + 2 < address.length()) {
+                return new HostPort(address.substring(1, end), address.substring(end + 2));
+            }
+            return null;
+        }
+        int separatorIndex = address.lastIndexOf(':');
+        if (separatorIndex <= 0 || separatorIndex >= address.length() - 1) {
+            return null;
+        }
+        return new HostPort(address.substring(0, separatorIndex), address.substring(separatorIndex + 1));
+    }
+
+    private static class HostPort {
+        final String host;
+        final String port;
+
+        HostPort(String host, String port) {
+            this.host = host;
+            this.port = port;
+        }
     }
 
     public interface IChatIp {

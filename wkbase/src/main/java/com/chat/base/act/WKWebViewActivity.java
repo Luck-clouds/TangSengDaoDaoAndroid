@@ -66,12 +66,21 @@ import java.util.List;
 
 @SuppressLint("JavascriptInterface")
 public class WKWebViewActivity extends WKBaseActivity<ActWebvieiwLayoutBinding> {
+    public static final String EXTRA_URL = "url";
+    public static final String EXTRA_CHANNEL_ID = "channelID";
+    public static final String EXTRA_CHANNEL_TYPE = "channelType";
     TextView titleTv;
     private final int FILE_CHOOSER_RESULT_CODE = 101;
     ValueCallback<Uri> mUploadMessage;
     ValueCallback<Uri[]> mUploadCallbackAboveL;
     private String channelID;
     private byte channelType;
+
+    public static Intent createIntent(Context context, String url) {
+        Intent intent = new Intent(context, WKWebViewActivity.class);
+        intent.putExtra(EXTRA_URL, url);
+        return intent;
+    }
 
     @Override
     protected ActWebvieiwLayoutBinding getViewBinding() {
@@ -85,10 +94,10 @@ public class WKWebViewActivity extends WKBaseActivity<ActWebvieiwLayoutBinding> 
 
     @Override
     protected void initPresenter() {
-        if (getIntent().hasExtra("channelID"))
-            channelID = getIntent().getStringExtra("channelID");
-        if (getIntent().hasExtra("channelType"))
-            channelType = getIntent().getByteExtra("channelType", (byte) 0);
+        if (getIntent().hasExtra(EXTRA_CHANNEL_ID))
+            channelID = getIntent().getStringExtra(EXTRA_CHANNEL_ID);
+        if (getIntent().hasExtra(EXTRA_CHANNEL_TYPE))
+            channelType = getIntent().getByteExtra(EXTRA_CHANNEL_TYPE, (byte) 0);
     }
 
     @Override
@@ -142,8 +151,11 @@ public class WKWebViewActivity extends WKBaseActivity<ActWebvieiwLayoutBinding> 
     @Override
     protected void initView() {
         initWebViewSetting();
-        String url = getIntent().getStringExtra("url");
-        assert url != null;
+        String url = getIntent().getStringExtra(EXTRA_URL);
+        if (TextUtils.isEmpty(url)) {
+            finish();
+            return;
+        }
         if (!url.startsWith("http") && !url.startsWith("HTTP") && !url.startsWith("file"))
             url = "http://" + url;
 //        wkVBinding.webView.loadUrl("file:///android_asset/web/report.html");

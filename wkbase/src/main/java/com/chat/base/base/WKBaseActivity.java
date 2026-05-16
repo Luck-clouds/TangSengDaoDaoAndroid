@@ -264,9 +264,7 @@ public abstract class WKBaseActivity<WKVBinding extends ViewBinding> extends Swi
 
 
     protected void showWebView(String url) {
-        Intent intent = new Intent(this, WKWebViewActivity.class);
-        intent.putExtra("url", url);
-        startActivity(intent);
+        startActivity(WKWebViewActivity.createIntent(this, url));
     }
 
 

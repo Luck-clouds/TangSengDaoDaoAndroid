@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <application>
         <activity
-            android:name=".act.WKWebViewActivity"
+            android:name=".act.WKWebViewProxyActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -16,15 +16,22 @@
                     android:scheme="com.xinbida.tangsengdaodao" />
             </intent-filter>
         </activity>
-        <activity android:name=".act.WKCropImageActivity" />
+        <activity
+            android:name=".act.WKWebViewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".act.WKCropImageActivity"
+            android:exported="false" />
 
         <service
             android:name="com.tencent.smtt.export.external.DexClassLoaderProviderService"
+            android:exported="false"
             android:label="dexopt"
             android:process=":dexopt" />
         <activity
             android:name="com.chat.base.act.PlayVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:exported="false"
             android:screenOrientation="portrait" />
 
     </application>

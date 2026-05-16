@@ -20,6 +20,7 @@
 /wkvideo/build
 /wkmoments/build
 /wksticker/build
+/MyLibs/*/build
 /app/release
 /captures
 .externalNativeBuild

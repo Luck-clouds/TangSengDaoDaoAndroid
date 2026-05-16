@@ -20,6 +20,11 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# 自定义混淆字典
+-obfuscationdictionary dictionary.txt
+-classobfuscationdictionary dictionary.txt
+-packageobfuscationdictionary dictionary.txt
+
 
 -optimizationpasses 5
 
@@ -32,34 +37,56 @@
 
 # keep 泛型
 -keepattributes Signature
--keep public class * extends androidx.appcompat.app.AppCompatActivity
--keep public class * extends androidx.multidex.MultiDexApplication
--keep public class * extends androidx.fragment.app.Fragment
--keep public class * extends android.app.Service
--keep public class * extends android.content.BroadcastReceiver
--keep public class * extends android.content.ContentProvider
--keep public class * extends android.app.backup.BackupAgentHelper
--keep public class * extends android.preference.Preference
 -keep interface android.database.Cursor { *; }
 
 -keep class androidx.databinding.** { *; }
 -keep public class * extends androidx.databinding.DataBinderMapper
+-keep class com.qinghangim.app.TSApplication { *; }
 
-# 保持自定义控件类不被混淆
+# 保持 xml onClick 处理方法
 -keepclassmembers class * extends androidx.appcompat.app.AppCompatActivity{
     public void *(android.view.View);
 }
 
-# 自定义view
--keep public class * extends android.view.View{
-        *** get*();
-        void set*(***);
-        public <init>(android.content.Context);
-        public <init>(android.content.Context,android.util.AttributeSet);
-        public <init>(android.content.Context,android.util.AttributeSet,int);
-}
+# 保持 XML 中直接引用的自定义 View 类名
+-keepnames class com.chat.base.ui.components.**
+-keepnames class com.chat.base.views.**
+-keepnames class com.chat.base.jsbrigde.BridgeWebView
+-keepnames class com.chat.base.act.VideoPlayer
+-keepnames class com.chat.uikit.view.**
+-keepnames class com.chat.flagship.picture.view.**
 
--keep class androidx.appcompat.widget.** { *; }
+# 保持 XML inflate 需要的构造器
+-keepclassmembers class com.chat.base.ui.components.** {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
+-keepclassmembers class com.chat.base.views.** {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
+-keepclassmembers class com.chat.base.jsbrigde.BridgeWebView {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
+-keepclassmembers class com.chat.base.act.VideoPlayer {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
+-keepclassmembers class com.chat.uikit.view.** {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
+-keepclassmembers class com.chat.flagship.picture.view.** {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context,android.util.AttributeSet);
+    public <init>(android.content.Context,android.util.AttributeSet,int);
+}
 
 # 保持native方法不被混淆
 -keepclasseswithmembernames class * {
@@ -73,10 +100,9 @@
 }
 
  # 保持Parcelable不被混淆
--keep class * implements android.os.Parcel {
-    public static final android.os.Parcelable$Creator *;
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator CREATOR;
 }
--keepclassmembers class * implements android.os.Parcelable{*;}
 
 #xpopu
 -dontwarn com.lxj.xpopup.widget.**
@@ -84,12 +110,17 @@
 
 #okhttp
 -dontwarn okhttp3.**
--keep class okhttp3.**{*;}
 #okio
 -dontwarn okio.**
--keep class okio.**{*;}
 
--keep class * implements java.io.Serializable { *; }
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
 -keepattributes *Annotation
 -keep class * implements java.lang.annotation.Annotation { *; }
 -keep class com.alibaba.fastjson.* { *; }
@@ -145,70 +176,104 @@
 -dontwarn org.xsocket.**
 -keep class org.xsocket.** {*;}
 
-#----------UI-------------------
--keep class com.chat.base.entity.** { *; }
+#----------基础模块（wkbase / com.chat.base）----------
+-keepclassmembers class com.chat.base.entity.** { <fields>; }
 -keep class com.chat.base.base.** { *; }
--keep class com.chat.base.net.entity.** { *; }
-#----------登录模块---------------
--keep class com.chat.login.entity.** { *; }
-#----------uikit模块--------------
--keep class com.chat.uikit.contacts.FriendUIEntity { *; }
--keep class com.chat.uikit.chat.msgmodel.** { *; }
--keep class com.chat.uikit.enity.** { *; }
--keep class com.chat.uikit.group.service.entity.** { *; }
--keep class com.chat.uikit.group.GroupEntity { *; }
--keep class com.chat.uikit.group.GroupMemberEntity { *; }
--keep class com.chat.uikit.message.Ipentity { *; }
--keep class com.chat.uikit.message.SyncMsg { *; }
--keep class com.chat.uikit.message.SyncMsgHeader { *; }
--keep class com.chat.uikit.search.SearchUserEntity { *; }
--keep class com.chat.uikit.robot.entity.** { *; }
-#----------群管理-----------------
--keep class com.chat.groupmanage.entity.** { *; }
-#----------文件模块----------------
+-keepclassmembers class com.chat.base.net.entity.** { <fields>; }
+#----------登录模块（wklogin / com.chat.login）----------
+-keepclassmembers class com.chat.login.entity.** { <fields>; }
+#----------UIKit 模块（wkuikit / com.chat.uikit）----------
+-keepclassmembers class com.chat.uikit.chat.msgmodel.** { <fields>; }
+-keepclassmembers class com.chat.uikit.enity.** { <fields>; }
+-keepclassmembers class com.chat.uikit.group.service.entity.** { <fields>; }
+-keepclassmembers class com.chat.uikit.message.Ipentity { <fields>; }
+-keepclassmembers class com.chat.uikit.message.SyncMsg { <fields>; }
+-keepclassmembers class com.chat.uikit.message.SyncMsgHeader { <fields>; }
+-keepclassmembers class com.chat.uikit.search.SearchUserEntity { <fields>; }
+-keepclassmembers class com.chat.uikit.robot.entity.** { <fields>; }
+-keep class com.chat.base.msg.model.WKGifContent {
+    public <init>();
+}
+-keep class com.chat.uikit.chat.msgmodel.WKCardContent {
+    public <init>();
+}
+-keep class com.chat.uikit.chat.msgmodel.WKFileContent {
+    public <init>();
+}
+-keep class com.chat.uikit.chat.msgmodel.WKMultiForwardContent {
+    public <init>();
+}
+-keep class com.chat.uikit.chat.provider.** {
+    public <init>();
+}
+#----------群管理模块（历史包名保留）----------
+-keepclassmembers class com.chat.groupmanage.entity.** { <fields>; }
+#----------文件模块（历史包名保留）----------
 -keep class com.chat.file.msgitem.FileContent { *; }
-#----------收藏模块----------------
--keep class com.chat.favorite.entity.**{ *; }
-#----------扫一扫模块----------------
--keep class com.chat.scan.entity.** { *; }
-#----------朋友圈模块----------------
--keep class com.chat.moments.entity.** { *; }
-#----------标签模块------------------
--keep class com.chat.label.entity.** { *; }
-#----------表情模块------------------
--keep class com.chat.sticker.entity.** { *; }
-#----------客服------------------
--keep class com.chat.customerservice.entity.** { *; }
-#----------隐私安全------------------
--keep class com.chat.security.entity.** { *; }
-#----------旗舰模块------------------
--keep class com.chat.advanced.entity.** { *; }
-#----------音视频------------------
--keep class com.chat.rtc.entity.** { *; }
+#----------收藏模块（历史包名保留）----------
+-keepclassmembers class com.chat.favorite.entity.**{ <fields>; }
+#----------扫一扫模块（wkscan / com.chat.scan）----------
+-keepclassmembers class com.chat.scan.entity.** { <fields>; }
+#----------朋友圈模块（wkmoments / com.chat.moments）----------
+-keepclassmembers class com.chat.moments.entity.** { <fields>; }
+#----------标签模块（历史包名保留）----------
+-keepclassmembers class com.chat.label.entity.** { <fields>; }
+#----------表情模块（wksticker / com.chat.sticker）----------
+-keepclassmembers class com.chat.sticker.entity.** { <fields>; }
+-keep class com.chat.sticker.msg.WKVectorStickerContent {
+    public <init>();
+}
+-keep class com.chat.sticker.msg.WKEmojiStickerContent {
+    public <init>();
+}
+-keep class com.chat.sticker.ui.provider.WKStickerProvider {
+    public <init>();
+    public <init>(int);
+}
+#----------客服模块（历史包名保留）----------
+-keepclassmembers class com.chat.customerservice.entity.** { <fields>; }
+#----------安全与隐私功能说明----------
+# 当前安全与隐私功能并入 wkuikit.setting，没有独立的 com.chat.security.entity 包
+#----------旗舰模块（wkflagship / com.chat.flagship）----------
+-keepclassmembers class com.chat.flagship.entity.** { <fields>; }
+-keepclassmembers class com.chat.flagship.msgmodel.** { <fields>; }
+-keep class com.chat.flagship.msgmodel.WKScreenShotContent {
+    public <init>();
+}
+-keep class com.chat.flagship.msgmodel.WKRichTextContent {
+    public <init>();
+}
+-keep class com.chat.flagship.provider.** {
+    public <init>();
+}
+#----------音视频模块（wkvideo / com.chat.video）----------
+-keep class com.chat.video.contract.** { *; }
+-keep class com.chat.video.session.** { *; }
+-keep class com.chat.video.provider.** {
+    public <init>();
+}
 -keep class owt.**{*;}
 -keep class org.webrtc.**{*;}
-#----------社区------------------
--keep class com.community.entity.** { *; }
-#----------用户名登录------------------
--keep class com.chat.wkusernamelogin.entity.**{*;}
-#----------web3------------------
--keep class com.chat.wkweb3.entity.**{*;}
-#----------工作台------------------
--keep class com.chat.workplace.entity.**{*;}
-#----------组织架构------------------
--keep class com.chat.organization.entity.**{*;}
-#----------消息置顶------------------
--keep class com.chat.pinned.message.entity.**{*;}
-#---------注册邀请模块-------------
--keep class com.chat.invite.entity.**{*;}
+#----------社区模块（历史包名保留）----------
+-keepclassmembers class com.community.entity.** { <fields>; }
+#----------用户名登录模块（历史包名保留）----------
+-keepclassmembers class com.chat.wkusernamelogin.entity.** { <fields>; }
+#----------Web3 模块（历史包名保留）----------
+-keepclassmembers class com.chat.wkweb3.entity.** { <fields>; }
+#----------工作台模块（历史包名保留）----------
+-keepclassmembers class com.chat.workplace.entity.** { <fields>; }
+#----------组织架构模块（历史包名保留）----------
+-keepclassmembers class com.chat.organization.entity.** { <fields>; }
+#----------消息置顶模块（历史包名保留）----------
+-keepclassmembers class com.chat.pinned.message.entity.** { <fields>; }
+#----------注册邀请模块（历史包名保留）----------
+-keepclassmembers class com.chat.invite.entity.** { <fields>; }
 
 -keep class org.web3j.**{*;}
 -dontwarn org.web3j.**
 
 #---------rxjava retrofit 混淆-----------------
 -dontnote retrofit2.Platform
--keep class retrofit2.**{}
--keep class io.reactivex.rxjava3.**{}
 
 # RxJava RxAndroid
 -dontwarn sun.misc.**
@@ -234,14 +299,6 @@
 -keep class com.shuyu.alipay.** {*;}
 -keep interface com.shuyu.alipay.**
 
--keep public class * extends android.view.View{
-    *** get*();
-    void set*(***);
-    public <init>(android.content.Context);
-    public <init>(android.content.Context, java.lang.Boolean);
-    public <init>(android.content.Context, android.util.AttributeSet);
-    public <init>(android.content.Context, android.util.AttributeSet, int);
-}
 #--------角标---------
 -keep class me.leolin.shortcutbadger.**{*;}
 #-------------x5webview------------
@@ -266,7 +323,6 @@
 -dontwarn com.xiaomi.push.**
 
 #-----------oppo----------------
--keep public class * extends android.app.Service
 -keep class com.heytap.msp.** { *;}
 
 #------------FMC---------------
@@ -290,9 +346,7 @@
 
 #---------音视频------------------
 -dontwarn org.json.**
--keep class org.json.** {*;}
 -dontwarn com.google.gson.**
--keep class com.google.gson.** {*;}
 -dontwarn aidl.**
 -keep class aidl.** { *; }
 -keep class io.socket.** {*;}

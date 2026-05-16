@@ -125,8 +125,7 @@
         <!--Firebase-->
         <service
             android:name="com.chat.push.push.WKFirebaseMessagingService"
-            android:exported="true"
-            android:permission="com.heytap.mcs.permission.SEND_PUSH_MESSAGE">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
