@@ -266,7 +266,7 @@ public class WKBaseCMDManager {
                             WKLogUtils.e("处理cmd错误");
                         }
                     }
-                } else if (WKBaseCmd.cmd.startsWith("rtc.p2p")) {
+                } else if (WKBaseCmd.cmd.startsWith("rtc.")) {
                     try {
                         JSONObject jsonObject = new JSONObject(WKBaseCmd.param);
                         rtcList.add(new WKCMD(WKBaseCmd.cmd, jsonObject));

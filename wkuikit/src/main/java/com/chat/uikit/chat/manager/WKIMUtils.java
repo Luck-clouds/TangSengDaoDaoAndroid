@@ -63,6 +63,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -72,6 +73,8 @@ import java.util.UUID;
  * im监听相关处理
  */
 public class WKIMUtils {
+    private boolean listenerRegistered = false;
+    private final Handler rtcProbeHandler = new Handler(Looper.getMainLooper());
 
     private WKIMUtils() {
     }
@@ -88,6 +91,10 @@ public class WKIMUtils {
      * 初始化事件
      */
     public void initIMListener() {
+        if (listenerRegistered) {
+            return;
+        }
+        listenerRegistered = true;
         EndpointManager.getInstance().setMethod("show_rtc_notification", object -> {
             if (object instanceof String fromUID) {
                 WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(fromUID, WKChannelType.PERSONAL);
@@ -98,6 +105,8 @@ public class WKIMUtils {
                     } else fromName = channel.channelRemark;
                 }
 
+                EndpointManager.getInstance().invoke("stop_rtc_media", null);
+                NotificationCompatUtil.Companion.cancel(WKUIKitApplication.getInstance().getContext(), 2);
                 Vibrator mVibrator = (Vibrator) WKBaseApplication.getInstance().getContext().getSystemService(Context.VIBRATOR_SERVICE);
                 long[] pattern = {0, 1000, 1000};
                 AudioAttributes audioAttributes;
@@ -110,11 +119,19 @@ public class WKIMUtils {
                 } else {
                     mVibrator.vibrate(pattern, 0);
                 }
+                EndpointManager.getInstance().invoke("play_rtc_media", null);
                 PushNotificationHelper.INSTANCE.notifyCall(WKUIKitApplication.getInstance().getContext(), 2, fromName, WKBaseApplication.getInstance().getContext().getString(R.string.invite_call));
             }
             return null;
         });
         EndpointManager.getInstance().setMethod("cancel_rtc_notification", object -> {
+            Vibrator vibrator = (Vibrator) WKBaseApplication.getInstance().getContext().getSystemService(Context.VIBRATOR_SERVICE);
+            vibrator.cancel();
+            EndpointManager.getInstance().invoke("stop_rtc_media", null);
+            NotificationCompatUtil.Companion.cancel(WKUIKitApplication.getInstance().getContext(), 2);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("cancel_rtc_notice_only", object -> {
             Vibrator vibrator = (Vibrator) WKBaseApplication.getInstance().getContext().getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.cancel();
             NotificationCompatUtil.Companion.cancel(WKUIKitApplication.getInstance().getContext(), 2);
@@ -190,6 +207,7 @@ public class WKIMUtils {
                 channelID = msgList.get(msgList.size() - 1).channelID;
                 channelType = msgList.get(msgList.size() - 1).channelType;
                 for (int i = 0, size = msgList.size(); i < size; i++) {
+                    normalizeRtcMessage(msgList.get(i));
                     if (msgList.get(i).type == WKContentType.setNewGroupAdmin) {
                         GroupModel.getInstance().groupMembersSync(msgList.get(i).channelID, null);
                     } else if (msgList.get(i).type == WKContentType.groupSystemInfo) {
@@ -270,7 +288,12 @@ public class WKIMUtils {
             if (newMsgNotice && isAlertMsg && (TextUtils.isEmpty(WKUIKitApplication.getInstance().chattingChannelID) || !WKUIKitApplication.getInstance().chattingChannelID.equals(channelID))) {
                 WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(channelID, channelType);
                 if (channel != null && channel.mute == 0) {
-                    showNotification(msgList.get(msgList.size() - 1), msgShowDetail, channel, playNewMsgMedia, isVibrate);
+                    WKMsg latestMsg = msgList.get(msgList.size() - 1);
+                    if (latestMsg.type == WKContentType.rtcNotice) {
+                        EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(latestMsg.channelID, latestMsg.channelType));
+                    } else {
+                        showNotification(latestMsg, msgShowDetail, channel, playNewMsgMedia, isVibrate);
+                    }
                 }
             }
 
@@ -356,7 +379,7 @@ public class WKIMUtils {
                         if (TextUtils.isEmpty(channelID)) {
                             return;
                         }
-                        MsgModel.getInstance().syncExtraMsg(channelID, channelType);
+                        syncRtcExtraCandidates(channelID, channelType);
                     }
                     case WKCMDKeys.wk_memberUpdate -> {
                         if (cmd.paramJsonObject == null) {
@@ -387,6 +410,7 @@ public class WKIMUtils {
     }
 
     public WKUIChatMsgItemEntity msg2UiMsg(IConversationContext context, WKMsg msg, int memberCount, boolean showNickName, boolean isChoose) {
+        normalizeRtcMessage(msg);
         if (msg.remoteExtra.readedCount == 0) {
             msg.remoteExtra.unreadCount = memberCount - 1;
         }
@@ -440,6 +464,22 @@ public class WKIMUtils {
 
         // 计算气泡类型
         return uiChatMsgItemEntity;
+    }
+
+    private void normalizeRtcMessage(WKMsg msg) {
+        if (msg == null || TextUtils.isEmpty(msg.content)) {
+            return;
+        }
+        try {
+            JSONObject content = new JSONObject(msg.content);
+            String type = content.optString("type");
+            if ("rtc_notice".equals(type)) {
+                msg.type = WKContentType.rtcNotice;
+            } else if ("rtc_record".equals(type)) {
+                msg.type = WKContentType.rtcRecord;
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public void resetMsgProhibitWord(WKMsg msg) {
@@ -688,8 +728,54 @@ public class WKIMUtils {
     }
 
     public void removeListener() {
-        WKIM.getInstance().getCMDManager().removeCmdListener("system");
-        WKIM.getInstance().getMsgManager().removeNewMsgListener("system");
+        // Keep global listeners alive in background so system-wide notifications
+        // keep working for chat and RTC events.
+    }
+
+    private void syncRtcExtraCandidates(String channelID, byte channelType) {
+        syncRtcExtraCandidates(channelID, channelType, 0L);
+        if (channelType == WKChannelType.PERSONAL) {
+            long[] retryDelays = new long[]{800L, 1800L, 3200L, 5000L, 8000L};
+            for (long delay : retryDelays) {
+                syncRtcExtraCandidates(channelID, channelType, delay);
+            }
+        }
+    }
+
+    private void syncRtcExtraCandidates(String channelID, byte channelType, long delayMs) {
+        Runnable task = () -> {
+            MsgModel.getInstance().syncExtraMsg(channelID, channelType);
+            EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelID, channelType));
+            if (channelType != WKChannelType.PERSONAL) {
+                return;
+            }
+            LinkedHashSet<String> candidateIds = new LinkedHashSet<>();
+            candidateIds.add(channelID);
+            String loginUID = WKConfig.getInstance().getUid();
+            if (!TextUtils.isEmpty(loginUID)) {
+                candidateIds.add(loginUID);
+            }
+            List<WKConversationMsg> conversations = WKIM.getInstance().getConversationManager().getWithChannelType(WKChannelType.PERSONAL);
+            if (WKReader.isNotEmpty(conversations)) {
+                for (WKConversationMsg conversation : conversations) {
+                    if (conversation != null && !TextUtils.isEmpty(conversation.channelID)) {
+                        candidateIds.add(conversation.channelID);
+                    }
+                }
+            }
+            for (String candidateId : candidateIds) {
+                if (TextUtils.isEmpty(candidateId) || TextUtils.equals(candidateId, channelID)) {
+                    continue;
+                }
+                MsgModel.getInstance().syncExtraMsg(candidateId, WKChannelType.PERSONAL);
+                EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(candidateId, WKChannelType.PERSONAL));
+            }
+        };
+        if (delayMs <= 0L) {
+            task.run();
+        } else {
+            rtcProbeHandler.postDelayed(task, delayMs);
+        }
     }
 
 

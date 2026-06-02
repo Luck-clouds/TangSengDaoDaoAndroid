@@ -204,6 +204,9 @@
     <string name="choose_members">Choose Members</string>
     <string name="video_call">Video Call</string>
     <string name="audio_call">Audio Call</string>
+    <string name="phone_call_entry">Phone</string>
+    <string name="video_call_entry">Video</string>
+    <string name="rtc_not_available">Calling is not available yet</string>
     <string name="is_calling">In Call</string>
     <string name="official">Official</string>
     <string name="join_group_source">Join Group way</string>

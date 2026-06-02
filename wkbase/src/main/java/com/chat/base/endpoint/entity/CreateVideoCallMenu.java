@@ -14,11 +14,17 @@ public class CreateVideoCallMenu {
     public byte channelType;
     public List<WKChannel> WKChannels;
     public Activity activity;
+    public int callType = 1;
 
     public CreateVideoCallMenu(Activity activity, String channelID, byte channelType, List<WKChannel> WKChannels) {
         this.WKChannels = WKChannels;
         this.activity = activity;
         this.channelID = channelID;
         this.channelType = channelType;
+    }
+
+    public CreateVideoCallMenu(Activity activity, String channelID, byte channelType, List<WKChannel> WKChannels, int callType) {
+        this(activity, channelID, channelType, WKChannels);
+        this.callType = callType;
     }
 }

@@ -32,20 +32,14 @@ if (googleServicesFile.exists()) {
 }
 
 android {
-//    signingConfigs {
-//        debug {
-//            storeFile file('../demo.jks')
-//            storePassword 'demo1365'
-//            keyAlias = 'demo'
-//            keyPassword 'demo1365'
-//        }
-//        release {
-//            storeFile file('../demo.jks')
-//            storePassword 'demo1365'
-//            keyAlias = 'demo'
-//            keyPassword 'demo1365'
-//        }
-//    }
+    signingConfigs {
+        release {
+            storeFile file('src/key/Android.jks')
+            storePassword 'WZZwzz123$'
+            keyAlias = 'dvmbnmrsxay'
+            keyPassword 'WZZwzz123$'
+        }
+    }
     namespace appId
     compileSdk rootProject.ext.compileSdkVersion
     aaptOptions.cruncherEnabled = false
@@ -75,12 +69,12 @@ android {
 
     buildTypes {
         release {
-            jniDebuggable true
-              zipAlignEnabled true   //Zipalign优化
-            minifyEnabled true  // 是否混淆
-            shrinkResources true  // 是否去除无效的资源文件
+            jniDebuggable false
+            zipAlignEnabled true   //Zipalign优化
+            minifyEnabled false  // 是否混淆
+            shrinkResources false  // 是否去除无效的资源文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-           // signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
         }
 //        debug {
 //            jniDebuggable true
@@ -122,6 +116,7 @@ dependencies {
     implementation project(path: ':wkvideo')
     implementation project(path: ':wkmoments')
     implementation project(path: ':wksticker')
+    implementation project(path: ':wkrtc')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:core:1.6.1'
     androidTestImplementation 'androidx.test:runner:1.6.2'

@@ -47,6 +47,10 @@ public class WKContentType extends WKMsgContentType {
     public final static int approveGroupMember = 1009;
     //截屏消息
     public final static int screenshot = 20;
+    //RTC 通话通知
+    public final static int rtcNotice = 21;
+    //RTC 通话记录
+    public final static int rtcRecord = 22;
 
     public static boolean isSystemMsg(int type) {
         return type >= 1000 && type <= 2000;
@@ -57,6 +61,8 @@ public class WKContentType extends WKMsgContentType {
     }
 
     public static boolean isSupportNotification(int type) {
-        return type >= WK_TEXT && type <= richText;
+        return (type >= WK_TEXT && type <= richText)
+                || type == rtcNotice
+                || type == rtcRecord;
     }
 }

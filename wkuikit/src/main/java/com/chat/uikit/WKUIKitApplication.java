@@ -12,14 +12,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -48,11 +55,13 @@ import com.chat.base.endpoint.entity.ChatToolBarMenu;
 import com.chat.base.endpoint.entity.ChatViewMenu;
 import com.chat.base.endpoint.entity.ChooseChatMenu;
 import com.chat.base.endpoint.entity.ChooseContactsMenu;
+import com.chat.base.endpoint.entity.CreateVideoCallMenu;
 import com.chat.base.endpoint.entity.ContactsMenu;
 import com.chat.base.endpoint.entity.DBMenu;
 import com.chat.base.endpoint.entity.LoginMenu;
 import com.chat.base.endpoint.entity.MsgConfig;
 import com.chat.base.endpoint.entity.PersonalInfoMenu;
+import com.chat.base.endpoint.entity.RTCMenu;
 import com.chat.base.endpoint.entity.ScanResultMenu;
 import com.chat.base.endpoint.entity.SearchChatContentMenu;
 import com.chat.base.endpoint.entity.SaveLabelMenu;
@@ -72,9 +81,11 @@ import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKChannelMemberRole;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.base.net.HttpResponseCode;
+import com.chat.base.ui.Theme;
 import com.chat.base.ui.components.AlertDialog;
 import com.chat.base.ui.components.AvatarView;
 import com.chat.base.utils.ActManagerUtils;
+import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.ImageUtils;
 import com.chat.base.utils.LayoutHelper;
 import com.chat.base.utils.WKDeviceUtils;
@@ -114,6 +125,7 @@ import com.chat.uikit.contacts.label.LabelListActivity;
 import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.favorite.FavoriteListActivity;
 import com.chat.uikit.favorite.FavoriteModel;
+import com.chat.uikit.group.ChooseVideoCallMembersActivity;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
 import com.chat.uikit.group.manage.GroupAvatarActivity;
@@ -146,6 +158,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -159,6 +172,25 @@ public class WKUIKitApplication {
     public String chattingChannelID;
     public SensitiveWords sensitiveWords;
     public boolean isRefreshChatActivityMessage = false;
+    private FrameLayout rtcFloatingView;
+    private ImageView rtcFloatingIcon;
+    private TextView rtcFloatingTitleTv;
+    private TextView rtcFloatingSubtitleTv;
+    private WeakReference<Activity> rtcFloatingHost;
+    private float rtcFloatingX = -1f;
+    private float rtcFloatingY = -1f;
+    private final Handler rtcFloatingHandler = new Handler(Looper.getMainLooper());
+    private final Runnable rtcFloatingRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Activity host = rtcFloatingHost == null ? null : rtcFloatingHost.get();
+            if (host == null || rtcFloatingView == null || rtcFloatingView.getVisibility() != View.VISIBLE) {
+                return;
+            }
+            syncRtcFloatingView(host);
+            rtcFloatingHandler.postDelayed(this, 1000L);
+        }
+    };
 
     private WKUIKitApplication() {
     }
@@ -177,6 +209,7 @@ public class WKUIKitApplication {
         this.mContext = new WeakReference<>(mContext);
         initIM();
         SecurityPrivacyManager.getInstance().init(mContext);
+        registerRtcFloatingLifecycle(mContext);
         //初始化im事件及监听
         WKIMUtils.getInstance().initIMListener();
         initKitModuleListener();
@@ -191,6 +224,214 @@ public class WKUIKitApplication {
 
     public Context getContext() {
         return mContext.get();
+    }
+
+    private void registerRtcFloatingLifecycle(Application application) {
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(@NonNull Activity activity, android.os.Bundle bundle) {
+            }
+
+            @Override
+            public void onActivityStarted(@NonNull Activity activity) {
+            }
+
+            @Override
+            public void onActivityResumed(@NonNull Activity activity) {
+                syncRtcFloatingView(activity);
+            }
+
+            @Override
+            public void onActivityPaused(@NonNull Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(@NonNull Activity activity) {
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull android.os.Bundle bundle) {
+            }
+
+            @Override
+            public void onActivityDestroyed(@NonNull Activity activity) {
+                Activity host = rtcFloatingHost == null ? null : rtcFloatingHost.get();
+                if (host == activity) {
+                    detachRtcFloatingView();
+                }
+            }
+        });
+    }
+
+    private void syncRtcFloatingView(Activity activity) {
+        if (activity == null) {
+            detachRtcFloatingView();
+            return;
+        }
+        if ("com.chat.rtc.ui.RtcCallActivity".equals(activity.getClass().getName())) {
+            detachRtcFloatingView();
+            return;
+        }
+        Object summaryObject = EndpointManager.getInstance().invoke("rtc_get_session_summary", null);
+        if (!(summaryObject instanceof Map<?, ?> summary)) {
+            detachRtcFloatingView();
+            return;
+        }
+        Object minimizedObject = summary.get("minimized");
+        if (!(minimizedObject instanceof Boolean) || !((Boolean) minimizedObject)) {
+            detachRtcFloatingView();
+            return;
+        }
+        ensureRtcFloatingView(activity);
+        int callType = summary.get("callType") instanceof Number ? ((Number) summary.get("callType")).intValue() : 0;
+        rtcFloatingIcon.setImageResource(callType == 1 ? R.drawable.ic_func_video_call : R.mipmap.ic_call);
+        rtcFloatingIcon.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(activity, R.color.colorDark), PorterDuff.Mode.MULTIPLY));
+        rtcFloatingTitleTv.setText(String.valueOf(summary.get("title")));
+        rtcFloatingSubtitleTv.setText(String.valueOf(summary.get("subtitle")));
+        rtcFloatingView.setVisibility(View.VISIBLE);
+        rtcFloatingHandler.removeCallbacks(rtcFloatingRefreshRunnable);
+        rtcFloatingHandler.postDelayed(rtcFloatingRefreshRunnable, 1000L);
+    }
+
+    private void ensureRtcFloatingView(Activity activity) {
+        if (rtcFloatingView == null) {
+            buildRtcFloatingView(activity);
+        }
+        FrameLayout root = activity.findViewById(android.R.id.content);
+        if (root == null) {
+            return;
+        }
+        ViewGroup parent = (ViewGroup) rtcFloatingView.getParent();
+        if (parent != null && parent != root) {
+            parent.removeView(rtcFloatingView);
+        }
+        if (rtcFloatingView.getParent() == null) {
+            root.addView(rtcFloatingView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        rtcFloatingHost = new WeakReference<>(activity);
+        root.post(() -> {
+            if (rtcFloatingX < 0f || rtcFloatingY < 0f) {
+                rtcFloatingX = root.getWidth() - rtcFloatingView.getWidth() - AndroidUtilities.dp(16);
+                rtcFloatingY = root.getHeight() - rtcFloatingView.getHeight() - AndroidUtilities.dp(140);
+            }
+            applyRtcFloatingPosition(root);
+        });
+    }
+
+    private void buildRtcFloatingView(Activity activity) {
+        rtcFloatingView = new FrameLayout(activity);
+        rtcFloatingView.setVisibility(View.GONE);
+        GradientDrawable backgroundDrawable = new GradientDrawable();
+        backgroundDrawable.setColor(ContextCompat.getColor(activity, R.color.white));
+        backgroundDrawable.setCornerRadius(AndroidUtilities.dp(18));
+        backgroundDrawable.setStroke(AndroidUtilities.dp(1), 0x14000000);
+        rtcFloatingView.setBackground(backgroundDrawable);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            rtcFloatingView.setElevation(AndroidUtilities.dp(8));
+        }
+
+        LinearLayout container = new LinearLayout(activity);
+        container.setOrientation(LinearLayout.HORIZONTAL);
+        container.setGravity(Gravity.CENTER_VERTICAL);
+        container.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(10), AndroidUtilities.dp(12), AndroidUtilities.dp(10));
+        rtcFloatingView.addView(container, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        rtcFloatingIcon = new ImageView(activity);
+        container.addView(rtcFloatingIcon, new LinearLayout.LayoutParams(AndroidUtilities.dp(18), AndroidUtilities.dp(18)));
+
+        LinearLayout textWrap = new LinearLayout(activity);
+        textWrap.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        textLp.leftMargin = AndroidUtilities.dp(8);
+        container.addView(textWrap, textLp);
+
+        rtcFloatingTitleTv = new TextView(activity);
+        rtcFloatingTitleTv.setTextColor(ContextCompat.getColor(activity, R.color.colorDark));
+        rtcFloatingTitleTv.setTextSize(13);
+        rtcFloatingTitleTv.setSingleLine(true);
+        textWrap.addView(rtcFloatingTitleTv);
+
+        rtcFloatingSubtitleTv = new TextView(activity);
+        rtcFloatingSubtitleTv.setTextColor(ContextCompat.getColor(activity, R.color.colorDark));
+        rtcFloatingSubtitleTv.setAlpha(0.72f);
+        rtcFloatingSubtitleTv.setTextSize(11);
+        rtcFloatingSubtitleTv.setSingleLine(true);
+        textWrap.addView(rtcFloatingSubtitleTv);
+
+        rtcFloatingView.setOnClickListener(v -> {
+            Activity current = ActManagerUtils.getInstance().getCurrentActivity();
+            if (current != null) {
+                EndpointManager.getInstance().invoke("rtc_reopen_current", current);
+            }
+        });
+        rtcFloatingView.setOnTouchListener(new View.OnTouchListener() {
+            private float downRawX;
+            private float downRawY;
+            private float startX;
+            private float startY;
+            private boolean dragging;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                ViewGroup parent = (ViewGroup) v.getParent();
+                if (parent == null) {
+                    return false;
+                }
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        downRawX = event.getRawX();
+                        downRawY = event.getRawY();
+                        startX = rtcFloatingX;
+                        startY = rtcFloatingY;
+                        dragging = false;
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = event.getRawX() - downRawX;
+                        float dy = event.getRawY() - downRawY;
+                        if (!dragging && (Math.abs(dx) > AndroidUtilities.dp(4) || Math.abs(dy) > AndroidUtilities.dp(4))) {
+                            dragging = true;
+                        }
+                        rtcFloatingX = startX + dx;
+                        rtcFloatingY = startY + dy;
+                        applyRtcFloatingPosition(parent);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        if (!dragging) {
+                            v.performClick();
+                        } else {
+                            applyRtcFloatingPosition(parent);
+                        }
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+    }
+
+    private void applyRtcFloatingPosition(ViewGroup parent) {
+        if (rtcFloatingView == null || parent == null) {
+            return;
+        }
+        float maxX = Math.max(0, parent.getWidth() - rtcFloatingView.getWidth() - AndroidUtilities.dp(8));
+        float maxY = Math.max(0, parent.getHeight() - rtcFloatingView.getHeight() - AndroidUtilities.dp(8));
+        rtcFloatingX = Math.max(AndroidUtilities.dp(8), Math.min(rtcFloatingX, maxX));
+        rtcFloatingY = Math.max(AndroidUtilities.dp(60), Math.min(rtcFloatingY, maxY));
+        rtcFloatingView.setX(rtcFloatingX);
+        rtcFloatingView.setY(rtcFloatingY);
+    }
+
+    private void detachRtcFloatingView() {
+        rtcFloatingHandler.removeCallbacks(rtcFloatingRefreshRunnable);
+        if (rtcFloatingView != null) {
+            ViewGroup parent = (ViewGroup) rtcFloatingView.getParent();
+            if (parent != null) {
+                parent.removeView(rtcFloatingView);
+            }
+            rtcFloatingView.setVisibility(View.GONE);
+        }
+        rtcFloatingHost = null;
     }
 
 
@@ -407,7 +648,22 @@ public class WKUIKitApplication {
         //添加聊天功能面板
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseImg", EndpointCategory.chatFunction, 100, object -> new ChatFunctionMenu("chooseImg", R.mipmap.icon_func_album, mContext.get().getString(R.string.image), this::chooseIMG));
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseFile", EndpointCategory.chatFunction, 98, object -> new ChatFunctionMenu("chooseFile", R.mipmap.icon_func_file, mContext.get().getString(R.string.file), this::chooseFile));
-        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseCard", EndpointCategory.chatFunction, 95, object -> new ChatFunctionMenu("chooseCard", R.mipmap.icon_func_card, mContext.get().getString(R.string.card), IConversationContext::sendCardMsg));
+        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseCard", EndpointCategory.chatFunction, 96, object -> new ChatFunctionMenu("chooseCard", R.mipmap.icon_func_card, mContext.get().getString(R.string.card), IConversationContext::sendCardMsg));
+        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_audioCall", EndpointCategory.chatFunction, 95, object -> {
+            IConversationContext conversationContext = (IConversationContext) object;
+            return new ChatFunctionMenu("audioCall", R.drawable.ic_func_phone, mContext.get().getString(R.string.phone_call_entry), conversationContext1 -> startPanelCall(conversationContext1, 0));
+        });
+        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_videoCall", EndpointCategory.chatFunction, 94, object -> {
+            IConversationContext conversationContext = (IConversationContext) object;
+            return new ChatFunctionMenu("videoCall", R.drawable.ic_func_video_call, mContext.get().getString(R.string.video_call_entry), conversationContext1 -> startPanelCall(conversationContext1, 1));
+        });
+        EndpointManager.getInstance().setMethod("restart_rtc_call_from_msg", object -> {
+            if (object instanceof RTCMenu) {
+                RTCMenu menu = (RTCMenu) object;
+                startPanelCall(menu.iConversationContext, menu.callType);
+            }
+            return null;
+        });
 
 
         //添加tab页
@@ -854,6 +1110,51 @@ public class WKUIKitApplication {
         intent.putExtra("channelId", iConversationContext.getChatChannelInfo().channelID);
         intent.putExtra("channelType", iConversationContext.getChatChannelInfo().channelType);
         iConversationContext.getChatActivity().startActivity(intent);
+    }
+
+    private void startPanelCall(IConversationContext conversationContext, int callType) {
+        Object isRegisterRTC = EndpointManager.getInstance().invoke("is_register_rtc", null);
+        if (!(isRegisterRTC instanceof Boolean) || !((Boolean) isRegisterRTC)) {
+            WKToastUtils.getInstance().showToastNormal(conversationContext.getChatActivity().getString(R.string.rtc_not_available));
+            return;
+        }
+        if (conversationContext.getChatChannelInfo().channelType != WKChannelType.PERSONAL) {
+            showGroupCallModeDialog(conversationContext, callType);
+            return;
+        }
+        EndpointManager.getInstance().invoke("wk_p2p_call", new RTCMenu(conversationContext, callType));
+    }
+
+    private void showGroupCallModeDialog(IConversationContext conversationContext, int callType) {
+        Activity activity = conversationContext.getChatActivity();
+        if (activity == null) {
+            return;
+        }
+        String[] items = {"邀请全体成员通话", "选择成员通话"};
+        new AlertDialog.Builder(activity)
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        EndpointManager.getInstance().invoke(
+                                "create_video_call",
+                                new CreateVideoCallMenu(
+                                        activity,
+                                        conversationContext.getChatChannelInfo().channelID,
+                                        conversationContext.getChatChannelInfo().channelType,
+                                        null,
+                                        callType
+                                )
+                        );
+                    } else {
+                        Intent intent = new Intent(activity, ChooseVideoCallMembersActivity.class);
+                        intent.putExtra("channelID", conversationContext.getChatChannelInfo().channelID);
+                        intent.putExtra("channelType", conversationContext.getChatChannelInfo().channelType);
+                        intent.putExtra("isCreate", true);
+                        intent.putExtra("callType", callType);
+                        activity.startActivity(intent);
+                    }
+                })
+                .create()
+                .show();
     }
 
     public interface IShowChatConfirm {

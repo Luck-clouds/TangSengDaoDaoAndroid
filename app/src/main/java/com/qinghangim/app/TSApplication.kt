@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Process
 import android.text.TextUtils
+import android.util.Log
 import androidx.multidex.MultiDexApplication
 import com.chat.base.WKBaseApplication
 import com.chat.base.config.WKApiConfig
@@ -32,6 +33,7 @@ import com.chat.flagship.WKFlagshipApplication
 import com.chat.login.WKLoginApplication
 import com.chat.moments.WKMomentsApplication
 import com.chat.push.WKPushApplication
+import com.chat.rtc.WKRTCApplication
 import com.chat.scan.WKScanApplication
 import com.chat.sticker.WKStickerApplication
 import com.chat.uikit.TabActivity
@@ -43,6 +45,14 @@ import com.qinghangim.app.R
 import kotlin.system.exitProcess
 
 class TSApplication : MultiDexApplication() {
+    companion object {
+        private const val TAG = "TSApplication"
+        private const val API_BASE_URL_KEY = "api_base_url"
+        private const val DEFAULT_API_URL = "http://192.168.110.104:8090"
+        @Volatile
+        var appInForeground: Boolean = false
+    }
+
     override fun onCreate() {
         super.onCreate()
         val processName = getProcessName(this, Process.myPid())
@@ -109,19 +119,27 @@ class TSApplication : MultiDexApplication() {
         WKVideoApplication.getInstance().init(this)
         WKMomentsApplication.getInstance().init(this)
         WKStickerApplication.getInstance().init(this)
+        WKRTCApplication.getInstance().init(this)
         WKPushApplication.getInstance().init(getAppPackageName(), this)
         addAppFrontBack()
         addListener()
     }
 
     private fun initApi() {
-        var apiURL = WKSharedPreferencesUtil.getInstance().getSP("api_base_url")
+        val apiURL = normalizeApiUrl(WKSharedPreferencesUtil.getInstance().getSP(API_BASE_URL_KEY))
+        WKApiConfig.initBaseURLIncludeIP(apiURL)
+        Log.i(TAG, "api base url: $apiURL")
+    }
+
+    private fun normalizeApiUrl(apiURL: String?): String {
         if (TextUtils.isEmpty(apiURL)) {
-            apiURL = "http://192.168.110.104:8090"
-            WKApiConfig.initBaseURL(apiURL)
-        } else {
-            WKApiConfig.initBaseURLIncludeIP(apiURL)
+            return DEFAULT_API_URL
         }
+        var normalized = apiURL!!.trim()
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "http://$normalized"
+        }
+        return normalized.trimEnd('/')
     }
 
     private fun getAppPackageName(): String {
@@ -143,6 +161,7 @@ class TSApplication : MultiDexApplication() {
         val helper = AppFrontBackHelper()
         helper.register(this, object : AppFrontBackHelper.OnAppStatusListener {
             override fun onFront() {
+                appInForeground = true
                 if (!TextUtils.isEmpty(WKConfig.getInstance().token)) {
                     if (WKBaseApplication.getInstance().disconnect) {
                         Handler(Looper.getMainLooper()).postDelayed({
@@ -158,12 +177,14 @@ class TSApplication : MultiDexApplication() {
             }
 
             override fun onBack() {
+                appInForeground = false
                 val result = EndpointManager.getInstance().invoke("rtc_is_calling", null)
                 var isCalling = false
                 if (result != null) {
                     isCalling = result as Boolean
                 }
-                if (WKBaseApplication.getInstance().disconnect && !isCalling) {
+                val rtcRegistered = EndpointManager.getInstance().invoke("is_register_rtc", null) as? Boolean ?: false
+                if (WKBaseApplication.getInstance().disconnect && !isCalling && !rtcRegistered) {
                     WKUIKitApplication.getInstance().stopConn()
                 }
                 WKIMUtils.getInstance().removeListener()
@@ -176,6 +197,12 @@ class TSApplication : MultiDexApplication() {
 
     private fun addListener() {
         createNotificationChannel()
+        EndpointManager.getInstance().setMethod("update_base_url") { value ->
+            val apiURL = normalizeApiUrl(value as? String)
+            WKApiConfig.initBaseURLIncludeIP(apiURL)
+            Log.i(TAG, "api base url updated: $apiURL")
+            null
+        }
         EndpointManager.getInstance().setMethod("main_show_home_view") { `object` ->
             if (`object` != null) {
                 val from = `object` as Int
@@ -195,6 +222,17 @@ class TSApplication : MultiDexApplication() {
 
         EndpointManager.getInstance().setMethod("play_new_msg_Media") {
             WKPlaySound.getInstance().playRecordMsg(R.raw.newmsg)
+            null
+        }
+        EndpointManager.getInstance().setMethod("app_is_foreground") {
+            appInForeground
+        }
+        EndpointManager.getInstance().setMethod("play_rtc_media") {
+            WKPlaySound.getInstance().playLoop(R.raw.newrtc)
+            null
+        }
+        EndpointManager.getInstance().setMethod("stop_rtc_media") {
+            WKPlaySound.getInstance().stopLoop()
             null
         }
     }
@@ -228,7 +266,7 @@ class TSApplication : MultiDexApplication() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = applicationContext.getString(R.string.new_rtc_notification)
             val description = applicationContext.getString(R.string.new_rtc_notification_desc)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(WKConstants.newRTCChannelID, name, importance)
             channel.description = description
             channel.enableVibration(true)

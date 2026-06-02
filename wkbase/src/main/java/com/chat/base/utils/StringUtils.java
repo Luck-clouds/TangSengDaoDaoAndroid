@@ -580,6 +580,43 @@ public class StringUtils {
                 return "";
             }
             JSONObject jsonObject = new JSONObject(contentJson);
+            String type = jsonObject.optString("type");
+            if ("rtc_notice".equals(type) || "rtc_record".equals(type)) {
+                String callType = jsonObject.optString("call_type");
+                String recordType = jsonObject.optString("record_type");
+                boolean isVideo = "video".equals(callType);
+                if ("rtc_notice".equals(type) && TextUtils.isEmpty(recordType) && jsonObject.optBoolean("invite_all", false)) {
+                    return "\u7fa4\u901a\u8bdd\u8fdb\u884c\u4e2d";
+                }
+                if ("answered".equals(recordType)) {
+                    return isVideo ? "\u89c6\u9891\u901a\u8bdd\u5df2\u7ed3\u675f" : "\u8bed\u97f3\u901a\u8bdd\u5df2\u7ed3\u675f";
+                }
+                if ("missed".equals(recordType)) {
+                    return isVideo ? "\u672a\u63a5\u89c6\u9891\u901a\u8bdd" : "\u672a\u63a5\u8bed\u97f3\u901a\u8bdd";
+                }
+                if ("rejected".equals(recordType)) {
+                    return isVideo ? "\u5df2\u62d2\u7edd\u89c6\u9891\u901a\u8bdd" : "\u5df2\u62d2\u7edd\u8bed\u97f3\u901a\u8bdd";
+                }
+                if ("cancelled".equals(recordType)) {
+                    return isVideo ? "\u5df2\u53d6\u6d88\u89c6\u9891\u901a\u8bdd" : "\u5df2\u53d6\u6d88\u8bed\u97f3\u901a\u8bdd";
+                }
+                if ("rtc_notice".equals(type) && TextUtils.isEmpty(recordType)) {
+                    return isVideo ? "发起视频通话" : "发起语音通话";
+                }
+                if ("answered".equals(recordType)) {
+                    return isVideo ? "视频通话已结束" : "语音通话已结束";
+                }
+                if ("missed".equals(recordType)) {
+                    return isVideo ? "未接视频通话" : "未接语音通话";
+                }
+                if ("rejected".equals(recordType)) {
+                    return isVideo ? "已拒绝视频通话" : "已拒绝语音通话";
+                }
+                if ("cancelled".equals(recordType)) {
+                    return isVideo ? "已取消视频通话" : "已取消语音通话";
+                }
+                return isVideo ? "视频通话" : "语音通话";
+            }
             String string = jsonObject.optString("content");
             JSONArray list = jsonObject.optJSONArray("extra");
             List<String> names = new ArrayList<>();

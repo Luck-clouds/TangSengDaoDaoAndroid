@@ -27,12 +27,16 @@ import com.chat.login.entity.VerfiCodeResult;
 import org.json.JSONException;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 2019-11-19 17:49
  * 登录model
  */
 public class LoginModel extends WKBaseModel {
+    private static final String TAG = "WKRegister";
+    private static final long REGISTER_TIMEOUT_SECONDS = 20;
+
     private LoginModel() {
     }
 
@@ -136,14 +140,19 @@ public class LoginModel extends WKBaseModel {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("zone", zone);
         jsonObject.put("phone", phone);
-        request(createService(LoginService.class).registerCode(jsonObject), new IRequestResultListener<>() {
+        Log.i(TAG, "request register sms code, baseUrl=" + WKApiConfig.baseUrl + ", zone=" + zone + ", phone=" + maskPhone(phone));
+        // 注册验证码不能沿用全局 10 分钟网络超时，否则新设备网络/后端不可达时会一直显示加载中。
+        request(createService(LoginService.class).registerCode(jsonObject)
+                .timeout(REGISTER_TIMEOUT_SECONDS, TimeUnit.SECONDS), new IRequestResultListener<>() {
             @Override
             public void onSuccess(VerfiCodeResult result) {
+                Log.i(TAG, "register sms code success, exist=" + result.exist);
                 iGetVerCodeListener.onResult(HttpResponseCode.success, "", result.exist);
             }
 
             @Override
             public void onFail(int code, String msg) {
+                Log.e(TAG, "register sms code fail, code=" + code + ", msg=" + msg);
                 iGetVerCodeListener.onResult(code, msg, 0);
             }
         });
@@ -204,10 +213,14 @@ public class LoginModel extends WKBaseModel {
         deviceJson.put("device_name", WKDeviceUtils.getInstance().getDeviceName());
         deviceJson.put("device_model", WKDeviceUtils.getInstance().getSystemModel());
         jsonObject.put("device", deviceJson);
-        request(createService(LoginService.class).register(jsonObject), new IRequestResultListener<>() {
+        Log.i(TAG, "request register account, baseUrl=" + WKApiConfig.baseUrl + ", zone=" + zone + ", phone=" + maskPhone(phone));
+        // 注册账号不能无限等待，20 秒没有响应就让 UI 收起 loading 并显示错误。
+        request(createService(LoginService.class).register(jsonObject)
+                .timeout(REGISTER_TIMEOUT_SECONDS, TimeUnit.SECONDS), new IRequestResultListener<>() {
             @Override
             public void onSuccess(UserInfoEntity userInfo) {
                 if (userInfo != null) {
+                    Log.i(TAG, "register account success, uid=" + userInfo.uid);
                     saveLoginInfo(userInfo);
                     iLoginListener.onResult(HttpResponseCode.success, "", userInfo);
                 }
@@ -215,9 +228,17 @@ public class LoginModel extends WKBaseModel {
 
             @Override
             public void onFail(int code, String msg) {
+                Log.e(TAG, "register account fail, code=" + code + ", msg=" + msg);
                 iLoginListener.onResult(code, msg, null);
             }
         });
+    }
+
+    private String maskPhone(String phone) {
+        if (TextUtils.isEmpty(phone) || phone.length() < 7) {
+            return "***";
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
     }
 
 

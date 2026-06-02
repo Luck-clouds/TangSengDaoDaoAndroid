@@ -205,6 +205,9 @@
     <string name="choose_members">选择成员</string>
     <string name="video_call">视频通话</string>
     <string name="audio_call">语音通话</string>
+    <string name="phone_call_entry">电话</string>
+    <string name="video_call_entry">视频</string>
+    <string name="rtc_not_available">通话功能暂未启用</string>
     <string name="is_calling">正在通话中</string>
     <string name="official">官方</string>
     <string name="join_group_source">进群方式</string>

@@ -53,6 +53,7 @@ import com.xinbida.wukongim.message.type.WKSendMsgResult;
 import org.jetbrains.annotations.NotNull;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,6 +165,12 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
     private String getContent(WKMsg msg) {
         String content = "";
         if (msg == null || msg.isDeleted == 1) return content;
+        if (msg.type == WKContentType.rtcNotice || msg.type == WKContentType.rtcRecord) {
+            String rtcContent = getRtcPreviewContentV2(msg);
+            if (!TextUtils.isEmpty(rtcContent)) {
+                return rtcContent;
+            }
+        }
         if (msg.baseContentMsgModel != null) {
             content = msg.baseContentMsgModel.getDisplayContent();
         }
@@ -203,6 +210,36 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
 
     private String getShowContent(String contentJson) {
         return StringUtils.getShowContent(getContext(), contentJson);
+    }
+
+    private String getRtcPreviewContentV2(WKMsg msg) {
+        try {
+            JSONObject payload = new JSONObject(msg.content == null ? "{}" : msg.content);
+            String callType = payload.optString("call_type");
+            String recordType = payload.optString("record_type");
+            boolean isVideo = TextUtils.equals(callType, "video");
+            if (msg.type == WKContentType.rtcNotice && TextUtils.isEmpty(recordType) && payload.optBoolean("invite_all", false)) {
+                return "\u7fa4\u901a\u8bdd\u8fdb\u884c\u4e2d";
+            }
+            if (msg.type == WKContentType.rtcNotice && TextUtils.isEmpty(recordType)) {
+                return isVideo ? "\u53d1\u8d77\u89c6\u9891\u901a\u8bdd" : "\u53d1\u8d77\u8bed\u97f3\u901a\u8bdd";
+            }
+            if (TextUtils.equals(recordType, "answered")) {
+                return isVideo ? "\u89c6\u9891\u901a\u8bdd\u5df2\u7ed3\u675f" : "\u8bed\u97f3\u901a\u8bdd\u5df2\u7ed3\u675f";
+            }
+            if (TextUtils.equals(recordType, "missed")) {
+                return isVideo ? "\u672a\u63a5\u89c6\u9891\u901a\u8bdd" : "\u672a\u63a5\u8bed\u97f3\u901a\u8bdd";
+            }
+            if (TextUtils.equals(recordType, "rejected")) {
+                return isVideo ? "\u5df2\u62d2\u7edd\u89c6\u9891\u901a\u8bdd" : "\u5df2\u62d2\u7edd\u8bed\u97f3\u901a\u8bdd";
+            }
+            if (TextUtils.equals(recordType, "cancelled")) {
+                return isVideo ? "\u5df2\u53d6\u6d88\u89c6\u9891\u901a\u8bdd" : "\u5df2\u53d6\u6d88\u8bed\u97f3\u901a\u8bdd";
+            }
+            return isVideo ? "\u89c6\u9891\u901a\u8bdd" : "\u8bed\u97f3\u901a\u8bdd";
+        } catch (Exception ignored) {
+            return msg.type == WKContentType.rtcNotice ? "\u53d1\u8d77\u901a\u8bdd" : "\u901a\u8bdd\u8bb0\u5f55";
+        }
     }
 
     private void setStatus(BaseViewHolder helper, WKUIConversationMsg item, boolean isPlayAnimation) {

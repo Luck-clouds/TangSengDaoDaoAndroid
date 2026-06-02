@@ -25,7 +25,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -52,6 +54,7 @@ import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.EndpointSID;
 import com.chat.base.endpoint.entity.AvatarOtherViewMenu;
 import com.chat.base.endpoint.entity.CallingViewMenu;
+import com.chat.base.endpoint.entity.CreateVideoCallMenu;
 import com.chat.base.endpoint.entity.RTCMenu;
 import com.chat.base.endpoint.entity.ReadMsgMenu;
 import com.chat.base.endpoint.entity.SetChatBgMenu;
@@ -133,6 +136,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -185,6 +189,19 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
     private long browseTo = 0;
     private boolean isUpdateRedDot = true;
     private ImageView callIV;
+    private ImageView videoCallIV;
+    private FrameLayout rtcMiniLayout;
+    private ImageView rtcMiniTypeIV;
+    private TextView rtcMiniTitleTv;
+    private TextView rtcMiniSubtitleTv;
+    private final Runnable rtcMiniRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateRtcMiniView();
+            uiHandler.postDelayed(this, 1000L);
+        }
+    };
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
     //查询聊天数据偏移量
     private final int limit = 30;
     private boolean isShowPinnedView = false;
@@ -282,6 +299,8 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         chatPanelManager.initRefreshListener();
         EndpointManager.getInstance().invoke("set_chat_bg", new SetChatBgMenu(channelId, channelType, wkVBinding.imageView, wkVBinding.rootView, wkVBinding.blurView));
         EndpointManager.getInstance().invoke("start_screen_shot", this);
+        EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelId, channelType));
+        startRtcMiniUpdates();
 
         Object addSecurityModule = EndpointManager.getInstance().invoke("add_security_module", null);
         if (addSecurityModule instanceof Boolean) {
@@ -298,6 +317,12 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopRtcMiniUpdates();
     }
 
     @Override
@@ -396,6 +421,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 numberTextView.setNumber(0, true);
                 CommonAnim.getInstance().showOrHide(numberTextView, false, true);
                 CommonAnim.getInstance().showOrHide(callIV, true, true);
+                CommonAnim.getInstance().showOrHide(videoCallIV, true, true);
                 return null;
             }, path -> {
                 Intent intent = new Intent(ChatActivity.this, PreviewNewImgActivity.class);
@@ -429,22 +455,28 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         numberTextView = new NumberTextView(this);
         numberTextView.setTextSize(18);
         numberTextView.setTextColor(Theme.colorAccount);
-        wkVBinding.topLayout.rightView.addView(numberTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.END, 0, 0, 15, 0));
+        numberTextView.setVisibility(View.GONE);
 
         Object isRegisterRTC = EndpointManager.getInstance().invoke("is_register_rtc", null);
 
         callIV = new AppCompatImageView(this);
         callIV.setImageResource(R.mipmap.ic_call);
-        if (isRegisterRTC instanceof Boolean) {
-            boolean isRegister = (boolean) isRegisterRTC;
-            if (isRegister) {
-                wkVBinding.topLayout.rightView.addView(callIV, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.END, 0, 0, 15, 0));
-            }
-        }
+        callIV.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
+        callIV.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        videoCallIV = new AppCompatImageView(this);
+        videoCallIV.setImageResource(R.drawable.ic_func_video_call);
+        videoCallIV.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(1), AndroidUtilities.dp(4), AndroidUtilities.dp(1));
+        videoCallIV.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        wkVBinding.topLayout.rightView.addView(callIV, LayoutHelper.createLinear(30, 30, Gravity.CENTER_VERTICAL, 0, 0, 2, 0));
+        wkVBinding.topLayout.rightView.addView(videoCallIV, LayoutHelper.createLinear(28, 28, Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+        wkVBinding.topLayout.rightView.addView(numberTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER_VERTICAL));
         callIV.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(this, R.color.popupTextColor), PorterDuff.Mode.MULTIPLY));
         callIV.setBackground(Theme.createSelectorDrawable(Theme.getPressedColor()));
+        videoCallIV.setColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(this, R.color.popupTextColor), PorterDuff.Mode.MULTIPLY));
+        videoCallIV.setBackground(Theme.createSelectorDrawable(Theme.getPressedColor()));
 
         CommonAnim.getInstance().showOrHide(numberTextView, false, false);
+        setupRtcMiniView();
 
         //去除刷新条目闪动动画
         ((DefaultItemAnimator) Objects.requireNonNull(wkVBinding.recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
@@ -496,21 +528,77 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                                 showToast(R.string.call_blacklist);
                                 return;
                             }
-                            List<PopupMenuItem> list = new ArrayList<>();
-                            list.add(new PopupMenuItem(getString(R.string.video_call), R.mipmap.chat_calls_video, () -> p2pCall(1)));
-                            list.add(new PopupMenuItem(getString(R.string.audio_call), R.mipmap.chat_calls_voice, () -> p2pCall(0)));
-                            WKDialogUtils.getInstance().showScreenPopup(view, list);
+                            p2pCall(0);
                         } else {
                             WKChannelMember channelMember = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
                             if (channelMember != null && channelMember.status == WKChannelStatus.statusBlacklist) {
                                 showToast(R.string.call_blacklist_group);
                                 return;
                             }
-                            Intent intent = new Intent(ChatActivity.this, ChooseVideoCallMembersActivity.class);
-                            intent.putExtra("channelID", channelId);
-                            intent.putExtra("channelType", channelType);
-                            intent.putExtra("isCreate", true);
-                            startActivity(intent);
+                            List<PopupMenuItem> list = new ArrayList<>();
+                            list.add(new PopupMenuItem(
+                                    "邀请全体成员通话",
+                                    R.mipmap.chat_calls_voice,
+                                    () -> startGroupCall(true, 0)
+                            ));
+                            list.add(new PopupMenuItem(
+                                    "选择成员通话",
+                                    R.mipmap.chat_calls_voice,
+                                    () -> startGroupCall(false, 0)
+                            ));
+                            WKDialogUtils.getInstance().showScreenPopup(view, list);
+                        }
+                    }
+                }
+
+                @Override
+                public void clickResult(boolean isCancel) {
+                }
+            }, this, desc, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
+        });
+        videoCallIV.setOnClickListener(view -> {
+            WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
+            if (getChatChannelInfo().forbidden == 1 || (member != null && member.forbiddenExpirationTime > 0)) {
+                WKToastUtils.getInstance().showToast(getString(R.string.can_not_call_forbidden));
+                return;
+            }
+            String desc = String.format(getString(R.string.microphone_permissions_des), getString(R.string.app_name));
+            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+                @Override
+                public void onResult(boolean result) {
+                    if (result) {
+                        if (channelType == WKChannelType.PERSONAL) {
+                            if (UserUtils.getInstance().checkMyFriendDelete(channelId) || UserUtils.getInstance().checkFriendRelation(channelId)) {
+                                showToast(R.string.non_friend_relationship);
+                                return;
+                            }
+                            if (UserUtils.getInstance().checkBlacklist(channelId)) {
+                                showToast(R.string.call_be_blacklist);
+                                return;
+                            }
+                            if (getChatChannelInfo().status == WKChannelStatus.statusBlacklist) {
+                                showToast(R.string.call_blacklist);
+                                return;
+                            }
+                            p2pCall(1);
+                        } else {
+                            WKChannelMember channelMember = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
+                            if (channelMember != null && channelMember.status == WKChannelStatus.statusBlacklist) {
+                                showToast(R.string.call_blacklist_group);
+                                return;
+                            }
+                            List<PopupMenuItem> list = new ArrayList<>();
+                            list.add(new PopupMenuItem(
+                                    "邀请全体成员通话",
+                                    R.mipmap.chat_calls_video,
+                                    () -> startGroupCall(true, 1)
+                            ));
+                            list.add(new PopupMenuItem(
+                                    "选择成员通话",
+                                    R.mipmap.chat_calls_video,
+                                    () -> startGroupCall(false, 1)
+                            ));
+                            WKDialogUtils.getInstance().showScreenPopup(view, list);
                         }
                     }
                 }
@@ -943,6 +1031,104 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         });
     }
 
+    private void startGroupCall(boolean inviteAll, int callType) {
+        WKCommonModel.getInstance().getChannelState(channelId, channelType, channelState -> {
+            if (channelState != null
+                    && channelState.call_info != null
+                    && WKReader.isNotEmpty(channelState.call_info.getCalling_participants())) {
+                EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelId, channelType));
+                WKToastUtils.getInstance().showToastNormal("当前群通话进行中，请等待邀请");
+                return;
+            }
+            if (inviteAll) {
+                EndpointManager.getInstance().invoke(
+                        "create_video_call",
+                        new CreateVideoCallMenu(this, channelId, channelType, null, callType)
+                );
+                return;
+            }
+            Intent intent = new Intent(ChatActivity.this, ChooseVideoCallMembersActivity.class);
+            intent.putExtra("channelID", channelId);
+            intent.putExtra("channelType", channelType);
+            intent.putExtra("isCreate", true);
+            intent.putExtra("callType", callType);
+            startActivity(intent);
+        });
+    }
+
+    private void showGroupCallTypePicker(View anchorView, boolean inviteAll) {
+        List<PopupMenuItem> list = new ArrayList<>();
+        list.add(new PopupMenuItem(
+                getString(R.string.video_call),
+                R.mipmap.chat_calls_video,
+                () -> startGroupCall(inviteAll, 1)
+        ));
+        list.add(new PopupMenuItem(
+                getString(R.string.audio_call),
+                R.mipmap.chat_calls_voice,
+                () -> startGroupCall(inviteAll, 0)
+        ));
+        WKDialogUtils.getInstance().showScreenPopup(anchorView, list);
+    }
+
+    private void setupRtcMiniView() {
+        rtcMiniLayout = new FrameLayout(this);
+        rtcMiniLayout.setVisibility(View.GONE);
+        rtcMiniLayout.setBackground(Theme.getRoundRectSelectorDrawable(AndroidUtilities.dp(18), ContextCompat.getColor(this, R.color.popupTextColor)));
+        rtcMiniLayout.setOnClickListener(v -> EndpointManager.getInstance().invoke("rtc_reopen_current", this));
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.HORIZONTAL);
+        content.setGravity(Gravity.CENTER_VERTICAL);
+        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(10), AndroidUtilities.dp(12), AndroidUtilities.dp(10));
+        rtcMiniLayout.addView(content, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+
+        rtcMiniTypeIV = new AppCompatImageView(this);
+        content.addView(rtcMiniTypeIV, new LinearLayout.LayoutParams(AndroidUtilities.dp(18), AndroidUtilities.dp(18)));
+
+        LinearLayout textWrap = new LinearLayout(this);
+        textWrap.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        textLp.leftMargin = AndroidUtilities.dp(8);
+        content.addView(textWrap, textLp);
+
+        rtcMiniTitleTv = new TextView(this);
+        rtcMiniTitleTv.setTextColor(ContextCompat.getColor(this, R.color.white));
+        rtcMiniTitleTv.setTextSize(13);
+        rtcMiniTitleTv.setSingleLine(true);
+        textWrap.addView(rtcMiniTitleTv);
+
+        rtcMiniSubtitleTv = new TextView(this);
+        rtcMiniSubtitleTv.setTextColor(ContextCompat.getColor(this, R.color.white));
+        rtcMiniSubtitleTv.setAlpha(0.82f);
+        rtcMiniSubtitleTv.setTextSize(11);
+        rtcMiniSubtitleTv.setSingleLine(true);
+        textWrap.addView(rtcMiniSubtitleTv);
+
+        RelativeLayout.LayoutParams miniLp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        miniLp.addRule(RelativeLayout.ALIGN_PARENT_END);
+        miniLp.addRule(RelativeLayout.ABOVE, R.id.bottomView);
+        miniLp.rightMargin = AndroidUtilities.dp(12);
+        miniLp.bottomMargin = AndroidUtilities.dp(16);
+        wkVBinding.recyclerViewLayout.addView(rtcMiniLayout, miniLp);
+    }
+
+    private void updateRtcMiniView() {
+        if (rtcMiniLayout == null) {
+            return;
+        }
+        rtcMiniLayout.setVisibility(View.GONE);
+    }
+
+    private void startRtcMiniUpdates() {
+        uiHandler.removeCallbacks(rtcMiniRunnable);
+        uiHandler.post(rtcMiniRunnable);
+    }
+
+    private void stopRtcMiniUpdates() {
+        uiHandler.removeCallbacks(rtcMiniRunnable);
+    }
+
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
@@ -963,6 +1149,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         chatAdapter.setList(new ArrayList<>());
         if (WKSystemAccount.isSystemAccount(channelId) || channelType == WKChannelType.CUSTOMER_SERVICE) {
             CommonAnim.getInstance().showOrHide(callIV, false, false);
+            CommonAnim.getInstance().showOrHide(videoCallIV, false, false);
         }
         WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(channelId, channelType);
 
@@ -1396,6 +1583,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             isShow = false;
         }
         CommonAnim.getInstance().showOrHide(callIV, isShow, true);
+        CommonAnim.getInstance().showOrHide(videoCallIV, isShow, true);
     }
 
     private void resetReminder(List<WKReminder> list) {
@@ -2030,6 +2218,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         CommonAnim.getInstance().rotateImage(wkVBinding.topLayout.backIv, 180f, 360f, R.mipmap.ic_close_white);
         CommonAnim.getInstance().showOrHide(numberTextView, true, true);
         CommonAnim.getInstance().showOrHide(callIV, false, false);
+        CommonAnim.getInstance().showOrHide(videoCallIV, false, false);
         EndpointManager.getInstance().invoke("hide_pinned_view", null);
     }
 
@@ -2040,6 +2229,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         numberTextView.setNumber(num, true);
         CommonAnim.getInstance().showOrHide(numberTextView, true, true);
         CommonAnim.getInstance().showOrHide(callIV, false, false);
+        CommonAnim.getInstance().showOrHide(videoCallIV, false, false);
     }
 
     @Override
@@ -2432,6 +2622,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopRtcMiniUpdates();
         chatPanelManager.onDestroy();
         ActManagerUtils.getInstance().removeActivity(this);
         if (disposable != null) {

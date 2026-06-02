@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wkrtc_bg">#11151D</color>
+    <color name="wkrtc_panel">#20242D</color>
+    <color name="wkrtc_text_primary">#FFFFFFFF</color>
+    <color name="wkrtc_text_secondary">#B8FFFFFF</color>
+    <color name="wkrtc_green">#18A058</color>
+    <color name="wkrtc_red">#E83F3F</color>
+    <color name="wkrtc_button">#29FFFFFF</color>
+    <color name="wkrtc_chat_send_bg_normal">#FBC9BD</color>
+    <color name="wkrtc_chat_send_bg_select">#F4A68F</color>
+</resources>

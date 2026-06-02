@@ -71,10 +71,15 @@ public class LoginPresenter implements LoginContract.LoginPresenter {
     @Override
     public void registerCode(String zone, String phone) {
         LoginModel.getInstance().registerCode(zone, phone, (code, msg, exist) -> {
-            loginView.get().hideLoading();
+            LoginContract.LoginView view = loginView.get();
+            if (view == null) {
+                return;
+            }
+            view.hideLoading();
             if (code == HttpResponseCode.success) {
-                if (loginView.get() != null)
-                    loginView.get().setRegisterCodeSuccess(code, msg, exist);
+                view.setRegisterCodeSuccess(code, msg, exist);
+            } else {
+                view.showError(msg);
             }
         });
     }

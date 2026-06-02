@@ -9,8 +9,8 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
-        jcenter()
         mavenCentral()
+        jcenter()
         maven { url "https://jitpack.io" }
         maven {url 'https://developer.huawei.com/repo/'}
         maven {
@@ -32,3 +32,4 @@ include ':wkflagship'
 include ':wkvideo'
 include ':wkmoments'
 include ':wksticker'
+include ':wkrtc'

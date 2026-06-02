@@ -20,6 +20,7 @@ public class WKPlaySound {
     private boolean soundOutLoaded;
     private boolean soundRecordLoaded;
     private SoundPool soundPool;
+    private MediaPlayer loopPlayer;
 
     private WKPlaySound() {
     }
@@ -110,6 +111,35 @@ public class WKPlaySound {
                 }
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    public synchronized void playLoop(int playID) {
+        stopLoop();
+        try {
+            loopPlayer = MediaPlayer.create(WKBaseApplication.getInstance().getContext(), playID);
+            if (loopPlayer != null) {
+                loopPlayer.setLooping(true);
+                loopPlayer.start();
+            }
+        } catch (Exception ignored) {
+            stopLoop();
+        }
+    }
+
+    public synchronized void stopLoop() {
+        if (loopPlayer != null) {
+            try {
+                if (loopPlayer.isPlaying()) {
+                    loopPlayer.stop();
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                loopPlayer.release();
+            } catch (Exception ignored) {
+            }
+            loopPlayer = null;
         }
     }
 

@@ -2,6 +2,7 @@ package com.chat.uikit.group.adapter
 
 import android.text.TextUtils
 import android.view.View
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
@@ -21,6 +22,7 @@ class ChooseVideoCallMemberAdapter :
         val entity = payloads[0] as GroupMemberEntity
         val checkBox = holder.getView<CheckBox>(R.id.checkBox)
         val isChecked = entity.checked == 1 || entity.isCanCheck == 0
+        holder.itemView.alpha = if (entity.isCanCheck == 1) 1f else 0.45f
         checkBox.setChecked(isChecked, true)
         checkBox.setDrawBackground(isChecked)
     }
@@ -44,6 +46,8 @@ class ChooseVideoCallMemberAdapter :
             R.id.nameTv,
             showName
         )
+        holder.itemView.alpha = if (item.isCanCheck == 1) 1f else 0.45f
+        holder.getView<TextView>(R.id.nameTv).isEnabled = item.isCanCheck == 1
 
 
         val isChecked = item.checked == 1 || item.isCanCheck == 0

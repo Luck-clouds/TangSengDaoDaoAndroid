@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wkrtc_audio_call">语音通话</string>
+    <string name="wkrtc_video_call">视频通话</string>
+    <string name="wkrtc_calling">正在呼叫...</string>
+    <string name="wkrtc_connecting">正在连接...</string>
+    <string name="wkrtc_in_call">通话中</string>
+    <string name="wkrtc_incoming_audio">邀请你进行语音通话</string>
+    <string name="wkrtc_incoming_video">邀请你进行视频通话</string>
+    <string name="wkrtc_answer">接听</string>
+    <string name="wkrtc_reject">拒绝</string>
+    <string name="wkrtc_hangup">挂断</string>
+    <string name="wkrtc_mic">麦克风</string>
+    <string name="wkrtc_speaker">扬声器</string>
+    <string name="wkrtc_camera">摄像头</string>
+    <string name="wkrtc_switch_camera">切换</string>
+    <string name="wkrtc_message">回复消息</string>
+    <string name="wkrtc_video">视频</string>
+    <string name="wkrtc_switch_voice">转语音</string>
+    <string name="wkrtc_close_video">关闭视频</string>
+    <string name="wkrtc_keypad">拨号盘</string>
+    <string name="wkrtc_flip">翻转</string>
+    <string name="wkrtc_waiting_accept">正在等待对方接受邀请...</string>
+    <string name="wkrtc_feature_coming_soon">该功能稍后接入</string>
+    <string name="wkrtc_call_failed">发起通话失败</string>
+    <string name="wkrtc_call_ended">通话已结束</string>
+    <string name="wkrtc_permission_audio">需要麦克风权限才能发起语音通话</string>
+    <string name="wkrtc_permission_video">需要麦克风和摄像头权限才能发起视频通话</string>
+    <string name="wkrtc_me">&#25105;</string>
+</resources>

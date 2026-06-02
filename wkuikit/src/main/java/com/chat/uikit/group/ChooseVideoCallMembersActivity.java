@@ -1,6 +1,7 @@
 package com.chat.uikit.group;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -34,6 +35,7 @@ import com.xinbida.wukongim.entity.WKChannelMember;
 import com.xinbida.wukongim.entity.WKChannelType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -48,9 +50,22 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
     private ChooseVideoCallMemberAdapter adapter;
     private Button rightBtn;
     private boolean isCreate = false;
+    private int callType = 1;
     private String searchKey = "";
     private int page = 1;
     private int groupType = 0;
+    private final HashSet<String> initialExcludedUIDs = new HashSet<>();
+    private final HashSet<String> excludedUIDs = new HashSet<>();
+    private final Handler excludedRefreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable excludedRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (refreshExcludedUIDsFromRtc()) {
+                applyExcludedStateToLoadedMembers();
+            }
+            excludedRefreshHandler.postDelayed(this, 2000L);
+        }
+    };
 
     @Override
     protected ActChooseVideoCallMembersLayoutBinding getViewBinding() {
@@ -72,6 +87,9 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
     @Override
     protected void rightButtonClick() {
         super.rightButtonClick();
+        if (refreshExcludedUIDsFromRtc()) {
+            applyExcludedStateToLoadedMembers();
+        }
         if (WKReader.isNotEmpty(selectedAdapter.getData())) {
             List<WKChannel> channels = new ArrayList<>();
             for (int i = 0, size = selectedAdapter.getData().size(); i < size; i++) {
@@ -85,8 +103,22 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
                     showSingleBtnDialog(content);
                     return;
                 }
-                isFinish = EndpointManager.getInstance().invoke("create_video_call", new CreateVideoCallMenu(this, channelID, channelType, channels));
-            } //else
+                isFinish = EndpointManager.getInstance().invoke("create_video_call", new CreateVideoCallMenu(this, channelID, channelType, channels, callType));
+            } else {
+                Intent intent = new Intent();
+                ArrayList<String> selectedUIDs = new ArrayList<>();
+                ArrayList<String> selectedNames = new ArrayList<>();
+                for (WKChannel channel : channels) {
+                    selectedUIDs.add(channel.channelID);
+                    String displayName = TextUtils.isEmpty(channel.channelRemark) ? channel.channelName : channel.channelRemark;
+                    selectedNames.add(TextUtils.isEmpty(displayName) ? channel.channelID : displayName);
+                }
+                intent.putStringArrayListExtra("selectedUIDs", selectedUIDs);
+                intent.putStringArrayListExtra("selectedNames", selectedNames);
+                setResult(RESULT_OK, intent);
+                finish();
+                return;
+            }
             //WKKitApplication.getInstance().chooseVideoCallBack(uids);
             if (null == isFinish)
                 new Handler(Looper.getMainLooper()).postDelayed(this::finish, 500);
@@ -114,6 +146,28 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
                 maxSelectCount = (int) max;
             }
         }
+        callType = getIntent().getIntExtra("callType", 1);
+        ArrayList<String> passedExcludedUIDs = getIntent().getStringArrayListExtra("excludeUIDs");
+        if (passedExcludedUIDs != null) {
+            initialExcludedUIDs.addAll(passedExcludedUIDs);
+        }
+        refreshExcludedUIDsFromRtc();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (refreshExcludedUIDsFromRtc()) {
+            applyExcludedStateToLoadedMembers();
+        }
+        excludedRefreshHandler.removeCallbacks(excludedRefreshRunnable);
+        excludedRefreshHandler.postDelayed(excludedRefreshRunnable, 2000L);
+    }
+
+    @Override
+    protected void onPause() {
+        excludedRefreshHandler.removeCallbacks(excludedRefreshRunnable);
+        super.onPause();
     }
 
     @Override
@@ -243,8 +297,83 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
         getData();
     }
 
+    private boolean refreshExcludedUIDsFromRtc() {
+        HashSet<String> nextExcludedUIDs = new HashSet<>(initialExcludedUIDs);
+        Object object = EndpointManager.getInstance().invoke("rtc_get_invite_excluded_uids", null);
+        if (object instanceof List<?>) {
+            if (!isCreate) {
+                nextExcludedUIDs.clear();
+            }
+            for (Object item : (List<?>) object) {
+                if (item instanceof String && !TextUtils.isEmpty((String) item)) {
+                    nextExcludedUIDs.add((String) item);
+                }
+            }
+        }
+        if (excludedUIDs.equals(nextExcludedUIDs)) {
+            return false;
+        }
+        excludedUIDs.clear();
+        excludedUIDs.addAll(nextExcludedUIDs);
+        removeExcludedSelectedMembers();
+        return true;
+    }
+
+    private void applyExcludedStateToLoadedMembers() {
+        if (adapter == null || WKReader.isEmpty(adapter.getData())) {
+            return;
+        }
+        boolean changed = false;
+        for (GroupMemberEntity entity : adapter.getData()) {
+            if (entity == null || entity.member == null || TextUtils.isEmpty(entity.member.memberUID)) {
+                continue;
+            }
+            boolean excluded = excludedUIDs.contains(entity.member.memberUID);
+            int nextCanCheck = excluded ? 0 : 1;
+            int nextChecked = excluded ? 0 : (isSelectedMember(entity.member.memberUID) ? 1 : 0);
+            if (entity.isCanCheck != nextCanCheck || entity.checked != nextChecked) {
+                entity.isCanCheck = nextCanCheck;
+                entity.checked = nextChecked;
+                changed = true;
+            }
+        }
+        if (changed) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private void removeExcludedSelectedMembers() {
+        if (selectedAdapter == null || WKReader.isEmpty(selectedAdapter.getData()) || excludedUIDs.isEmpty()) {
+            return;
+        }
+        for (int i = selectedAdapter.getData().size() - 1; i >= 0; i--) {
+            FriendUIEntity entity = selectedAdapter.getData().get(i);
+            if (entity == null || entity.itemType != 0 || entity.channel == null) {
+                continue;
+            }
+            if (excludedUIDs.contains(entity.channel.channelID)) {
+                selectedAdapter.removeAt(i);
+            }
+        }
+        checkSelect();
+    }
+
+    private boolean isSelectedMember(String uid) {
+        if (TextUtils.isEmpty(uid) || selectedAdapter == null || WKReader.isEmpty(selectedAdapter.getData())) {
+            return false;
+        }
+        for (FriendUIEntity entity : selectedAdapter.getData()) {
+            if (entity != null
+                    && entity.channel != null
+                    && TextUtils.equals(uid, entity.channel.channelID)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private void getData() {
+        refreshExcludedUIDsFromRtc();
         WKIM.getInstance().getChannelMembersManager().getWithPageOrSearch(channelID, channelType, searchKey, page, 100, (list, b) -> {
             if (groupType == WKGroupType.normalGroup)
                 resortData(list);
@@ -265,6 +394,10 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
                 continue;
             }
             GroupMemberEntity entity = new GroupMemberEntity(list.get(i));
+            if (excludedUIDs.contains(list.get(i).memberUID)) {
+                entity.isCanCheck = 0;
+                entity.checked = 0;
+            }
             for (int j = 0, len = selectedAdapter.getData().size(); j < len; j++) {
                 if (list.get(i).memberUID.equals(selectedAdapter.getData().get(j).channel.channelID)) {
                     entity.checked = 1;

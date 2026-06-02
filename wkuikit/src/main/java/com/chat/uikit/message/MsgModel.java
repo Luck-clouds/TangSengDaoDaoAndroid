@@ -24,6 +24,7 @@ import com.chat.base.net.entity.CommonResponse;
 import com.chat.base.net.ud.WKDownloader;
 import com.chat.base.net.ud.WKProgressManager;
 import com.chat.base.net.ud.WKUploader;
+import com.chat.base.msgitem.WKContentType;
 import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.WKLogUtils;
 import com.chat.base.utils.WKReader;
@@ -375,8 +376,16 @@ public class MsgModel extends WKBaseModel {
             msg.content = JSONObject.toJSONString(syncMsg.payload);
         if (syncMsg.payload != null && syncMsg.payload.containsKey("type")) {
             Object typeObject = syncMsg.payload.get("type");
-            if (typeObject != null)
+            if (typeObject instanceof Integer)
                 msg.type = (int) typeObject;
+            else if (typeObject instanceof String) {
+                String type = (String) typeObject;
+                if ("rtc_notice".equals(type)) {
+                    msg.type = WKContentType.rtcNotice;
+                } else if ("rtc_record".equals(type)) {
+                    msg.type = WKContentType.rtcRecord;
+                }
+            }
         }
         WKSyncMsg.wkMsg = msg;
         WKSyncMsg.red_dot = syncMsg.header.red_dot;
@@ -575,6 +584,9 @@ public class MsgModel extends WKBaseModel {
                 if (WKReader.isNotEmpty(result)) {
                     // 更改扩展消息
                     WKIM.getInstance().getMsgManager().saveRemoteExtraMsg(new WKChannel(channelID, channelType), result);
+                    EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelID, channelType));
+                    new Handler(Looper.getMainLooper()).postDelayed(() ->
+                            EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelID, channelType)), 400);
                     new Handler(Looper.getMainLooper()).postDelayed(() -> syncExtraMsg(channelID, channelType), 500);
                 }
             }

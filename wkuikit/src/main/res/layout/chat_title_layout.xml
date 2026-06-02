@@ -131,12 +131,14 @@
 
         </LinearLayout>
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/rightView"
-            android:layout_width="48dp"
+            android:layout_width="84dp"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="4dp"
+            android:gravity="center_vertical|end"
+            android:orientation="horizontal"
             android:visibility="visible" />
 
     </LinearLayout>
