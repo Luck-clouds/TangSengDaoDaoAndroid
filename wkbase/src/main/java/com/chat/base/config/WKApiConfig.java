@@ -11,13 +11,16 @@ import com.xinbida.wukongim.entity.WKChannelType;
 public class WKApiConfig {
     public static String baseUrl = "";
     public static String baseWebUrl = "";
+    private static String apiRootUrl = "";
 
     public static void initBaseURL(String apiURL) {
+        apiRootUrl = apiURL;
         baseUrl = apiURL + "/v1/";
         baseWebUrl = apiURL + "/web/";
     }
 
     public static void initBaseURLIncludeIP(String apiURL) {
+        apiRootUrl = apiURL;
         baseUrl = apiURL + "/v1/";
         baseWebUrl = apiURL + "/web/";
     }
@@ -37,6 +40,8 @@ public class WKApiConfig {
     public static String getShowUrl(String url) {
         if (TextUtils.isEmpty(url) || url.startsWith("http") || url.startsWith("HTTP")) {
             return url;
+        } else if (url.startsWith("/")) {
+            return apiRootUrl + url;
         } else {
             return baseUrl + url;
         }

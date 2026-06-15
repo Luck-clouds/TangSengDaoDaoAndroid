@@ -180,7 +180,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginRight="20dp"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/inviteCodeTv"
@@ -190,8 +190,8 @@
                 android:background="@color/transparent"
                 android:gravity="center_vertical"
                 android:hint="@string/input_invite_code_must"
-                android:inputType="numberSigned"
-                android:maxLength="20"
+                android:inputType="textVisiblePassword"
+                android:maxLength="32"
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
                 android:textColor="@color/colorDark"
@@ -205,7 +205,7 @@
             style="@style/view_line"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <LinearLayout
             android:layout_width="match_parent"

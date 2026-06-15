@@ -399,5 +399,11 @@
     <string name="security_disconnect_screen_timer">Offline duration: %1$s</string>
     <string name="security_disconnect_screen_bottom_tips">%1$s is fully protecting your information security</string>
     <string name="unknown_error">Operation failed. Please try again later.</string>
+    <string name="bind_invite_code">Bind Invitation Code</string>
+    <string name="bind_invite_code_desc">Enter the invitation code to bind.</string>
+    <string name="input_invite_code">Enter invitation code</string>
+    <string name="invite_code_not_null">The invitation code cannot be empty</string>
+    <string name="bind_invite_code_success">Invitation code bound successfully</string>
+    <string name="invite_code_already_bound">The invitation code is already bound and cannot be changed</string>
 </resources>
 

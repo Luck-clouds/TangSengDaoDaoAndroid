@@ -174,7 +174,8 @@
 
                     <LinearLayout
                         android:id="@+id/moduleLayout"
-                        style="@style/layoutBg">
+                        style="@style/layoutBg"
+                        android:visibility="gone">
 
                         <TextView
                             style="@style/leftTextView"
@@ -186,7 +187,8 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="10dp"
-                        android:background="@color/homeColor" />
+                        android:background="@color/homeColor"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:id="@+id/thirdShareLayout"
@@ -202,7 +204,8 @@
 
                     <LinearLayout
                         android:id="@+id/errorLogLayout"
-                        style="@style/layoutBg">
+                        style="@style/layoutBg"
+                        android:visibility="gone">
 
                         <TextView
                             style="@style/leftTextView"

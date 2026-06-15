@@ -165,12 +165,13 @@ public class GlideUtils {
             Context context = weakReference.get();
             if (context instanceof Activity activity) {
                 if (!activity.isDestroyed()) {
+                    Glide.with(context).clear(imageView);
                     if (TextUtils.isEmpty(key)) {
-                        Glide.with(context).load(url).dontAnimate()
+                        Glide.with(context).load(getAvatarModel(url, "")).dontAnimate()
                                 .apply(GlideRequestOptions.getInstance().normalRequestOption())
                                 .into(imageView);
                     } else {
-                        Glide.with(context).load(new MyGlideUrlWithId(url, key)).dontAnimate()
+                        Glide.with(context).load(getAvatarModel(appendAvatarCacheKey(url, key), key)).dontAnimate()
                                 .apply(GlideRequestOptions.getInstance().normalRequestOption())
                                 .into(imageView);
                     }
@@ -178,6 +179,24 @@ public class GlideUtils {
                 }
             }
         }
+    }
+
+    private Object getAvatarModel(String url, String key) {
+        if (TextUtils.isEmpty(url) || (!url.startsWith("http") && !url.startsWith("HTTP"))) {
+            return url;
+        }
+        return new MyGlideUrlWithId(url, key);
+    }
+
+    private String appendAvatarCacheKey(String url, String key) {
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(key)) {
+            return url;
+        }
+        if (!url.startsWith("http") && !url.startsWith("HTTP")) {
+            return url;
+        }
+        String separator = url.contains("?") ? "&" : "?";
+        return url + separator + "key=" + key;
     }
 
     public interface ISelectBack {

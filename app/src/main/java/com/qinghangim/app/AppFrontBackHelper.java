@@ -66,7 +66,7 @@ public class AppFrontBackHelper {
                 }
             }
         }
-
+        
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
 
@@ -74,6 +74,7 @@ public class AppFrontBackHelper {
 
         @Override
         public void onActivityDestroyed(Activity activity) {
+
 
         }
     };

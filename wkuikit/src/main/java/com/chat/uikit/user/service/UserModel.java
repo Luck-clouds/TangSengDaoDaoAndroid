@@ -68,6 +68,26 @@ public class UserModel extends WKBaseModel {
         });
     }
 
+    public void bindInviteCode(String inviteCode, final ICommonListener iCommonListener) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("invite_code", inviteCode);
+        request(createService(UserService.class).bindInviteCode(jsonObject), new IRequestResultListener<CommonResponse>() {
+            @Override
+            public void onSuccess(CommonResponse result) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(result.status, result.msg);
+                }
+            }
+
+            @Override
+            public void onFail(int code, String msg) {
+                if (iCommonListener != null) {
+                    iCommonListener.onResult(code, msg);
+                }
+            }
+        });
+    }
+
     public void updateUserSetting(String key, int value, final ICommonListener iCommonListener) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(key, value);

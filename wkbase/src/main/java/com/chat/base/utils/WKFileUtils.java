@@ -236,7 +236,7 @@ public class WKFileUtils {
      */
     public String saveAudio(String oldPath) {
         if (TextUtils.isEmpty(oldPath)) return "";
-        String audioPath = getSDPath() + "/wukong/audio";
+        String audioPath = getSDPath() + "/qinghang/audio";
         createFileDir(audioPath);//创建文件夹
         String newAudioPath = audioPath + "/" + UUID.randomUUID().toString().replaceAll("-", "") + ".WK_amr";
         createFile(newAudioPath);//创建文件

@@ -6,13 +6,12 @@ import android.text.TextUtils;
 import com.chat.base.base.WKBaseFragment;
 import com.chat.base.common.WKCommonModel;
 import com.chat.base.config.WKConfig;
+import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.PersonalInfoMenu;
-import com.chat.base.net.HttpResponseCode;
 import com.chat.base.ui.Theme;
 import com.chat.base.utils.WKLogUtils;
-import com.chat.base.utils.WKReader;
 import com.chat.base.utils.singleclick.SingleClickUtil;
 import com.chat.uikit.R;
 import com.chat.uikit.databinding.FragMyLayoutBinding;
@@ -27,6 +26,7 @@ import java.util.List;
  * 我的
  */
 public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
+    private static final String INVITE_CODE_BOUND_KEY = "invite_code_bound";
     private PersonalItemAdapter adapter;
 
     @Override
@@ -40,16 +40,7 @@ public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
         adapter = new PersonalItemAdapter(new ArrayList<>());
         initAdapter(wkVBinding.recyclerView, adapter);
         //设置数据item
-        List<PersonalInfoMenu> endpoints = EndpointManager.getInstance().invokes(EndpointCategory.personalCenter, null);
-        for (int i = 0; i < endpoints.size(); i++) {
-            if (!TextUtils.isEmpty(endpoints.get(i).sid)
-                    && endpoints.get(i).sid.equals("invite_code")
-                    && WKConfig.getInstance().getAppConfig().register_invite_on == 0) {
-                endpoints.remove(i);
-                break;
-            }
-        }
-        adapter.setList(endpoints);
+        setPersonalMenus();
     }
 
     @Override
@@ -71,6 +62,10 @@ public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
         }));
         SingleClickUtil.onSingleClick(wkVBinding.avatarView, view -> gotoMyInfo());
         SingleClickUtil.onSingleClick(wkVBinding.qrIv, view -> gotoMyInfo());
+        EndpointManager.getInstance().setMethod("refresh_personal_center", object -> {
+            setPersonalMenus();
+            return null;
+        });
     }
 
     void gotoMyInfo() {
@@ -85,6 +80,7 @@ public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
         wkVBinding.nameTv.setText(WKConfig.getInstance().getUserInfo().name);
         wkVBinding.avatarView.showAvatar(WKConfig.getInstance().getUid(), WKChannelType.PERSONAL);
         if (null != adapter) {
+            setPersonalMenus();
             try {
                 WKCommonModel.getInstance().getAppNewVersion(false, version -> {
                     int index = -1;
@@ -110,23 +106,36 @@ public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
                 WKLogUtils.w("检查新版本错误");
             }
         }
-        WKCommonModel.getInstance().getAppConfig((code, msg, wkappConfig) -> {
-            if (code == HttpResponseCode.success) {
-                if (adapter == null || WKReader.isEmpty(adapter.getData())) {
-                    return;
-                }
-                if (wkappConfig.register_invite_on == 0) {
-                    for (int i = 0; i < adapter.getData().size(); i++) {
-                        if (!TextUtils.isEmpty(adapter.getData().get(i).sid) && adapter.getData().get(i).sid.equals("invite_code")) {
-                            adapter.removeAt(i);
-                            break;
-                        }
-                    }
-                } else {
-                    List<PersonalInfoMenu> endpoints = EndpointManager.getInstance().invokes(EndpointCategory.personalCenter, null);
-                    adapter.setList(endpoints);
+    }
+
+    private void setPersonalMenus() {
+        if (adapter == null) {
+            return;
+        }
+        List<PersonalInfoMenu> endpoints = EndpointManager.getInstance().invokes(EndpointCategory.personalCenter, null);
+        List<PersonalInfoMenu> menus = new ArrayList<>();
+        if (endpoints != null) {
+            menus.addAll(endpoints);
+        }
+        if (isInviteCodeBound()) {
+            for (int i = menus.size() - 1; i >= 0; i--) {
+                PersonalInfoMenu menu = menus.get(i);
+                if (menu != null && "invite_code".equals(menu.sid)) {
+                    menus.remove(i);
                 }
             }
-        });
+        }
+        adapter.setList(menus);
+    }
+
+    private boolean isInviteCodeBound() {
+        String uid = WKConfig.getInstance().getUid();
+        return !TextUtils.isEmpty(uid) && WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_" + INVITE_CODE_BOUND_KEY, false);
+    }
+
+    @Override
+    public void onDestroy() {
+        EndpointManager.getInstance().remove("refresh_personal_center");
+        super.onDestroy();
     }
 }

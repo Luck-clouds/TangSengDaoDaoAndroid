@@ -160,7 +160,7 @@
 
 
 #实体类不需要混淆[需要和网络交换的实体]
-#----------悟空 sdk 数据如果不需要sdk的实体参与网络数据交互就不需要混淆
+#----------卿航 sdk 数据如果不需要sdk的实体参与网络数据交互就不需要混淆
 -dontwarn com.xinbida.wukongim.**
 -keep class com.xinbida.wukongim.**{*;}
 
@@ -177,20 +177,30 @@
 -keep class org.xsocket.** {*;}
 
 #----------基础模块（wkbase / com.chat.base）----------
--keepclassmembers class com.chat.base.entity.** { <fields>; }
+-keep class com.chat.base.entity.** { *; }
 -keep class com.chat.base.base.** { *; }
--keepclassmembers class com.chat.base.net.entity.** { <fields>; }
+-keep class com.chat.base.net.entity.** { *; }
+-keep class com.chat.base.net.** { *; }
+-keep interface com.chat.**.*Service { *; }
+-keep interface com.chat.**.IService { *; }
 #----------登录模块（wklogin / com.chat.login）----------
--keepclassmembers class com.chat.login.entity.** { <fields>; }
+-keep class com.chat.login.entity.** { *; }
 #----------UIKit 模块（wkuikit / com.chat.uikit）----------
 -keepclassmembers class com.chat.uikit.chat.msgmodel.** { <fields>; }
--keepclassmembers class com.chat.uikit.enity.** { <fields>; }
--keepclassmembers class com.chat.uikit.group.service.entity.** { <fields>; }
--keepclassmembers class com.chat.uikit.message.Ipentity { <fields>; }
--keepclassmembers class com.chat.uikit.message.SyncMsg { <fields>; }
--keepclassmembers class com.chat.uikit.message.SyncMsgHeader { <fields>; }
--keepclassmembers class com.chat.uikit.search.SearchUserEntity { <fields>; }
--keepclassmembers class com.chat.uikit.robot.entity.** { <fields>; }
+-keep class com.chat.uikit.enity.** { *; }
+-keep class com.chat.uikit.group.GroupEntity { *; }
+-keep class com.chat.uikit.group.GroupMemberEntity { *; }
+-keep class com.chat.uikit.group.GroupForbiddenTime { *; }
+-keep class com.chat.uikit.group.service.entity.** { *; }
+-keep class com.chat.uikit.message.Ipentity { *; }
+-keep class com.chat.uikit.message.SyncMsg { *; }
+-keep class com.chat.uikit.message.SyncMsgHeader { *; }
+-keep class com.chat.uikit.message.WKSyncChat { *; }
+-keep class com.chat.uikit.message.WKSyncChannelMsg { *; }
+-keep class com.chat.uikit.message.WKSyncExtraMsg { *; }
+-keep class com.chat.uikit.message.WKSyncConvMsgExtra { *; }
+-keep class com.chat.uikit.search.SearchUserEntity { *; }
+-keep class com.chat.uikit.robot.entity.** { *; }
 -keep class com.chat.base.msg.model.WKGifContent {
     public <init>();
 }
@@ -206,6 +216,11 @@
 -keep class com.chat.uikit.chat.provider.** {
     public <init>();
 }
+-keep class * extends com.chat.base.msgitem.WKChatBaseProvider {
+    public <init>(...);
+}
+-keep class com.chat.rtc.entity.** { *; }
+-keep class com.chat.rtc.message.** { *; }
 #----------群管理模块（历史包名保留）----------
 -keepclassmembers class com.chat.groupmanage.entity.** { <fields>; }
 #----------文件模块（历史包名保留）----------

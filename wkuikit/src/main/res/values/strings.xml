@@ -412,7 +412,7 @@
     <string name="security_disable_screenshot">禁止截屏</string>
     <string name="security_disable_screenshot_desc">开启后，不可在应用内截屏或录屏</string>
     <string name="security_device_lock">设备锁</string>
-    <string name="security_device_lock_desc">开启设备锁可以保障悟空IM账号安全。在未验证的设备上进行登录操作时，需要验证手机号，即使密码泄露他人也无法登录。</string>
+    <string name="security_device_lock_desc">开启设备锁可以保障卿航账号安全。在未验证的设备上进行登录操作时，需要验证手机号，即使密码泄露他人也无法登录。</string>
     <string name="security_device_list_title">登录过的设备列表</string>
     <string name="security_device_list_empty">暂无登录设备</string>
     <string name="security_blacklist">黑名单</string>
@@ -425,7 +425,7 @@
     <string name="security_destroy_notice_2">2. 全部财产均已结清：账号内不存在已充值的相关财产。</string>
     <string name="security_destroy_notice_3">3. 绑定目前可用的安全手机：用于确认当前账号的身份归属情况。</string>
     <string name="security_destroy_special_desc">特别说明:</string>
-    <string name="security_destroy_special_desc_1">1. 账号注销申请时即放弃该账号在悟空IM软件所涉及相关数据，包括但不限于该账号的资产、权益、记录等一切内容，将视为您自愿放弃。</string>
+    <string name="security_destroy_special_desc_1">1. 账号注销申请时即放弃该账号在卿航软件所涉及相关数据，包括但不限于该账号的资产、权益、记录等一切内容，将视为您自愿放弃。</string>
     <string name="security_destroy_special_desc_2">2. 账号成功注销后，您将无法登录。</string>
     <string name="security_destroy_special_desc_3">3. 已成功注销的账号无法进行找回。</string>
     <string name="security_destroy_agreement_tip">轻按下方“注销账号”按钮，即表示您已阅读并同意%1$s</string>
@@ -438,5 +438,11 @@
     <string name="security_disconnect_screen_timer">断网计时:%1$s</string>
     <string name="security_disconnect_screen_bottom_tips">%1$s全力保护您的信息安全</string>
     <string name="unknown_error">操作失败，请稍后重试</string>
+    <string name="bind_invite_code">&#x7ED1;&#x5B9A;&#x9080;&#x8BF7;&#x7801;</string>
+    <string name="bind_invite_code_desc">&#x8BF7;&#x8F93;&#x5165;&#x8981;&#x7ED1;&#x5B9A;&#x7684;&#x9080;&#x8BF7;&#x7801;</string>
+    <string name="input_invite_code">&#x8BF7;&#x8F93;&#x5165;&#x9080;&#x8BF7;&#x7801;</string>
+    <string name="invite_code_not_null">&#x9080;&#x8BF7;&#x7801;&#x4E0D;&#x80FD;&#x4E3A;&#x7A7A;</string>
+    <string name="bind_invite_code_success">&#x9080;&#x8BF7;&#x7801;&#x7ED1;&#x5B9A;&#x6210;&#x529F;</string>
+    <string name="invite_code_already_bound">&#x9080;&#x8BF7;&#x7801;&#x5DF2;&#x7ED1;&#x5B9A;&#xFF0C;&#x4E0D;&#x80FD;&#x4FEE;&#x6539;</string>
 </resources>
 

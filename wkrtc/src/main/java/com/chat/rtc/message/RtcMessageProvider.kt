@@ -51,13 +51,11 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val isVideo = callType == "video"
         val isOngoingNotice = isInviteAllNotice(payload, recordType)
         val titleTextColor = when {
-            isOngoingNotice -> Color.BLACK
-            isSend -> ContextCompat.getColor(context, android.R.color.white)
+            isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, android.R.color.black)
         }
         val metaTextColor = when {
-            isOngoingNotice -> Color.BLACK
-            isSend -> ContextCompat.getColor(context, android.R.color.white)
+            isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, com.chat.base.R.color.color999)
         }
 
@@ -68,11 +66,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         headerLayout.gravity = if (isOngoingNotice || !isSend) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.END or Gravity.CENTER_VERTICAL
 
         iconIv.setImageResource(resolveIcon(isVideo, isSend))
-        if (isOngoingNotice) {
-            iconIv.setColorFilter(Color.BLACK)
-        } else {
-            iconIv.clearColorFilter()
-        }
+        iconIv.setColorFilter(Color.BLACK)
         titleTv.text = if (isOngoingNotice) {
             "\u7fa4\u901a\u8bdd\u8fdb\u884c\u4e2d"
         } else if (rtcType == WKContentType.rtcNotice && TextUtils.isEmpty(recordType)) {
@@ -129,6 +123,10 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
                         R.color.wkrtc_chat_send_bg_normal,
                         R.color.wkrtc_chat_send_bg_select
                     )
+                    setBubbleBorderColor(Color.TRANSPARENT)
+                    setShadowColor(Color.TRANSPARENT)
+                    setShadowX(0)
+                    setShadowY(0)
                 } else {
                     setAll(bgType, from, uiChatMsgItemEntity.wkMsg.type)
                 }
@@ -167,8 +165,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val recordType = payload?.optString("record_type").orEmpty()
         val isOngoingNotice = isInviteAllNotice(payload, recordType)
         val color = when {
-            isOngoingNotice -> Color.BLACK
-            isSend -> ContextCompat.getColor(context, android.R.color.white)
+            isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, com.chat.base.R.color.color999)
         }
         msgTimeTv.setTextColor(color)

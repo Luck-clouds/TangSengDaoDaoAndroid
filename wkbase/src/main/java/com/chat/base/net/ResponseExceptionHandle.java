@@ -89,7 +89,7 @@ public class ResponseExceptionHandle {
             responseThrowable = new ResponseThrowable(e, 504);
             responseThrowable.setMessage("网络连接失败，请检查网络");
         } else if (e instanceof RuntimeException) {
-            Log.e("服务器运行时错误", String.valueOf(e.getMessage()));
+            Log.e("服务器运行时错误", e.getClass().getName() + ": " + e.getMessage(), e);
             responseThrowable = new ResponseThrowable(e, 500);
             responseThrowable.setMessage("请求处理异常");
         } else {

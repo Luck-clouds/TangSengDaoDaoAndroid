@@ -122,6 +122,7 @@ import com.chat.uikit.contacts.ChooseContactsActivity;
 import com.chat.uikit.contacts.NewFriendsActivity;
 import com.chat.uikit.contacts.label.LabelEditActivity;
 import com.chat.uikit.contacts.label.LabelListActivity;
+import com.chat.uikit.contacts.service.FriendModel;
 import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.favorite.FavoriteListActivity;
 import com.chat.uikit.favorite.FavoriteModel;
@@ -143,6 +144,7 @@ import com.chat.uikit.setting.ChatPwdManager;
 import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
+import com.chat.uikit.user.service.UserModel;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelMember;
@@ -158,6 +160,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.List;
 import java.util.Objects;
@@ -168,6 +171,7 @@ import java.util.UUID;
  * ui kit
  */
 public class WKUIKitApplication {
+    private static final String INVITE_CODE_BOUND_KEY = "invite_code_bound";
     int totalMsgCount = 0;
     public String chattingChannelID;
     public SensitiveWords sensitiveWords;
@@ -591,6 +595,7 @@ public class WKUIKitApplication {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
+        EndpointManager.getInstance().setMethod("personal_center_invite_code", EndpointCategory.personalCenter, 5, object -> new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog));
 
         EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login), () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get())));
 
@@ -1155,6 +1160,72 @@ public class WKUIKitApplication {
                 })
                 .create()
                 .show();
+    }
+
+    private void showBindInviteCodeDialog() {
+        Activity activity = ActManagerUtils.getInstance().getCurrentActivity();
+        if (activity == null || activity.isFinishing()) {
+            Context context = getContext();
+            if (context != null) {
+                WKToastUtils.getInstance().showToastNormal(context.getString(R.string.unknown_error));
+            }
+            return;
+        }
+        if (isInviteCodeBound()) {
+            WKToastUtils.getInstance().showToastNormal(activity.getString(R.string.invite_code_already_bound));
+            return;
+        }
+        WKDialogUtils.getInstance().showInputDialog(
+                activity,
+                activity.getString(R.string.bind_invite_code),
+                activity.getString(R.string.bind_invite_code_desc),
+                "",
+                activity.getString(R.string.input_invite_code),
+                32,
+                text -> {
+                    String inviteCode = text == null ? "" : text.trim();
+                    if (TextUtils.isEmpty(inviteCode)) {
+                        WKToastUtils.getInstance().showToastNormal(activity.getString(R.string.invite_code_not_null));
+                        return;
+                    }
+                    UserModel.getInstance().bindInviteCode(inviteCode, (code, msg) -> {
+                        if (code == HttpResponseCode.success) {
+                            markInviteCodeBound();
+                            WKToastUtils.getInstance().showToastNormal(activity.getString(R.string.bind_invite_code_success));
+                            refreshAfterInviteCodeBound();
+                        } else if (isInviteCodeAlreadyBound(msg)) {
+                            markInviteCodeBound();
+                            WKToastUtils.getInstance().showToastNormal(activity.getString(R.string.invite_code_already_bound));
+                            refreshAfterInviteCodeBound();
+                        } else {
+                            WKToastUtils.getInstance().showToastNormal(TextUtils.isEmpty(msg) ? activity.getString(R.string.unknown_error) : msg);
+                        }
+                    });
+                }
+        );
+    }
+
+    private boolean isInviteCodeBound() {
+        String uid = WKConfig.getInstance().getUid();
+        return !TextUtils.isEmpty(uid) && WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_" + INVITE_CODE_BOUND_KEY, false);
+    }
+
+    private void markInviteCodeBound() {
+        WKSharedPreferencesUtil.getInstance().putBooleanWithUID(INVITE_CODE_BOUND_KEY, true);
+    }
+
+    private boolean isInviteCodeAlreadyBound(String msg) {
+        if (TextUtils.isEmpty(msg)) {
+            return false;
+        }
+        return msg.contains("已绑定") || msg.toLowerCase(Locale.ROOT).contains("already bound");
+    }
+
+    private void refreshAfterInviteCodeBound() {
+        WKCommonModel.getInstance().getAppConfig(null);
+        FriendModel.getInstance().syncFriends(null);
+        EndpointManager.getInstance().invoke("refresh_personal_center", null);
+        EndpointManager.getInstance().invoke("tab_activity", null);
     }
 
     public interface IShowChatConfirm {

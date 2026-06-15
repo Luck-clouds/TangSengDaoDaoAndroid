@@ -387,6 +387,10 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
         // 监听刷新最近列表
         WKIM.getInstance().getConversationManager().addOnRefreshMsgListListener("chat_fragment", list -> {
             if (WKReader.isEmpty(list)) {
+                chatConversationAdapter.setList(new ArrayList<>());
+                rebuildIndexCache();
+                markUnreadCountDirty();
+                setAllCount();
                 return;
             }
             if (list.size() == 1) {
@@ -586,19 +590,12 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
     }
 
     private void setAllCount() {
-        if (!isUnreadCountDirty) {
-            // 未读数未变化，直接使用缓存
-            if (tabActivity != null) {
-                tabActivity.setMsgCount(cachedUnreadCount);
-            }
-            return;
-        }
         int allCount = 0;
         List<ChatConversationMsg> data = chatConversationAdapter.getData();
         for (int i = 0, size = data.size(); i < size; i++) {
             ChatConversationMsg msg = data.get(i);
             if (msg.uiConversationMsg.getWkChannel() != null && msg.uiConversationMsg.getWkChannel().mute == 0)
-                allCount = allCount + msg.uiConversationMsg.unreadCount;
+                allCount = allCount + msg.getUnReadCount();
         }
         cachedUnreadCount = allCount;
         isUnreadCountDirty = false;
@@ -715,6 +712,13 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
         }
         // || (uiConversationMsg.getWkChannel() != null && uiConversationMsg.getWkChannel().follow == 0 && uiConversationMsg.channelType == WKChannelType.PERSONAL)
         if (uiConversationMsg.isDeleted == 1 || TextUtils.equals(uiConversationMsg.channelID, "0")) {
+            int i = findConversationIndex(uiConversationMsg.channelID, uiConversationMsg.channelType);
+            if (i >= 0) {
+                chatConversationAdapter.removeAt(i);
+                rebuildIndexCache();
+                markUnreadCountDirty();
+                setAllCount();
+            }
             if (isEnd) {
                 sortMsg(chatConversationAdapter.getData());
             }
@@ -722,6 +726,8 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
         }
         if (!TextUtils.isEmpty(uiConversationMsg.parentChannelID)) {
             resetChildData(uiConversationMsg, isEnd);
+            markUnreadCountDirty();
+            setAllCount();
             return;
         }
         boolean isAdd = true;

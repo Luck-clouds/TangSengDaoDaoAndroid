@@ -401,6 +401,22 @@ public class WKIMUtils {
                             }
                         }
                     }
+                    case "groupAvatarUpdate" -> {
+                        if (cmd.paramJsonObject == null) {
+                            return;
+                        }
+                        String groupNo = cmd.paramJsonObject.optString("group_no");
+                        if (TextUtils.isEmpty(groupNo)) {
+                            groupNo = cmd.paramJsonObject.optString("channel_id");
+                        }
+                        if (TextUtils.isEmpty(groupNo)) {
+                            return;
+                        }
+                        AvatarView.clearCache(groupNo, WKChannelType.GROUP);
+                        String key = UUID.randomUUID().toString().replace("-", "");
+                        WKIM.getInstance().getChannelManager().updateAvatarCacheKey(groupNo, WKChannelType.GROUP, key);
+                        WKCommonModel.getInstance().getChannel(groupNo, WKChannelType.GROUP, null);
+                    }
                     case WKCMDKeys.wk_sync_reminders -> MsgModel.getInstance().syncReminder();
                     case WKCMDKeys.wk_sync_conversation_extra ->
                             MsgModel.getInstance().syncCoverExtra();

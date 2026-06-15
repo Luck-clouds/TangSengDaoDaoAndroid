@@ -30,7 +30,7 @@ public class CommonRequestParamInterceptor implements Interceptor {
         Map<String, String> commonParams = getCommonParams();
         for (Map.Entry<String, String> entry : commonParams.entrySet()) {
             if (!TextUtils.isEmpty(entry.getValue())) {
-                builder.addHeader(entry.getKey(), entry.getValue());
+                builder.header(entry.getKey(), entry.getValue());
             }
         }
         request = builder.build();

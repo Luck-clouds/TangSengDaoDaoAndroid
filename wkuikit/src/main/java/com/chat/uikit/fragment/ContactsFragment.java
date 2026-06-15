@@ -40,6 +40,8 @@ import com.chat.uikit.databinding.FragContactsLayoutBinding;
 import com.chat.uikit.search.SearchAllActivity;
 import com.chat.uikit.search.remote.GlobalActivity;
 import com.chat.uikit.user.UserDetailActivity;
+import com.chat.uikit.user.WKFileHelperActivity;
+import com.chat.uikit.user.WKSystemTeamActivity;
 import com.chat.uikit.utils.CharacterParser;
 import com.chat.uikit.utils.PyingUtils;
 import com.xinbida.wukongim.WKIM;
@@ -115,8 +117,16 @@ public class ContactsFragment extends WKBaseFragment<FragContactsLayoutBinding> 
         friendAdapter.setOnItemChildClickListener((adapter, view, position) -> SingleClickUtil.determineTriggerSingleClick(view, view1 -> {
             FriendUIEntity friendEntity = (FriendUIEntity) adapter.getItem(position);
             if (friendEntity != null) {
-                Intent intent = new Intent(getActivity(), UserDetailActivity.class);
-                intent.putExtra("uid", friendEntity.channel.channelID);
+                Intent intent;
+                if (WKSystemAccount.system_file_helper.equals(friendEntity.channel.channelID)) {
+                    intent = new Intent(getActivity(), WKFileHelperActivity.class);
+                } else if (WKSystemAccount.system_team.equals(friendEntity.channel.channelID)
+                        || WKSystemAccount.accountCategorySystem.equals(friendEntity.channel.category)) {
+                    intent = new Intent(getActivity(), WKSystemTeamActivity.class);
+                } else {
+                    intent = new Intent(getActivity(), UserDetailActivity.class);
+                    intent.putExtra("uid", friendEntity.channel.channelID);
+                }
                 startActivity(intent);
             }
         }));

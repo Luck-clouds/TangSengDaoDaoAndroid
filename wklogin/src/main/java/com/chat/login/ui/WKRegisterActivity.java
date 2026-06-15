@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.common.WKCommonModel;
 import com.chat.base.config.WKApiConfig;
+import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.LoginMenu;
@@ -48,6 +49,7 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
     private String code = "0086";
     private LoginPresenter presenter;
     private WKAPPConfig appConfig;
+    private String pendingInviteCode = "";
 
     @Override
     protected ActRegisterLayoutBinding getViewBinding() {
@@ -149,7 +151,7 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
             String phone = Objects.requireNonNull(wkVBinding.nameEt.getText()).toString();
             String smsCode = Objects.requireNonNull(wkVBinding.verfiEt.getText()).toString();
             String pwd = Objects.requireNonNull(wkVBinding.pwdEt.getText()).toString();
-            String inviteCode = Objects.requireNonNull(wkVBinding.inviteCodeTv.getText()).toString();
+            String inviteCode = Objects.requireNonNull(wkVBinding.inviteCodeTv.getText()).toString().trim();
             if (!TextUtils.isEmpty(phone) && !TextUtils.isEmpty(smsCode) && !TextUtils.isEmpty(pwd)) {
                 if (pwd.length() < 6 || pwd.length() > 16) {
                     showSingleBtnDialog(getString(R.string.pwd_length_error));
@@ -158,6 +160,7 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
                         showSingleBtnDialog(getString(R.string.invite_code_not_null));
                         return;
                     }
+                    pendingInviteCode = inviteCode;
                     loadingPopup.show();
                     presenter.registerApp(smsCode, code, "", phone, pwd, inviteCode);
                 }
@@ -201,8 +204,8 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
                     wkVBinding.inviteLineView.setVisibility(View.VISIBLE);
                 } else {
                     wkVBinding.inviteCodeTv.setHint(R.string.input_invite_code_not_must);
-                    wkVBinding.inviteLayout.setVisibility(View.GONE);
-                    wkVBinding.inviteLineView.setVisibility(View.GONE);
+                    wkVBinding.inviteLayout.setVisibility(View.VISIBLE);
+                    wkVBinding.inviteLineView.setVisibility(View.VISIBLE);
                 }
             } else {
                 showToast(msg);
@@ -240,6 +243,10 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
         loadingPopup.dismiss();
         SoftKeyboardUtils.getInstance().hideInput(this, wkVBinding.pwdEt);
         hideLoading();
+
+        if (!TextUtils.isEmpty(pendingInviteCode)) {
+            WKSharedPreferencesUtil.getInstance().putBooleanWithUID("invite_code_bound", true);
+        }
 
         if (TextUtils.isEmpty(userInfoEntity.name)) {
             Intent intent = new Intent(this, PerfectUserInfoActivity.class);

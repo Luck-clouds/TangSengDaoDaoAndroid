@@ -35,6 +35,9 @@ public interface UserService {
     @PUT("user/current")
     Observable<CommonResponse> updateUserInfo(@Body JSONObject jsonObject);
 
+    @POST("user/invite/bind")
+    Observable<CommonResponse> bindInviteCode(@Body JSONObject jsonObject);
+
     @PUT("friend/remark")
     Observable<CommonResponse> updateFriendRemark(@Body JSONObject jsonObject);
 

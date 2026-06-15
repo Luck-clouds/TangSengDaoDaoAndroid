@@ -155,7 +155,7 @@ public class AvatarView extends FrameLayout {
     }
 
     public void showAvatar(String channelID, byte channelType, String avatarCacheKey) {
-        String url = getAvatarURL(channelID, channelType);
+        String url = TextUtils.isEmpty(avatarCacheKey) ? getAvatarURL(channelID, channelType) : WKApiConfig.getShowAvatar(channelID, channelType);
         GlideUtils.getInstance().showAvatarImg(getContext(), url, avatarCacheKey, imageView);
     }
 
@@ -193,7 +193,7 @@ public class AvatarView extends FrameLayout {
         if (!TextUtils.isEmpty(channel.avatar) && channel.avatar.contains("/")) {
             url = WKApiConfig.getShowUrl(channel.avatar);
         } else {
-            url = getAvatarURL(channel.channelID, channel.channelType);
+            url = TextUtils.isEmpty(avatarCacheKey) ? getAvatarURL(channel.channelID, channel.channelType) : WKApiConfig.getShowAvatar(channel.channelID, channel.channelType);
         }
         GlideUtils.getInstance().showAvatarImg(imageView.getContext(), url, avatarCacheKey, imageView);
         if (showOnlineStatus) {

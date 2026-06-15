@@ -100,7 +100,7 @@ public class MailListActivity extends WKBaseActivity<ActMailListLayoutBinding> {
                     Intent intent = new Intent();
                     intent.setAction(Intent.ACTION_SENDTO);
                     intent.setData(Uri.parse("smsto:" + entity.phone));
-                    intent.putExtra("sms_body", "我正在使用【悟空IM】app，体验还不错。你也赶快来下载玩玩吧！http://www.githubim.com");
+                    intent.putExtra("sms_body", "我正在使用【卿航】app，体验还不错。你也赶快来下载玩玩吧！");
                     startActivity(intent);
                 }
 

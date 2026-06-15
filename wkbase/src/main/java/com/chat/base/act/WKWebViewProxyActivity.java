@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public class WKWebViewProxyActivity extends Activity {
-    private static final String DEEP_LINK_SCHEME = "com.xinbida.tangsengdaodao";
+    private static final String DEEP_LINK_SCHEME = "com.qinghangim.app";
     private static final String DEEP_LINK_HOST = "url";
     private static final List<String> URL_QUERY_KEYS = Arrays.asList("url", "target", "targetUrl", "redirect_url");
 

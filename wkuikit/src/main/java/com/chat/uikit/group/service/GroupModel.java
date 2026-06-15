@@ -636,7 +636,7 @@ public class GroupModel extends WKBaseModel {
 
     public void uploadGroupAvatar(String groupNo, String filePath, final IUploadBack iUploadBack) {
         String url = WKApiConfig.getGroupUrl(groupNo) + "?uuid=" + WKTimeUtils.getInstance().getCurrentMills();
-        WKUploader.getInstance().upload(url, filePath, new WKUploader.IUploadBack() {
+        WKUploader.getInstance().uploadNoResult(url, filePath, new WKUploader.IUploadBack() {
             @Override
             public void onSuccess(String url) {
                 iUploadBack.onResult(HttpResponseCode.success);

@@ -66,6 +66,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
     String groupID;
     private String vercode;
     private WKChannel userChannel;
+    private boolean redirected;
 
     @Override
     protected ActUserDetailLayoutBinding getViewBinding() {
@@ -92,23 +93,29 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
     }
 
     private void initParams(Intent mIntent) {
+        redirected = false;
         uid = mIntent.getStringExtra("uid");
         if (TextUtils.isEmpty(uid)) finish();
+        WKChannel localChannel = WKIM.getInstance().getChannelManager().getChannel(uid, WKChannelType.PERSONAL);
         if (uid.equals(WKSystemAccount.system_file_helper)) {
             Intent intent = new Intent(this, WKFileHelperActivity.class);
             startActivity(intent);
+            redirected = true;
             finish();
             return;
         }
-        if (uid.equals(WKSystemAccount.system_team)) {
+        if (uid.equals(WKSystemAccount.system_team)
+                || (localChannel != null && WKSystemAccount.accountCategorySystem.equals(localChannel.category))) {
             Intent intent = new Intent(this, WKSystemTeamActivity.class);
             startActivity(intent);
+            redirected = true;
             finish();
             return;
         }
         if (uid.equals(WKConfig.getInstance().getUid())) {
             Intent intent = new Intent(this, MyInfoActivity.class);
             startActivity(intent);
+            redirected = true;
             finish();
             return;
         }
@@ -122,7 +129,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
         } else {
             vercode = "";
         }
-        userChannel = WKIM.getInstance().getChannelManager().getChannel(uid, WKChannelType.PERSONAL);
+        userChannel = localChannel;
         if (!TextUtils.isEmpty(groupID)) {
             WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(groupID, WKChannelType.GROUP, uid);
             if (member != null && member.extraMap != null && member.extraMap.containsKey(WKChannelMemberExtras.WKCode)) {
@@ -168,6 +175,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
 
     @Override
     protected void initView() {
+        if (redirected) return;
         wkVBinding.applyBtn.getBackground().setTint(Theme.colorAccount);
         wkVBinding.sendMsgBtn.getBackground().setTint(Theme.colorAccount);
         wkVBinding.avatarView.setSize(50);
@@ -199,6 +207,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void initListener() {
+        if (redirected) return;
         if (!TextUtils.isEmpty(groupID) && !uid.equals(WKConfig.getInstance().getUid())) {
             WKIM.getInstance().getChannelManager().addOnRefreshChannelInfo("user_detail_refresh_channel", (channel, isEnd) -> {
                 if (channel != null && channel.channelID.equals(groupID) && channel.channelType == WKChannelType.GROUP) {
@@ -299,6 +308,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
     @Override
     protected void initData() {
         super.initData();
+        if (redirected) return;
         setData();
         getUserInfo();
     }

@@ -25,6 +25,7 @@ import com.chat.base.utils.ImageUtils;
 import com.chat.base.utils.WKDialogUtils;
 import com.chat.base.utils.WKPermissions;
 import com.chat.base.utils.WKReader;
+import com.chat.base.ui.components.AvatarView;
 import com.chat.uikit.R;
 import com.chat.uikit.databinding.ActMyHeadPortraitLayoutBinding;
 import com.chat.uikit.group.service.GroupModel;
@@ -176,11 +177,12 @@ public class GroupAvatarActivity extends WKBaseActivity<ActMyHeadPortraitLayoutB
                     channel = new WKChannel();
                     channel.channelType = WKChannelType.GROUP;
                     channel.channelID = groupId;
-                    WKIM.getInstance().getChannelManager().saveOrUpdateChannel(channel);
                 }
+                AvatarView.clearCache(groupId, WKChannelType.GROUP);
                 channel.avatarCacheKey = UUID.randomUUID().toString().replace("-", "");
+                WKIM.getInstance().getChannelManager().saveOrUpdateChannel(channel);
                 WKIM.getInstance().getChannelManager().updateAvatarCacheKey(groupId, WKChannelType.GROUP, channel.avatarCacheKey);
-                WKCommonModel.getInstance().getChannel(groupId, WKChannelType.GROUP, null);
+                WKCommonModel.getInstance().getChannel(groupId, WKChannelType.GROUP, (syncCode, syncMsg, entity) -> showAvatar());
                 showAvatar();
                 EndpointManager.getInstance().invoke("group_avatar_updated", groupId);
                 setResult(RESULT_OK);

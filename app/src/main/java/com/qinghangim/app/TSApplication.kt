@@ -48,7 +48,7 @@ class TSApplication : MultiDexApplication() {
     companion object {
         private const val TAG = "TSApplication"
         private const val API_BASE_URL_KEY = "api_base_url"
-        private const val DEFAULT_API_URL = "http://192.168.110.104:8090"
+        private const val DEFAULT_API_URL = "http://112.27.201.42:8090"
         @Volatile
         var appInForeground: Boolean = false
     }
@@ -196,6 +196,7 @@ class TSApplication : MultiDexApplication() {
     }
 
     private fun addListener() {
+
         createNotificationChannel()
         EndpointManager.getInstance().setMethod("update_base_url") { value ->
             val apiURL = normalizeApiUrl(value as? String)
