@@ -16,6 +16,13 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".push.HonorPushMessageService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.hihonor.push.action.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
         <!--=================华为推送服务END==================================-->
         <!--************************小米push配置***************************-->
         <service
@@ -139,3 +146,4 @@
 
 
 </manifest>
+

@@ -117,7 +117,8 @@ class TSApplication : MultiDexApplication() {
     private fun initApi() {
         var apiURL = WKSharedPreferencesUtil.getInstance().getSP("api_base_url")
         if (TextUtils.isEmpty(apiURL)) {
-            apiURL = "http://192.168.110.104:8090"
+//            apiURL = "http://192.168.110.104:8090"
+            apiURL = "https://api.qinghangim.com"
             WKApiConfig.initBaseURL(apiURL)
         } else {
             WKApiConfig.initBaseURLIncludeIP(apiURL)
