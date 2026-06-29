@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('push-10.0.13.305.aar'))

@@ -27,6 +27,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.heytap.msp.push.HeytapPushManager;
 import com.heytap.msp.push.callback.ICallBackResultService;
+import com.hihonor.push.sdk.HonorPushCallback;
+import com.hihonor.push.sdk.HonorPushClient;
 import com.huawei.hms.aaid.HmsInstanceId;
 import com.huawei.hms.common.ApiException;
 import com.vivo.push.PushClient;
@@ -100,6 +102,27 @@ public class WKPushApplication {
         }
     }
 
+    private void initHonorPush(Context context) {
+        HonorPushClient pushClient = HonorPushClient.getInstance();
+        if (!pushClient.checkSupportHonorPush(context)) {
+            return;
+        }
+        pushClient.init(context, false);
+        pushClient.getPushToken(new HonorPushCallback<String>() {
+            @Override
+            public void onSuccess(String token) {
+                if (!TextUtils.isEmpty(token)) {
+                    Log.e("获取荣耀push", token);
+                    PushModel.getInstance().registerDeviceToken(token, pushBundleID, "");
+                }
+            }
+
+            @Override
+            public void onFailure(int code, String errorMessage) {
+                Log.e("获取荣耀push失败", code + ":" + errorMessage);
+            }
+        });
+    }
     private void initXiaoMiPush(Context context) {
         MiPushClient.registerPush(context, PushKeys.xiaoMiAppID, PushKeys.xiaoMiAppKey);
     }
@@ -207,7 +230,9 @@ public class WKPushApplication {
             });
         }else {
             if (!TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
-                if (OsUtils.isEmui()) {
+                if (HonorPushClient.getInstance().checkSupportHonorPush(mContext.get())) {
+                    initHonorPush(mContext.get());
+                } else if (OsUtils.isEmui()) {
                     new Thread(() -> getHuaWeiToken(mContext.get())).start();
                 } else if (OsUtils.isMiui()) {
                     initXiaoMiPush(mContext.get());
@@ -255,3 +280,4 @@ public class WKPushApplication {
         }
     }
 }
+

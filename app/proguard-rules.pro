@@ -143,6 +143,7 @@
 -keep class com.huawei.hms.**{*;}
 -keep class com.huawei.android.hms.agent.**{*;}
 -keep class com.huawei.hianalytics.**{*;}
+-keep class com.hihonor.push.sdk.**{*;}
 
 -keepattributes Signature
 -keepattributes Exceptions
@@ -378,3 +379,4 @@
 -keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
   **[] $VALUES;  public *;
 }
+
