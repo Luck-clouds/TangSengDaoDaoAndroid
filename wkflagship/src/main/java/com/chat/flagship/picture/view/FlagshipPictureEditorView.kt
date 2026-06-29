@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
@@ -54,7 +56,11 @@ class FlagshipPictureEditorView @JvmOverloads constructor(
     }
 
     enum class Mode {
-        GRAFFITI, ERASER, MOSAIC, STICKER
+        GRAFFITI, ERASER, MOSAIC, STICKER, FILTER, ADJUST
+    }
+
+    enum class FilterStyle {
+        ORIGINAL, MONO, WARM, COOL
     }
 
     private val binText = context.getString(R.string.flagship_picture_delete)
@@ -64,8 +70,11 @@ class FlagshipPictureEditorView @JvmOverloads constructor(
     private var preScrollY = 0f
     private val bitmapMatrix = Matrix()
     private val bitmapRectF = RectF()
+    private var sourceBitmap: Bitmap? = null
     private var baseBitmap: Bitmap? = null
     private var mosaicBitmap: Bitmap? = null
+    private var filterStyle = FilterStyle.ORIGINAL
+    private var contrastValue = 0f
     private val mosaicLayer = MosaicLayer(this)
     private val graffitiLayer = GraffitiLayer(this)
     private val stickerLayers = Stack<StickerLayer>()
@@ -189,7 +198,25 @@ class FlagshipPictureEditorView @JvmOverloads constructor(
             }
             Mode.MOSAIC -> mosaicLayer.isEnabled = true
             Mode.STICKER -> stickerLayers.forEach { it.isEnabled = true }
+            Mode.FILTER, Mode.ADJUST -> Unit
         }
+    }
+
+    fun setFilterStyle(style: FilterStyle) {
+        if (filterStyle == style) {
+            return
+        }
+        filterStyle = style
+        rebuildAdjustedBitmap()
+    }
+
+    fun setContrastValue(value: Float) {
+        val safeValue = value.coerceIn(-1f, 1f)
+        if (contrastValue == safeValue) {
+            return
+        }
+        contrastValue = safeValue
+        rebuildAdjustedBitmap()
     }
 
     fun setGraffitiColor(@ColorInt color: Int) {
@@ -403,31 +430,88 @@ class FlagshipPictureEditorView @JvmOverloads constructor(
     }
 
     private fun setupBitmap(bitmap: Bitmap) {
-        baseBitmap = bitmap
+        sourceBitmap = bitmap
+        val adjustedBitmap = createAdjustedBitmap(bitmap)
+        baseBitmap = adjustedBitmap
         stickerLayers.clear()
         graffitiLayer.clear()
         mosaicLayer.clear()
         bitmapMatrix.reset()
         isDoubleTap = false
-        bitmapRectF.set(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        bitmapRectF.set(0f, 0f, adjustedBitmap.width.toFloat(), adjustedBitmap.height.toFloat())
 
         val scaleFactor = minOf(
-            viewWidth.toFloat() / bitmap.width.toFloat(),
-            viewHeight.toFloat() / bitmap.height.toFloat(),
+            viewWidth.toFloat() / adjustedBitmap.width.toFloat(),
+            viewHeight.toFloat() / adjustedBitmap.height.toFloat(),
         )
         initScaleX = scaleFactor
         initScaleY = scaleFactor
         bitmapMatrix.postScale(scaleFactor, scaleFactor)
-        val dx = (viewWidth - bitmap.width * scaleFactor) * 0.5f
-        val dy = (viewHeight - bitmap.height * scaleFactor) * 0.5f
+        val dx = (viewWidth - adjustedBitmap.width * scaleFactor) * 0.5f
+        val dy = (viewHeight - adjustedBitmap.height * scaleFactor) * 0.5f
         bitmapMatrix.postTranslate(dx, dy)
 
+        rebuildMosaicBitmap(adjustedBitmap)
+        graffitiLayer.onSizeChanged(viewWidth, viewHeight, adjustedBitmap.width, adjustedBitmap.height)
+        computeBinRectF()
+    }
+
+    private fun rebuildAdjustedBitmap() {
+        val source = sourceBitmap ?: return
+        val adjustedBitmap = createAdjustedBitmap(source)
+        baseBitmap = adjustedBitmap
+        rebuildMosaicBitmap(adjustedBitmap)
+        postInvalidate()
+    }
+
+    private fun rebuildMosaicBitmap(bitmap: Bitmap) {
         val mosaicWidth = max(bitmap.width / MOSAIC_COEFFICIENT, 1)
         val mosaicHeight = max(bitmap.height / MOSAIC_COEFFICIENT, 1)
         mosaicBitmap = bitmap.scale(mosaicWidth, mosaicHeight, false)
         mosaicLayer.setParentBitmap(bitmap)
         mosaicLayer.onSizeChanged(viewWidth, viewHeight, bitmap.width, bitmap.height)
-        graffitiLayer.onSizeChanged(viewWidth, viewHeight, bitmap.width, bitmap.height)
-        computeBinRectF()
+    }
+
+    private fun createAdjustedBitmap(source: Bitmap): Bitmap {
+        if (filterStyle == FilterStyle.ORIGINAL && contrastValue == 0f) {
+            return source
+        }
+        val bitmap = createBitmap(source.width, source.height)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint.colorFilter = ColorMatrixColorFilter(buildColorMatrix())
+        canvas.drawBitmap(source, 0f, 0f, paint)
+        return bitmap
+    }
+
+    private fun buildColorMatrix(): ColorMatrix {
+        val matrix = ColorMatrix()
+        when (filterStyle) {
+            FilterStyle.ORIGINAL -> Unit
+            FilterStyle.MONO -> matrix.setSaturation(0f)
+            FilterStyle.WARM -> matrix.postConcat(ColorMatrix(floatArrayOf(
+                1.08f, 0f, 0f, 0f, 10f,
+                0f, 1.02f, 0f, 0f, 2f,
+                0f, 0f, 0.92f, 0f, -4f,
+                0f, 0f, 0f, 1f, 0f,
+            )))
+            FilterStyle.COOL -> matrix.postConcat(ColorMatrix(floatArrayOf(
+                0.92f, 0f, 0f, 0f, -4f,
+                0f, 1.02f, 0f, 0f, 2f,
+                0f, 0f, 1.10f, 0f, 8f,
+                0f, 0f, 0f, 1f, 0f,
+            )))
+        }
+        if (contrastValue != 0f) {
+            val contrast = 1f + contrastValue
+            val translate = (-0.5f * contrast + 0.5f) * 255f
+            matrix.postConcat(ColorMatrix(floatArrayOf(
+                contrast, 0f, 0f, 0f, translate,
+                0f, contrast, 0f, 0f, translate,
+                0f, 0f, contrast, 0f, translate,
+                0f, 0f, 0f, 1f, 0f,
+            )))
+        }
+        return matrix
     }
 }

@@ -18,6 +18,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatTextView;
@@ -59,6 +60,7 @@ public class FlagshipPictureEditorActivity extends WKBaseActivity<ActFlagshipPic
     private Dialog clipDialog;
     private FlagshipPictureEditorView.Mode currentMode;
     private final List<View> colorViews = new ArrayList<>();
+    private final List<AppCompatTextView> filterViews = new ArrayList<>();
     private int selectedColor = Color.WHITE;
 
     @Override
@@ -115,15 +117,40 @@ public class FlagshipPictureEditorActivity extends WKBaseActivity<ActFlagshipPic
             final int index = i;
             colorViews.get(i).setOnClickListener(v -> selectColor(index));
         }
+        filterViews.add(wkVBinding.filterOriginalTv);
+        filterViews.add(wkVBinding.filterMonoTv);
+        filterViews.add(wkVBinding.filterWarmTv);
+        filterViews.add(wkVBinding.filterCoolTv);
+        for (int i = 0; i < filterViews.size(); i++) {
+            final int index = i;
+            filterViews.get(i).setOnClickListener(v -> selectFilter(index));
+        }
         selectColor(0);
+        selectFilter(0);
         wkVBinding.textTool.setOnClickListener(v -> showTextDialog(null));
         wkVBinding.graffitiTool.setOnClickListener(v -> switchMode(FlagshipPictureEditorView.Mode.GRAFFITI));
         wkVBinding.mosaicTool.setOnClickListener(v -> switchMode(FlagshipPictureEditorView.Mode.MOSAIC));
         wkVBinding.clipTool.setOnClickListener(v -> showClipDialog());
+        wkVBinding.filterTool.setOnClickListener(v -> switchMode(FlagshipPictureEditorView.Mode.FILTER));
+        wkVBinding.contrastTool.setOnClickListener(v -> switchMode(FlagshipPictureEditorView.Mode.ADJUST));
+        wkVBinding.contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                wkVBinding.editorView.setContrastValue((progress - 100) / 100f);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
         wkVBinding.undoTool.setOnClickListener(v -> {
             if (currentMode == FlagshipPictureEditorView.Mode.MOSAIC) {
                 wkVBinding.editorView.mosaicUndo();
-            } else {
+            } else if (currentMode == FlagshipPictureEditorView.Mode.GRAFFITI) {
                 wkVBinding.editorView.graffitiUndo();
             }
         });
@@ -135,9 +162,15 @@ public class FlagshipPictureEditorActivity extends WKBaseActivity<ActFlagshipPic
         wkVBinding.editorView.setMode(mode);
         boolean graffiti = mode == FlagshipPictureEditorView.Mode.GRAFFITI;
         boolean mosaic = mode == FlagshipPictureEditorView.Mode.MOSAIC;
+        boolean filter = mode == FlagshipPictureEditorView.Mode.FILTER;
+        boolean adjust = mode == FlagshipPictureEditorView.Mode.ADJUST;
         wkVBinding.colorBar.setVisibility(graffiti ? View.VISIBLE : View.INVISIBLE);
+        wkVBinding.filterBar.setVisibility(filter ? View.VISIBLE : View.GONE);
+        wkVBinding.contrastBar.setVisibility(adjust ? View.VISIBLE : View.GONE);
         wkVBinding.graffitiIcon.setSelected(graffiti);
         wkVBinding.mosaicIcon.setSelected(mosaic);
+        wkVBinding.filterIcon.setSelected(filter);
+        wkVBinding.contrastIcon.setSelected(adjust);
     }
 
     private void applyTransparentTitleBar() {
@@ -175,6 +208,19 @@ public class FlagshipPictureEditorActivity extends WKBaseActivity<ActFlagshipPic
             colorViews.get(i).setSelected(i == index);
         }
         wkVBinding.editorView.setGraffitiColor(selectedColor);
+    }
+
+    private void selectFilter(int index) {
+        FlagshipPictureEditorView.FilterStyle[] filters = new FlagshipPictureEditorView.FilterStyle[]{
+                FlagshipPictureEditorView.FilterStyle.ORIGINAL,
+                FlagshipPictureEditorView.FilterStyle.MONO,
+                FlagshipPictureEditorView.FilterStyle.WARM,
+                FlagshipPictureEditorView.FilterStyle.COOL
+        };
+        for (int i = 0; i < filterViews.size(); i++) {
+            filterViews.get(i).setTextColor(i == index ? Color.parseColor("#F6C85F") : Color.WHITE);
+        }
+        wkVBinding.editorView.setFilterStyle(filters[index]);
     }
 
     private void onCompleteClick() {

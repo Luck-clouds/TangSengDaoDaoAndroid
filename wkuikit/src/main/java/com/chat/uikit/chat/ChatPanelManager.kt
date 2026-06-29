@@ -406,6 +406,12 @@ class ChatPanelManager(
         topLeftIv?.setImageResource(R.mipmap.msg_edit)
     }
 
+    fun hideOperationLayout() {
+        if (chatTopView?.visibility == View.VISIBLE) {
+            CommonAnim.getInstance().animateClose(chatTopView)
+        }
+    }
+
     fun initRefreshListener() {
         WKIM.getInstance().channelMembersManager.addOnAddChannelMemberListener(this.eventKey) { list ->
             for (channelMember in list) {

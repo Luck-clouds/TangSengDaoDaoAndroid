@@ -1918,7 +1918,8 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             deleteOperationMsg();
             return;
         }
-        if (messageContent.type == WKContentType.WK_TEXT && replyWKMsg != null) {
+        boolean hadReply = replyWKMsg != null;
+        if (replyWKMsg != null) {
             WKReply wkReply = new WKReply();
             if (replyWKMsg.remoteExtra != null && replyWKMsg.remoteExtra.contentEditMsgModel != null) {
                 wkReply.payload = replyWKMsg.remoteExtra.contentEditMsgModel;
@@ -1944,6 +1945,9 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             messageContent.reply = wkReply;
         }
         sendMsg(messageContent);
+        if (hadReply) {
+            chatPanelManager.hideOperationLayout();
+        }
         replyWKMsg = null;
 
     }

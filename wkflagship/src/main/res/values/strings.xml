@@ -25,6 +25,12 @@
     <string name="flagship_picture_tool_graffiti">涂鸦</string>
     <string name="flagship_picture_tool_mosaic">马赛克</string>
     <string name="flagship_picture_tool_clip">裁剪</string>
+    <string name="flagship_picture_tool_filter">滤镜</string>
+    <string name="flagship_picture_tool_contrast">对比度</string>
+    <string name="flagship_picture_filter_original">原图</string>
+    <string name="flagship_picture_filter_mono">黑白</string>
+    <string name="flagship_picture_filter_warm">暖色</string>
+    <string name="flagship_picture_filter_cool">冷色</string>
     <string name="flagship_picture_tool_undo">撤销</string>
     <string name="flagship_picture_tool_rotate">旋转</string>
     <string name="flagship_picture_text_hint">输入文字</string>

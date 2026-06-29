@@ -80,6 +80,88 @@
         </LinearLayout>
     </HorizontalScrollView>
 
+    <HorizontalScrollView
+        android:id="@+id/filterBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#1AFFFFFF"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:id="@+id/filterOriginalTv"
+                android:layout_width="72dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="@string/flagship_picture_filter_original"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/filterMonoTv"
+                android:layout_width="72dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="@string/flagship_picture_filter_mono"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/filterWarmTv"
+                android:layout_width="72dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="@string/flagship_picture_filter_warm"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/filterCoolTv"
+                android:layout_width="72dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="@string/flagship_picture_filter_cool"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/contrastBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#1AFFFFFF"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="58dp"
+            android:layout_height="wrap_content"
+            android:text="@string/flagship_picture_tool_contrast"
+            android:textColor="@android:color/white"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/contrastSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="200"
+            android:progress="100" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="88dp"
@@ -183,6 +265,56 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="@string/flagship_picture_tool_clip"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/filterTool"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <ImageView
+                android:id="@+id/filterIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/pe_text" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/flagship_picture_tool_filter"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/contrastTool"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <ImageView
+                android:id="@+id/contrastIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/pc_rotate" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/flagship_picture_tool_contrast"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
         </LinearLayout>

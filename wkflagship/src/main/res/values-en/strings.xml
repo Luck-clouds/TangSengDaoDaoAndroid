@@ -45,6 +45,17 @@
     <string name="flagship_rich_text_upload_failed">Image upload failed. Try again.</string>
     <string name="flagship_rich_text_image_tool">Insert image</string>
     <string name="flagship_rich_text_italic_tool">Italic</string>
+    <string name="flagship_picture_tool_text">Text</string>
+    <string name="flagship_picture_tool_graffiti">Draw</string>
+    <string name="flagship_picture_tool_mosaic">Mosaic</string>
+    <string name="flagship_picture_tool_clip">Crop</string>
+    <string name="flagship_picture_tool_filter">Filter</string>
+    <string name="flagship_picture_tool_contrast">Contrast</string>
+    <string name="flagship_picture_filter_original">Original</string>
+    <string name="flagship_picture_filter_mono">Mono</string>
+    <string name="flagship_picture_filter_warm">Warm</string>
+    <string name="flagship_picture_filter_cool">Cool</string>
+    <string name="flagship_picture_tool_undo">Undo</string>
     <string name="flagship_mutual_delete">Delete for Both</string>
     <string name="flagship_mutual_delete_failed">Failed to delete for both</string>
     <string name="flagship_batch_mutual_delete_limit">You can delete at most 100 messages for both at a time</string>
