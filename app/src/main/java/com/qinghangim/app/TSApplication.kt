@@ -39,6 +39,7 @@ import com.chat.sticker.WKStickerApplication
 import com.chat.uikit.TabActivity
 import com.chat.uikit.WKUIKitApplication
 import com.chat.uikit.chat.manager.WKIMUtils
+import com.chat.uikit.setting.TeenModeManager
 import com.chat.uikit.user.service.UserModel
 import com.chat.video.WKVideoApplication
 import com.qinghangim.app.R
@@ -190,6 +191,7 @@ class TSApplication : MultiDexApplication() {
                 WKIMUtils.getInstance().removeListener()
                 WKSharedPreferencesUtil.getInstance()
                     .putLong("lock_start_time", WKTimeUtils.getInstance().currentSeconds)
+                TeenModeManager.getInstance().markVerifyPending()
 
             }
         })

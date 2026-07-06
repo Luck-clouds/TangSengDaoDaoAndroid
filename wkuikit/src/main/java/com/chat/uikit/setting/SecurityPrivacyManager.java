@@ -182,19 +182,25 @@ public class SecurityPrivacyManager {
             return;
         }
         if (!hasLockScreenPassword()) {
-            evaluateOfflineProtection();
+            if (!TeenModeManager.getInstance().checkAndShowTeenMode()) {
+                evaluateOfflineProtection();
+            }
             return;
         }
         long lockStartTime = WKSharedPreferencesUtil.getInstance().getLong("lock_start_time");
         if (lockStartTime <= 0) {
-            evaluateOfflineProtection();
+            if (!TeenModeManager.getInstance().checkAndShowTeenMode()) {
+                evaluateOfflineProtection();
+            }
             return;
         }
         int lockAfterMinute = WKConfig.getInstance().getUserInfo().lock_after_minute;
         long elapsedSeconds = Math.max(0, WKTimeUtils.getInstance().getCurrentSeconds() - lockStartTime);
         boolean shouldLock = lockAfterMinute <= 0 ? elapsedSeconds > 0 : elapsedSeconds >= lockAfterMinute * 60L;
         if (!shouldLock) {
-            evaluateOfflineProtection();
+            if (!TeenModeManager.getInstance().checkAndShowTeenMode()) {
+                evaluateOfflineProtection();
+            }
             return;
         }
         closeOfflineProtection();
@@ -210,7 +216,11 @@ public class SecurityPrivacyManager {
     public void onLockScreenVerified() {
         WKSharedPreferencesUtil.getInstance().putInt("wk_lock_screen_pwd_count", 5);
         WKSharedPreferencesUtil.getInstance().putLong("lock_start_time", WKTimeUtils.getInstance().getCurrentSeconds());
-        handler.postDelayed(this::evaluateOfflineProtection, 200L);
+        handler.postDelayed(() -> {
+            if (!TeenModeManager.getInstance().checkAndShowTeenMode()) {
+                evaluateOfflineProtection();
+            }
+        }, 200L);
     }
 
     public void rememberLockActivity(LockScreenPasswordActivity activity) {
@@ -237,6 +247,10 @@ public class SecurityPrivacyManager {
 
     public void refreshProtectionState() {
         evaluateOfflineProtection();
+    }
+
+    public void closeOfflineProtectionScreen() {
+        closeOfflineProtection();
     }
 
     public long getOfflineProtectionStartTimeSeconds() {
@@ -289,6 +303,11 @@ public class SecurityPrivacyManager {
             cancelImReconnectPolling();
             return;
         }
+        if (TeenModeManager.getInstance().isPasswordActivityShowing()) {
+            cancelDelayedOfflineShow();
+            cancelImReconnectPolling();
+            return;
+        }
         if (!isNetworkAvailable) {
             cancelDelayedOfflineShow();
             cancelImReconnectPolling();
@@ -313,7 +332,7 @@ public class SecurityPrivacyManager {
         if (!isLoggedIn() || !isAppForeground || !isOfflineProtectionEnabled()) {
             return;
         }
-        if (isLockActivityShowing() || isOfflineActivityShowing()) {
+        if (isLockActivityShowing() || TeenModeManager.getInstance().isPasswordActivityShowing() || isOfflineActivityShowing()) {
             return;
         }
         Activity currentActivity = ActManagerUtils.getInstance().getCurrentActivity();

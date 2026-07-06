@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/homeColor"
+    android:orientation="vertical">
+
+    <include layout="@layout/wk_title_bar_layout" />
+
+    <TextView
+        android:id="@+id/teenModeDescTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="15dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="12dp"
+        android:text="@string/teen_mode_desc"
+        android:textColor="@color/color999"
+        android:textSize="@dimen/font_size_12" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/layout_bg"
+        android:orientation="vertical">
+
+        <LinearLayout
+            style="@style/layoutBgPaddingSmall">
+
+            <TextView
+                style="@style/leftTextView"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="@string/teen_mode" />
+
+            <com.chat.base.ui.components.SwitchView
+                android:id="@+id/teenModeSwitch"
+                android:layout_width="45dp"
+                android:layout_height="40dp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

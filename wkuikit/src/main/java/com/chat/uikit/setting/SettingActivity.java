@@ -53,6 +53,7 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
     protected void initView() {
         getCacheSize();
         EndpointManager.getInstance().invoke("set_chat_bg_view", new ChatBgItemMenu(this, wkVBinding.chatBgLayout, "", WKChannelType.PERSONAL));
+        refreshTeenModeStatus();
     }
 
     @Override
@@ -87,6 +88,7 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
         SingleClickUtil.onSingleClick(wkVBinding.moduleLayout, view1 -> startActivity(new Intent(this, AppModulesActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.aboutLayout, view1 -> startActivity(new Intent(this, WKAboutActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.fontSizeLayout, view1 -> startActivity(new Intent(this, WKSetFontSizeActivity.class)));
+        SingleClickUtil.onSingleClick(wkVBinding.teenModeLayout, view1 -> startActivity(new Intent(this, TeenModeActivity.class)));
         WKCommonModel.getInstance().getAppNewVersion(false, version -> {
             if (version != null && !TextUtils.isEmpty(version.download_url)) {
                 wkVBinding.newVersionIv.setVisibility(View.VISIBLE);
@@ -114,6 +116,12 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshTeenModeStatus();
+    }
+
 
     //获取缓存大小
     private void getCacheSize() {
@@ -129,6 +137,10 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
             }
         }).start();
 
+    }
+
+    private void refreshTeenModeStatus() {
+        wkVBinding.teenModeStatusTv.setText(TeenModeManager.getInstance().isEnabled() ? R.string.enabled : R.string.disabled);
     }
 
 }

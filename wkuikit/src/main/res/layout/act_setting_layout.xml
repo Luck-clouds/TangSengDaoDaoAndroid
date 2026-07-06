@@ -85,6 +85,29 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/teenModeLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            style="@style/leftTextView"
+                            android:layout_weight="1"
+                            android:text="@string/teen_mode" />
+
+                        <TextView
+                            android:id="@+id/teenModeStatusTv"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="@string/disabled"
+                            android:textColor="@color/color999" />
+
+                        <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:id="@+id/chatBgLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

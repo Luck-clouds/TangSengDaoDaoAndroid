@@ -45,6 +45,11 @@
             android:name=".setting.LockScreenPasswordActivity"
             android:exported="false"
             android:launchMode="singleTask" />
+        <activity android:name=".setting.TeenModeActivity" android:exported="false" />
+        <activity
+            android:name=".setting.TeenModePasswordActivity"
+            android:exported="false"
+            android:launchMode="singleTask" />
         <activity android:name=".setting.LockScreenPwdSettingActivity" android:exported="false" />
         <activity
             android:name=".setting.OfflineProtectionActivity"

@@ -77,6 +77,10 @@ public class WKSharedPreferencesUtil {
         return this.getBoolean(WKConfig.getInstance().getUid() + "_" + key);
     }
 
+    public boolean getBooleanWithUID(String key, boolean defValue) {
+        return this.getBoolean(WKConfig.getInstance().getUid() + "_" + key, defValue);
+    }
+
     public void putBoolean(String key, boolean value) {
         mEditor.putBoolean(key, value);
         mEditor.commit();
@@ -97,6 +101,10 @@ public class WKSharedPreferencesUtil {
 
     public int getIntWithUID(String key) {
         return getInt(WKConfig.getInstance().getUid() + "_" + key);
+    }
+
+    public int getIntWithUID(String key, int defValue) {
+        return getInt(WKConfig.getInstance().getUid() + "_" + key, defValue);
     }
 
     public void putInt(String key, int value) {
@@ -131,6 +139,10 @@ public class WKSharedPreferencesUtil {
 
     public long getLongWithUID(String key) {
         return this.getLong(WKConfig.getInstance().getUid() + "_" + key);
+    }
+
+    public long getLongWithUID(String key, long defValue) {
+        return mPreferences.getLong(WKConfig.getInstance().getUid() + "_" + key, defValue);
     }
 
     public void putLong(String key, long value) {
