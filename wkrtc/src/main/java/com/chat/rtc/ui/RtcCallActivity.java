@@ -43,7 +43,6 @@ import com.chat.rtc.entity.RtcSession;
 import com.chat.rtc.livekit.RtcAudioHelper;
 import com.chat.rtc.livekit.RtcLiveKitCallback;
 import com.chat.rtc.livekit.RtcLiveKitClient;
-import com.chat.rtc.message.RtcNoticeContent;
 import com.chat.rtc.net.RtcModel;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelMember;
@@ -526,13 +525,12 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
             @Override
             public void onSuccess(RtcCallResp result) {
                 RtcManager.getInstance().applyCallResp(result);
-                sendInitialGroupNoticeFallback();
                 connectLiveKit(result);
             }
 
             @Override
             public void onFail(int code, String msg) {
-                WKToastUtils.getInstance().showToastNormal(TextUtils.isEmpty(msg) ? getString(R.string.wkrtc_call_failed) : msg);
+                WKToastUtils.getInstance().showToastNormal(rtcErrorMessage(code, msg, getString(R.string.wkrtc_call_failed)));
                 RtcManager.getInstance().finish();
                 finish();
             }
@@ -566,7 +564,7 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
 
             @Override
             public void onFail(int code, String msg) {
-                WKToastUtils.getInstance().showToastNormal(TextUtils.isEmpty(msg) ? "\u52a0\u5165\u901a\u8bdd\u5931\u8d25" : msg);
+                WKToastUtils.getInstance().showToastNormal(rtcErrorMessage(code, msg, "\u52a0\u5165\u901a\u8bdd\u5931\u8d25"));
                 RtcManager.getInstance().finish(false);
                 finish();
             }
@@ -594,7 +592,7 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
 
             @Override
             public void onFail(int code, String msg) {
-                WKToastUtils.getInstance().showToastNormal(TextUtils.isEmpty(msg) ? getString(R.string.wkrtc_call_failed) : msg);
+                WKToastUtils.getInstance().showToastNormal(rtcErrorMessage(code, msg, getString(R.string.wkrtc_call_failed)));
                 RtcManager.getInstance().finish();
                 finish();
             }
@@ -647,6 +645,22 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
                 : session == null ? "" : session.callId;
         liveKitCallback = buildLiveKitCallback(activeLiveKitCallId);
         RtcLiveKitClient.connect(this, result, callType, liveKitCallback);
+    }
+
+    private String rtcErrorMessage(int code, String serverMessage, String fallback) {
+        if (!TextUtils.isEmpty(serverMessage)) {
+            return serverMessage;
+        }
+        if (code == 40005) {
+            return "邀请已过期";
+        }
+        if (code == 40006) {
+            return "无权加入此通话或加入码无效";
+        }
+        if (code == 40008) {
+            return "已在其他设备接听";
+        }
+        return fallback;
     }
 
     private RtcLiveKitCallback buildLiveKitCallback(String expectedCallId) {
@@ -2416,12 +2430,9 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
             WKToastUtils.getInstance().showToastNormal("暂无可邀请成员");
             return;
         }
-        sendInviteNoticeFallback(session, effectiveUids, false);
         RtcModel.getInstance().inviteMembers(
                 session.callId,
-                session.channel == null ? "" : session.channel.channelID,
-                session.channel == null ? channel.channelType : session.channel.channelType,
-                session.callType == 1 ? "video" : "audio",
+                RtcManager.getInstance().getDeviceId(),
                 effectiveUids,
                 new IRequestResultListener<>() {
             @Override
@@ -2435,60 +2446,6 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
                 WKToastUtils.getInstance().showToastNormal(TextUtils.isEmpty(msg) ? "邀请失败" : msg);
             }
         });
-    }
-
-    private void sendInitialGroupNoticeFallback() {
-        RtcSession session = RtcManager.getInstance().currentSession();
-        if (session == null
-                || session.channel == null
-                || session.channel.channelType != WKChannelType.GROUP
-                || !session.inviteAll) {
-            return;
-        }
-        sendInviteNoticeFallback(session, session.inviteUIDs, true);
-    }
-
-    private void sendInviteNoticeFallback(RtcSession session, List<String> targetUIDs, boolean inviteAllNotice) {
-        if (session == null
-                || session.channel == null
-                || session.channel.channelType != WKChannelType.GROUP
-                || TextUtils.isEmpty(session.callId)
-                || (!inviteAllNotice && (targetUIDs == null || targetUIDs.isEmpty()))) {
-            return;
-        }
-        try {
-            RtcNoticeContent content = new RtcNoticeContent();
-            content.callId = session.callId;
-            content.roomName = session.roomName;
-            content.channelId = session.channel.channelID;
-            content.channelType = session.channel.channelType;
-            content.callType = session.callType == 1 ? "video" : "audio";
-            content.fromUid = WKConfig.getInstance().getUid();
-            content.fromName = currentUserDisplayName();
-            content.expireAt = System.currentTimeMillis() / 1000L + 180L;
-            content.targetUIDs = targetUIDs == null ? new ArrayList<>() : new ArrayList<>(targetUIDs);
-            content.inviteAll = inviteAllNotice;
-            WKIM.getInstance().getMsgManager().send(content, session.channel);
-            Log.i(TAG, "send rtc_notice fallback for invite, callId=" + session.callId + ", targetUIDs=" + targetUIDs);
-        } catch (Exception error) {
-            Log.w(TAG, "send rtc_notice fallback failed", error);
-        }
-    }
-
-    private String currentUserDisplayName() {
-        String uid = WKConfig.getInstance().getUid();
-        if (!TextUtils.isEmpty(uid)) {
-            WKChannel user = WKIM.getInstance().getChannelManager().getChannel(uid, WKChannelType.PERSONAL);
-            if (user != null) {
-                if (!TextUtils.isEmpty(user.channelRemark)) {
-                    return user.channelRemark;
-                }
-                if (!TextUtils.isEmpty(user.channelName)) {
-                    return user.channelName;
-                }
-            }
-        }
-        return uid;
     }
 
     private View buildParticipantRow(String name) {

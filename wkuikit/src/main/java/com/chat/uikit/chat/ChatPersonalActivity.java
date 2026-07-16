@@ -27,6 +27,7 @@ import com.chat.uikit.contacts.service.FriendModel;
 import com.chat.uikit.databinding.ActChatPersonalLayoutBinding;
 import com.chat.uikit.message.MsgModel;
 import com.chat.uikit.user.UserDetailActivity;
+import com.chat.uikit.user.service.UserModel;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelType;
@@ -186,6 +187,7 @@ public class ChatPersonalActivity extends WKBaseActivity<ActChatPersonalLayoutBi
             intent.putExtra("url", WKApiConfig.baseWebUrl + "report.html");
             startActivity(intent);
         });
+        SingleClickUtil.onSingleClick(wkVBinding.blacklistLayout, view1 -> showBlacklistDialog());
     }
 
     @Override
@@ -205,7 +207,57 @@ public class ChatPersonalActivity extends WKBaseActivity<ActChatPersonalLayoutBi
             wkVBinding.nameTv.setText(TextUtils.isEmpty(channel.channelRemark) ? channel.channelName : channel.channelRemark);
             wkVBinding.muteSwitchView.setChecked(channel.mute == 1);
             wkVBinding.stickSwitchView.setChecked(channel.top == 1);
+            updateBlacklistButton();
+        }
+    }
 
+    private void updateBlacklistButton() {
+        boolean isBlacklisted = channel != null && channel.status == 2;
+        wkVBinding.blacklistTv.setText(isBlacklisted
+                ? R.string.pull_out_black_list : R.string.push_black_list);
+    }
+
+    private void showBlacklistDialog() {
+        if (channel == null) return;
+        boolean isBlacklisted = channel.status == 2;
+        int title = isBlacklisted ? R.string.pull_out_black_list : R.string.push_black_list;
+        int content = isBlacklisted
+                ? R.string.pull_out_black_list_tips : R.string.join_black_list_tips;
+        WKDialogUtils.getInstance().showDialog(this, getString(title), getString(content),
+                true, "", "", 0, 0, index -> {
+                    if (index != 1) return;
+                    if (isBlacklisted) {
+                        UserModel.getInstance().removeBlackList(channelId,
+                                (code, msg) -> onBlacklistChanged(code, msg, false));
+                    } else {
+                        UserModel.getInstance().addBlackList(channelId,
+                                (code, msg) -> onBlacklistChanged(code, msg, true));
+                    }
+                });
+    }
+
+    private void onBlacklistChanged(int code, String msg, boolean isBlacklisted) {
+        if (code != HttpResponseCode.success) {
+            showToast(msg);
+            return;
+        }
+        // Update immediately; UserModel also refreshes the authoritative channel
+        // data from the server so other pages remain synchronized.
+        channel.status = isBlacklisted ? 2 : 1;
+        WKIM.getInstance().getChannelManager().saveOrUpdateChannel(channel);
+        updateBlacklistButton();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!TextUtils.isEmpty(channelId)) {
+            WKChannel latestChannel = WKIM.getInstance().getChannelManager()
+                    .getChannel(channelId, WKChannelType.PERSONAL);
+            if (latestChannel != null) {
+                channel = latestChannel;
+                updateBlacklistButton();
+            }
         }
     }
 

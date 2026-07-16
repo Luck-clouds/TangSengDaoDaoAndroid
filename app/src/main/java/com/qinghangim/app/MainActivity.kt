@@ -6,7 +6,6 @@ import android.text.SpannableStringBuilder
 import android.text.TextUtils
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.chat.base.WKBaseApplication
 import com.chat.base.base.WKBaseActivity
 import com.chat.base.config.WKApiConfig
 import com.chat.base.config.WKConfig
@@ -84,7 +83,9 @@ class MainActivity : WKBaseActivity<ActivityMainBinding>() {
                 NormalClickableContent(NormalClickableContent.NormalClickableTypes.Other, ""),
                 object : NormalClickableSpan.IClick {
                     override fun onClick(view: View) {
-                        WKApiConfig.baseWebUrl + "privacy_policy.html"
+                        showWebView(
+                            WKApiConfig.baseWebUrl + "privacy_policy.html"
+                        )
                     }
                 }), privacyPolicyIndex, privacyPolicyIndex + 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
@@ -102,10 +103,7 @@ class MainActivity : WKBaseActivity<ActivityMainBinding>() {
             if (index == 1) {
                 WKSharedPreferencesUtil.getInstance()
                     .putBoolean("show_agreement_dialog", false)
-                WKBaseApplication.getInstance().init(
-                    WKBaseApplication.getInstance().packageName,
-                    WKBaseApplication.getInstance().application
-                )
+                (application as TSApplication).initializeAfterPrivacyConsent()
                 gotoApp()
             } else {
                 finish()

@@ -45,6 +45,19 @@ public class WKConstants {
         return deviceUUID;
     }
 
+    /**
+     * Stable ID for this app installation. RTC uses this value to distinguish
+     * multiple devices without reading IMEI, OAID, MAC or other hardware IDs.
+     */
+    public static String getInstallDeviceID() {
+        String deviceID = WKSharedPreferencesUtil.getInstance().getSP("install_device_id");
+        if (TextUtils.isEmpty(deviceID)) {
+            deviceID = UUID.randomUUID().toString();
+            WKSharedPreferencesUtil.getInstance().putSP("install_device_id", deviceID);
+        }
+        return deviceID;
+    }
+
     @SuppressLint("HardwareIds")
     public static String getDeviceID() {
         String deviceUUID;

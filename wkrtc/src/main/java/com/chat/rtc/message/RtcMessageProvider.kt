@@ -49,7 +49,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val callType = payload?.optString("call_type").orEmpty()
         val recordType = payload?.optString("record_type").orEmpty()
         val isVideo = callType == "video"
-        val isOngoingNotice = isInviteAllNotice(payload, recordType)
+        val isOngoingNotice = isOngoingNotice(payload, recordType)
         val titleTextColor = when {
             isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, android.R.color.black)
@@ -163,7 +163,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val isSend = fromType == WKChatIteMsgFromType.SEND
         val payload = runCatching { JSONObject(uiChatMsgItemEntity.wkMsg.content ?: "{}") }.getOrNull()
         val recordType = payload?.optString("record_type").orEmpty()
-        val isOngoingNotice = isInviteAllNotice(payload, recordType)
+        val isOngoingNotice = isOngoingNotice(payload, recordType)
         val color = when {
             isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, com.chat.base.R.color.color999)
@@ -219,13 +219,13 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
             return false
         }
         val payload = runCatching { JSONObject(uiChatMsgItemEntity.wkMsg.content ?: "{}") }.getOrNull()
-        return isInviteAllNotice(payload, payload?.optString("record_type").orEmpty())
+        return isOngoingNotice(payload, payload?.optString("record_type").orEmpty())
     }
 
-    private fun isInviteAllNotice(payload: JSONObject?, recordType: String): Boolean {
+    private fun isOngoingNotice(payload: JSONObject?, recordType: String): Boolean {
         return rtcType == WKContentType.rtcNotice
                 && TextUtils.isEmpty(recordType)
-                && payload?.optBoolean("invite_all", false) == true
+                && !payload?.optString("call_id").isNullOrEmpty()
     }
 
     private fun dp(value: Int): Int {

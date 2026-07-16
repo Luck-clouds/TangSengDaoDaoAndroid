@@ -5,8 +5,6 @@ import android.util.Log;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.chat.base.base.WKBaseModel;
-import com.chat.base.config.WKConfig;
-import com.chat.base.config.WKConstants;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
 import com.chat.rtc.entity.RtcCallResp;
@@ -45,8 +43,6 @@ public class RtcModel extends WKBaseModel {
             inviteArray.addAll(inviteUIDs);
         }
         body.put("invite_uids", inviteArray);
-        body.put("target_uids", inviteArray);
-        body.put("uids", inviteArray);
         Log.i(TAG, "POST rtc/calls body=" + body.toJSONString());
         request(createService(RtcApiService.class).startCall(body), listener);
     }
@@ -60,15 +56,11 @@ public class RtcModel extends WKBaseModel {
     }
 
     public void rejectCall(String callId, String deviceId, IRequestResultListener<CommonResponse> listener) {
-        JSONObject body = new JSONObject();
-        body.put("device_id", deviceId);
-        request(createService(RtcApiService.class).rejectCall(callId, body), listener);
+        request(createService(RtcApiService.class).rejectCall(callId, deviceId), listener);
     }
 
     public void cancelCall(String callId, String deviceId, IRequestResultListener<CommonResponse> listener) {
-        JSONObject body = new JSONObject();
-        body.put("device_id", deviceId);
-        request(createService(RtcApiService.class).cancelCall(callId, body), listener);
+        request(createService(RtcApiService.class).cancelCall(callId, deviceId), listener);
     }
 
     public void closeCall(String callId, String deviceId, IRequestResultListener<CommonResponse> listener) {
@@ -77,38 +69,24 @@ public class RtcModel extends WKBaseModel {
 
     public void closeCall(String callId, String deviceId, String reason, IRequestResultListener<CommonResponse> listener) {
         JSONObject body = new JSONObject();
-        body.put("device_id", deviceId);
         body.put("reason", reason);
-        request(createService(RtcApiService.class).closeCall(callId, body), listener);
+        request(createService(RtcApiService.class).closeCall(callId, deviceId, body), listener);
     }
 
     public void leaveCall(String callId, String deviceId, IRequestResultListener<CommonResponse> listener) {
-        JSONObject body = new JSONObject();
-        body.put("device_id", deviceId);
-        request(createService(RtcApiService.class).leaveCall(callId, body), listener);
+        request(createService(RtcApiService.class).leaveCall(callId, deviceId), listener);
     }
 
-    public void inviteMembers(String callId, String channelId, byte channelType, String callType,
-                              List<String> uids, IRequestResultListener<CommonResponse> listener) {
+    public void inviteMembers(String callId, String deviceId, List<String> uids,
+                              IRequestResultListener<CommonResponse> listener) {
         JSONObject body = new JSONObject();
         JSONArray uidArray = new JSONArray();
         if (uids != null) {
             uidArray.addAll(uids);
         }
-        body.put("call_id", callId);
-        body.put("channel_id", channelId);
-        body.put("channel_type", channelType);
-        body.put("call_type", callType);
-        body.put("device_id", WKConstants.getDeviceID());
-        body.put("from_uid", WKConfig.getInstance().getUid());
-        body.put("from_device_id", WKConstants.getDeviceID());
-        body.put("sender_device_id", WKConstants.getDeviceID());
-        body.put("device_uuid", WKConstants.getDeviceUUID());
         body.put("uids", uidArray);
-        body.put("invite_uids", uidArray);
-        body.put("target_uids", uidArray);
         Log.i(TAG, "POST rtc/calls/" + callId + "/invite body=" + body.toJSONString());
-        request(createService(RtcApiService.class).inviteMembers(callId, body), listener);
+        request(createService(RtcApiService.class).inviteMembers(callId, deviceId, body), listener);
     }
 
     public void channelState(byte channelType, String channelId,

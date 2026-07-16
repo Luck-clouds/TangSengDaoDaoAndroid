@@ -32,7 +32,8 @@ import com.chat.base.utils.language.WKMultiLanguageUtil
 import com.chat.flagship.WKFlagshipApplication
 import com.chat.login.WKLoginApplication
 import com.chat.moments.WKMomentsApplication
-import com.chat.push.WKPushApplication
+// 厂商推送/FCM 已关闭；恢复 :wkpush 依赖后取消此 import 的注释。
+// import com.chat.push.WKPushApplication
 import com.chat.rtc.WKRTCApplication
 import com.chat.scan.WKScanApplication
 import com.chat.sticker.WKStickerApplication
@@ -54,13 +55,20 @@ class TSApplication : MultiDexApplication() {
         var appInForeground: Boolean = false
     }
 
+    @Volatile
+    private var businessInitialized = false
+
     override fun onCreate() {
         super.onCreate()
         val processName = getProcessName(this, Process.myPid())
         if (processName != null) {
             val defaultProcess = processName == getAppPackageName()
             if (defaultProcess) {
-                initAll()
+                initBeforePrivacyConsent()
+                if (!WKSharedPreferencesUtil.getInstance()
+                        .getBoolean("show_agreement_dialog")) {
+                    initializeAfterPrivacyConsent()
+                }
             }
         }
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
@@ -107,12 +115,26 @@ class TSApplication : MultiDexApplication() {
         super.attachBaseContext(WKMultiLanguageUtil.getInstance().attachBaseContext(base))
     }
 
-    private fun initAll() {
-
+    /**
+     * Only initializes resources required to render the privacy dialog. No business
+     * module or third-party SDK may be initialized before the user has consented.
+     */
+    private fun initBeforePrivacyConsent() {
         WKMultiLanguageUtil.getInstance().init(this)
         WKBaseApplication.getInstance().init(getAppPackageName(), this)
         Theme.applyTheme()
         initApi()
+    }
+
+    /** Called on a normal launch after consent, or immediately after the user agrees. */
+    @Synchronized
+    fun initializeAfterPrivacyConsent() {
+        if (businessInitialized) return
+        businessInitialized = true
+
+        // Complete WKBaseApplication's deferred initialization first because all
+        // following modules depend on its cache, configuration and endpoint setup.
+        WKBaseApplication.getInstance().init(getAppPackageName(), this)
         WKLoginApplication.getInstance().init(this)
         WKScanApplication.getInstance().init(this)
         WKUIKitApplication.getInstance().init(this)
@@ -121,7 +143,8 @@ class TSApplication : MultiDexApplication() {
         WKMomentsApplication.getInstance().init(this)
         WKStickerApplication.getInstance().init(this)
         WKRTCApplication.getInstance().init(this)
-        WKPushApplication.getInstance().init(getAppPackageName(), this)
+        // 厂商推送/FCM 已关闭。恢复依赖后可在隐私协议同意后的此处重新初始化。
+        // WKPushApplication.getInstance().init(getAppPackageName(), this)
         addAppFrontBack()
         addListener()
     }

@@ -25,7 +25,6 @@ import com.chat.base.msg.IConversationContext;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.base.net.IRequestResultListener;
-import com.chat.base.net.entity.CommonResponse;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.rtc.entity.RtcCallPayload;
 import com.chat.rtc.entity.RtcCallResp;
@@ -35,6 +34,7 @@ import com.chat.rtc.livekit.RtcLiveKitClient;
 import com.chat.rtc.message.RtcNoticeContent;
 import com.chat.rtc.message.RtcNoticeProvider;
 import com.chat.rtc.message.RtcRecordProvider;
+import com.chat.rtc.message.RtcRecordContent;
 import com.chat.rtc.net.RtcModel;
 import com.chat.rtc.ui.RtcCallActivity;
 import com.xinbida.wukongim.WKIM;
@@ -42,7 +42,6 @@ import com.xinbida.wukongim.entity.WKCMDKeys;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelMember;
 import com.xinbida.wukongim.entity.WKChannelType;
-import com.xinbida.wukongim.entity.WKConversationMsg;
 import com.xinbida.wukongim.entity.WKMsg;
 
 import org.json.JSONArray;
@@ -56,8 +55,6 @@ import java.util.UUID;
 
 public class RtcManager {
     private static final String TAG = "WKRTC";
-    private static final long LONELY_GROUP_FINISH_DELAY_MS = 2500L;
-    private static final long LONELY_GROUP_PENDING_FINISH_DELAY_MS = 12000L;
     private static final long ENDED_SESSION_CLEAR_DELAY_MS = 1200L;
     private static final long CHANNEL_PROBE_MIN_INTERVAL_MS = 1200L;
 
@@ -91,56 +88,16 @@ public class RtcManager {
             mainHandler.postDelayed(this, 3000L);
         }
     };
-    private final Runnable personalCallWatcher = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                if (appContext == null || isCalling() || TextUtils.isEmpty(WKConfig.getInstance().getToken())) {
-                    return;
-                }
-                probeRecentConversationsForIncomingCalls(WKChannelType.PERSONAL, 8);
-                probeRecentConversationsForIncomingCalls(WKChannelType.GROUP, 12);
-            } catch (Exception error) {
-                Log.w(TAG, "personal call watcher failed", error);
-            } finally {
-                mainHandler.postDelayed(this, 3000L);
-            }
-        }
-    };
-
     public void init(Context context) {
         appContext = context.getApplicationContext();
-        Log.i(TAG, "rtc init, deviceId=" + getDeviceId());
+        Log.i(TAG, "rtc initialized");
         registerMessages();
         registerEndpoints();
-        startPersonalCallWatcher();
-    }
-
-    private void startPersonalCallWatcher() {
-        mainHandler.removeCallbacks(personalCallWatcher);
-        mainHandler.postDelayed(personalCallWatcher, 3000L);
-    }
-
-    private void probeRecentConversationsForIncomingCalls(byte channelType, int maxCount) {
-        List<WKConversationMsg> conversations = WKIM.getInstance().getConversationManager().getWithChannelType(channelType);
-        if (conversations == null) {
-            return;
-        }
-        int checked = 0;
-        for (WKConversationMsg conversation : conversations) {
-            if (conversation == null || TextUtils.isEmpty(conversation.channelID)) {
-                continue;
-            }
-            probeChannelState(new WKChannel(conversation.channelID, channelType), true);
-            checked++;
-            if (checked >= maxCount) {
-                break;
-            }
-        }
     }
 
     private void registerMessages() {
         WKIM.getInstance().getMsgManager().registerContentMsg(RtcNoticeContent.class);
+        WKIM.getInstance().getMsgManager().registerContentMsg(RtcRecordContent.class);
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.rtcNotice, new RtcNoticeProvider());
         WKMsgItemViewManager.getInstance().addChatItemViewProvider(WKContentType.rtcRecord, new RtcRecordProvider());
         WKIM.getInstance().getMsgManager().addMessageStoreBeforeIntercept(msg -> {
@@ -174,42 +131,8 @@ public class RtcManager {
     }
 
     private void handleRtcNoticeMessage(WKMsg msg) {
-        if (msg == null || isCalling()) {
-            return;
-        }
-        RtcCallPayload payload = null;
-        try {
-            JSONObject jsonObject = new JSONObject(msg.content);
-            if (isRtcNoticePayload(jsonObject)
-                    && TextUtils.isEmpty(jsonObject.optString("record_type"))) {
-                payload = parsePayload(jsonObject);
-                if (payload != null && isInviteAllGroupPayload(payload)) {
-                    Log.i(TAG, "keep group rtc_notice as joinable chat card, callId=" + payload.call_id);
-                    return;
-                }
-                if (payload != null
-                        && !TextUtils.isEmpty(payload.call_id)
-                        && !isInviteFromSelf(payload)
-                        && !isPayloadExpired(payload)
-                        && isFreshInviteMessage(msg)) {
-                    receiveInvite(payload);
-                    return;
-                }
-            }
-        } catch (Exception ignored) {
-        }
-        if (payload != null && isPayloadExpired(payload)) {
-            Log.i(TAG, "ignore expired rtc notice, callId=" + payload.call_id);
-            return;
-        }
-        String probeChannelId = payload != null && !TextUtils.isEmpty(payload.channel_id) ? payload.channel_id : msg.channelID;
-        byte probeChannelType = payload != null && payload.channel_type > 0 ? payload.channel_type : msg.channelType;
-        if (probeChannelType == WKChannelType.GROUP) {
-            Log.i(TAG, "probe group rtc_notice state for invite targets, channelId=" + probeChannelId);
-            probeIncomingTargets(probeChannelId, probeChannelType, payload == null ? null : payload.from_uid, true);
-            return;
-        }
-        probeIncomingTargets(probeChannelId, probeChannelType, payload == null ? null : payload.from_uid, true);
+        // rtc_notice is a persistent group-message entry only. It must never be
+        // promoted to a ringing incoming call; the user explicitly taps it to join.
     }
 
     private boolean isRtcNoticePayload(JSONObject content) {
@@ -247,7 +170,7 @@ public class RtcManager {
     }
 
     public String getDeviceId() {
-        return WKConstants.getDeviceID();
+        return WKConstants.getInstallDeviceID();
     }
 
     private void registerEndpoints() {
@@ -276,9 +199,8 @@ public class RtcManager {
             return true;
         });
         EndpointManager.getInstance().setMethod("rtc_maybe_finish_group_if_lonely", object -> {
-            if (object instanceof Number) {
-                maybeAutoEndGroupCallFromLiveParticipants(((Number) object).intValue());
-            }
+            // Participant departures do not close a group room. The server owns
+            // room lifetime and reports it via rtc.closed/state.
             return true;
         });
         EndpointManager.getInstance().setMethod("rtc_update_live_participant_uids", object -> {
@@ -813,11 +735,6 @@ public class RtcManager {
             if (payload == null) {
                 return true;
             }
-            if (isInviteAllGroupPayload(payload)) {
-                Log.i(TAG, "keep group rtc.invite as joinable chat card, callId=" + payload.call_id);
-                return true;
-            }
-            markDirectInviteForCurrentUser(payload);
             if (isIncompleteInvitePayload(payload)) {
                 if (shouldShowIncompleteDirectInvite(payload)) {
                     normalizeIncompleteInviteForDisplay(payload);
@@ -845,40 +762,10 @@ public class RtcManager {
             return true;
         }
         if (isCmd(rtcCmd, "notice")) {
-            if (payload != null && !TextUtils.isEmpty(payload.call_id)) {
-                if (isInviteAllGroupPayload(payload)) {
-                    Log.i(TAG, "keep group rtc.notice as joinable chat card, callId=" + payload.call_id);
-                    return true;
-                }
-                if (isIncompleteInvitePayload(payload) || isGroupInviteWithoutTargets(payload)) {
-                    if (shouldShowIncompleteDirectInvite(payload)) {
-                        normalizeIncompleteInviteForDisplay(payload);
-                        Log.i(TAG, "receive incomplete rtc.notice directly, show incoming first, callId="
-                                + payload.call_id + ", channelId=" + payload.channel_id
-                                + ", inviteUIDs=" + getEffectiveInviteUIDs(payload));
-                        receiveInvite(payload);
-                        probeIncomingTargets(payload.channel_id, payload.channel_type, payload.from_uid, false);
-                        return true;
-                    }
-                    Log.i(TAG, "receive rtc.notice without explicit targets, probe before promoting, callId="
-                            + payload.call_id + ", channelId=" + payload.channel_id);
-                    probeIncomingTargets(payload.channel_id, payload.channel_type, payload.from_uid, true);
-                    return true;
-                }
-                if (payload.channel_type == WKChannelType.GROUP && !isInviteForMe(payload)) {
-                    Log.i(TAG, "receive rtc.notice not explicitly targeted, keep it as group notice only, callId="
-                            + payload.call_id + ", channelId=" + payload.channel_id);
-                    return true;
-                }
-                Log.i(TAG, "receive rtc.notice, promote to incoming notification, callId=" + payload.call_id);
-                receiveInvite(payload);
-                return true;
-            }
-            if (payload != null) {
-                Log.i(TAG, "receive rtc.notice without complete payload, probe incoming targets, channelId="
-                        + payload.channel_id + ", fromUid=" + payload.from_uid);
-                probeIncomingTargets(payload.channel_id, payload.channel_type, payload.from_uid, true);
-            }
+            // Online group notice only refreshes the join entry. It never rings and
+            // never enters LiveKit without an explicit state check + /join action.
+            Log.i(TAG, "receive rtc.notice as non-ringing group reminder, callId="
+                    + (payload == null ? "" : payload.call_id));
             return true;
         }
         if (session == null) {
@@ -931,12 +818,6 @@ public class RtcManager {
             trackParticipantTerminal(payload);
             if (shouldFinishForTerminalCmd(cmd, payload)) {
                 finish();
-            } else if (shouldFinishGroupCallBecauseOnlyOneParticipantRemains()) {
-                Log.i(TAG, "finish group rtc because only one participant remains, callId=" + (payload == null ? "" : payload.call_id));
-                autoEndCurrentGroupCall(true);
-            } else if (shouldFinishGroupCallBecauseEveryoneLeft()) {
-                Log.i(TAG, "finish group rtc because all invited participants left, callId=" + (payload == null ? "" : payload.call_id));
-                autoEndCurrentGroupCall(true);
             } else {
                 Log.i(TAG, "ignore group terminal cmd for other participant, cmd=" + cmd
                         + ", callId=" + (payload == null ? "" : payload.call_id)
@@ -952,7 +833,7 @@ public class RtcManager {
         if (session == null || session.channel == null || session.channel.channelType == WKChannelType.PERSONAL) {
             return true;
         }
-        if (isCmd(cmd, "closed") && isRoomEndedPayload(payload)) {
+        if (isCmd(cmd, "closed")) {
             return true;
         }
         return isTerminalForCurrentActor(payload);
@@ -963,16 +844,6 @@ public class RtcManager {
                 || TextUtils.isEmpty(payload.call_id)
                 || session == null
                 || TextUtils.equals(session.callId, payload.call_id);
-    }
-
-    private boolean isRoomEndedPayload(RtcCallPayload payload) {
-        if (payload == null || TextUtils.isEmpty(payload.reason)) {
-            return false;
-        }
-        return TextUtils.equals(payload.reason, "empty_room")
-                || TextUtils.equals(payload.reason, "only_one_left")
-                || TextUtils.equals(payload.reason, "room_closed")
-                || TextUtils.equals(payload.reason, "call_ended");
     }
 
     private void trackParticipantJoined(RtcCallPayload payload) {
@@ -1082,142 +953,6 @@ public class RtcManager {
         if (!TextUtils.isEmpty(uid) && !candidates.contains(uid)) {
             candidates.add(uid);
         }
-    }
-
-    private boolean shouldFinishGroupCallBecauseEveryoneLeft() {
-        if (session == null || session.channel == null || session.channel.channelType == WKChannelType.PERSONAL) {
-            return false;
-        }
-        if (session.ending || RtcSession.ENDED.equals(session.status)) {
-            return false;
-        }
-        if (!session.hadMultipleLiveParticipants && !session.hadRemoteParticipantJoined) {
-            return false;
-        }
-        if (session.liveParticipantCount > 1) {
-            return false;
-        }
-        boolean noPendingInvitees = !hasPendingInvitees();
-        boolean noJoinedParticipants = session.joinedUIDs == null || session.joinedUIDs.isEmpty();
-        return noPendingInvitees && noJoinedParticipants;
-    }
-
-    private boolean shouldFinishGroupCallBecauseOnlyOneParticipantRemains() {
-        if (session == null || session.channel == null || session.channel.channelType == WKChannelType.PERSONAL) {
-            return false;
-        }
-        if (session.ending
-                || RtcSession.ENDED.equals(session.status)
-                || !RtcSession.IN_CALL.equals(session.status)) {
-            return false;
-        }
-        boolean noPendingInvitees = !hasPendingInvitees();
-        boolean noJoinedParticipants = session.joinedUIDs == null || session.joinedUIDs.isEmpty();
-        if (!noPendingInvitees) {
-            return false;
-        }
-        if (session.hadMultipleLiveParticipants && session.liveParticipantCount == 1) {
-            return true;
-        }
-        if (session.hadMultipleLiveParticipants && noPendingInvitees && noJoinedParticipants) {
-            return true;
-        }
-        if (session.liveParticipantCount > 0) {
-            if (!session.hadMultipleLiveParticipants) {
-                return false;
-            }
-            if (session.liveParticipantCount > 1 || session.lonelySinceAt == 0L) {
-                return false;
-            }
-            long lonelyElapsed = System.currentTimeMillis() - session.lonelySinceAt;
-            if (noPendingInvitees && noJoinedParticipants) {
-                return lonelyElapsed >= LONELY_GROUP_FINISH_DELAY_MS;
-            }
-            return lonelyElapsed >= LONELY_GROUP_PENDING_FINISH_DELAY_MS;
-        }
-        return session.hadMultipleLiveParticipants && noPendingInvitees && noJoinedParticipants;
-    }
-
-    private boolean hasPendingInvitees() {
-        return session != null && session.inviteUIDs != null && !session.inviteUIDs.isEmpty();
-    }
-
-    private void autoEndCurrentGroupCall(boolean closeRoom) {
-        if (session == null || TextUtils.isEmpty(session.callId) || session.channel == null || session.channel.channelType == WKChannelType.PERSONAL) {
-            finish();
-            return;
-        }
-        if (session.ending || RtcSession.ENDED.equals(session.status)) {
-            return;
-        }
-        String callId = session.callId;
-        boolean incoming = session.incoming;
-        boolean cancelOutgoing = RtcSession.OUTGOING.equals(session.status) && "calling".equals(session.serverStatus);
-        session.ending = true;
-        if (incoming) {
-            finish();
-            return;
-        }
-        IRequestResultListener<CommonResponse> listener = new IRequestResultListener<>() {
-            @Override
-            public void onSuccess(CommonResponse result) {
-                Log.i(TAG, "auto end group rtc request success, callId=" + callId);
-            }
-
-            @Override
-            public void onFail(int code, String msg) {
-                Log.w(TAG, "auto end group rtc request failed, callId=" + callId + ", code=" + code + ", msg=" + msg);
-            }
-        };
-        if (cancelOutgoing) {
-            RtcModel.getInstance().cancelCall(callId, getDeviceId(), listener);
-        } else if (closeRoom) {
-            RtcModel.getInstance().closeCall(callId, getDeviceId(), "only_one_left", listener);
-        } else {
-            RtcModel.getInstance().leaveCall(callId, getDeviceId(), listener);
-        }
-        finish();
-    }
-
-    private void maybeAutoEndGroupCallFromLiveParticipants(int liveParticipantCount) {
-        if (session == null || session.channel == null || session.channel.channelType == WKChannelType.PERSONAL) {
-            return;
-        }
-        session.liveParticipantCount = Math.max(0, liveParticipantCount);
-        if (liveParticipantCount <= 0) {
-            session.lonelySinceAt = 0L;
-        } else if (liveParticipantCount > 1) {
-            session.hadMultipleLiveParticipants = true;
-            session.lonelySinceAt = 0L;
-        } else if (session.lonelySinceAt == 0L) {
-            session.lonelySinceAt = System.currentTimeMillis();
-            RtcSession waitingSession = session;
-            scheduleLonelyGroupCheck(waitingSession, LONELY_GROUP_FINISH_DELAY_MS);
-            scheduleLonelyGroupCheck(waitingSession, LONELY_GROUP_PENDING_FINISH_DELAY_MS);
-        }
-        if (session.ending
-                || RtcSession.ENDED.equals(session.status)
-                || !RtcSession.IN_CALL.equals(session.status)
-                || liveParticipantCount > 1) {
-            return;
-        }
-        if (!shouldFinishGroupCallBecauseOnlyOneParticipantRemains()) {
-            return;
-        }
-        Log.i(TAG, "finish group rtc because live participant count is lonely, count=" + liveParticipantCount
-                + ", callId=" + session.callId);
-        autoEndCurrentGroupCall(true);
-    }
-
-    private void scheduleLonelyGroupCheck(RtcSession waitingSession, long delayMs) {
-        mainHandler.postDelayed(() -> {
-            if (session == waitingSession
-                    && session != null
-                    && session.liveParticipantCount > 0
-                    && session.liveParticipantCount <= 1) {
-                maybeAutoEndGroupCallFromLiveParticipants(session.liveParticipantCount);
-            }
-        }, delayMs);
     }
 
     private void syncLiveParticipantUIDs(List<?> participantUIDs) {
@@ -1684,10 +1419,6 @@ public class RtcManager {
         return payload;
     }
 
-    private boolean isInviteAllGroupPayload(RtcCallPayload payload) {
-        return payload != null && payload.channel_type == WKChannelType.GROUP && payload.invite_all;
-    }
-
     private WKChannel buildIncomingChannel(RtcCallPayload payload) {
         if (payload.channel_type == WKChannelType.PERSONAL
                 && !TextUtils.isEmpty(payload.from_uid)
@@ -1701,13 +1432,6 @@ public class RtcManager {
         return payload != null
                 && !TextUtils.isEmpty(payload.from_uid)
                 && TextUtils.equals(payload.from_uid, WKConfig.getInstance().getUid());
-    }
-
-    private boolean isGroupInviteWithoutTargets(RtcCallPayload payload) {
-        return payload != null
-                && payload.channel_type == WKChannelType.GROUP
-                && (payload.invite_uids == null || payload.invite_uids.isEmpty())
-                && (payload.target_uids == null || payload.target_uids.isEmpty());
     }
 
     private boolean isIncompleteInvitePayload(RtcCallPayload payload) {
@@ -1847,24 +1571,6 @@ public class RtcManager {
         return values;
     }
 
-    private void markDirectInviteForCurrentUser(RtcCallPayload payload) {
-        if (payload == null || payload.channel_type != WKChannelType.GROUP) {
-            return;
-        }
-        List<String> inviteUIDs = getEffectiveInviteUIDs(payload);
-        if (inviteUIDs != null && !inviteUIDs.isEmpty()) {
-            return;
-        }
-        String uid = WKConfig.getInstance().getUid();
-        if (TextUtils.isEmpty(uid)) {
-            return;
-        }
-        ArrayList<String> currentUserOnly = new ArrayList<>();
-        currentUserOnly.add(uid);
-        payload.invite_uids = currentUserOnly;
-        payload.target_uids = new ArrayList<>(currentUserOnly);
-    }
-
     private boolean shouldShowIncompleteDirectInvite(RtcCallPayload payload) {
         if (payload == null || TextUtils.isEmpty(payload.call_id) || isInviteFromSelf(payload)) {
             return false;
@@ -1928,15 +1634,6 @@ public class RtcManager {
         } catch (Exception ignored) {
             return true;
         }
-    }
-
-    private boolean isFreshInviteMessage(WKMsg msg) {
-        if (msg == null || msg.timestamp <= 0) {
-            return true;
-        }
-        long messageSeconds = msg.timestamp > 100000000000L ? msg.timestamp / 1000L : msg.timestamp;
-        long age = Math.abs(nowSeconds() - messageSeconds);
-        return age <= 180;
     }
 
     private boolean isPayloadExpired(RtcCallPayload payload) {

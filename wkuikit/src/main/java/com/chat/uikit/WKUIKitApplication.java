@@ -654,14 +654,6 @@ public class WKUIKitApplication {
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseImg", EndpointCategory.chatFunction, 100, object -> new ChatFunctionMenu("chooseImg", R.mipmap.icon_func_album, mContext.get().getString(R.string.image), this::chooseIMG));
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseFile", EndpointCategory.chatFunction, 98, object -> new ChatFunctionMenu("chooseFile", R.mipmap.icon_func_file, mContext.get().getString(R.string.file), this::chooseFile));
         EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_chooseCard", EndpointCategory.chatFunction, 96, object -> new ChatFunctionMenu("chooseCard", R.mipmap.icon_func_card, mContext.get().getString(R.string.card), IConversationContext::sendCardMsg));
-        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_audioCall", EndpointCategory.chatFunction, 95, object -> {
-            IConversationContext conversationContext = (IConversationContext) object;
-            return new ChatFunctionMenu("audioCall", R.drawable.ic_func_phone, mContext.get().getString(R.string.phone_call_entry), conversationContext1 -> startPanelCall(conversationContext1, 0));
-        });
-        EndpointManager.getInstance().setMethod(EndpointCategory.chatFunction + "_videoCall", EndpointCategory.chatFunction, 94, object -> {
-            IConversationContext conversationContext = (IConversationContext) object;
-            return new ChatFunctionMenu("videoCall", R.drawable.ic_func_video_call, mContext.get().getString(R.string.video_call_entry), conversationContext1 -> startPanelCall(conversationContext1, 1));
-        });
         EndpointManager.getInstance().setMethod("restart_rtc_call_from_msg", object -> {
             if (object instanceof RTCMenu) {
                 RTCMenu menu = (RTCMenu) object;

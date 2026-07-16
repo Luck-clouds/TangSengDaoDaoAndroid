@@ -22,10 +22,13 @@ public class EndpointManager {
         return EndpointManagerBinder.manager;
     }
 
-    private ConcurrentHashMap<String, List<Endpoint>> endpointList;
+    // MainActivity can invoke optional endpoints before the user accepts the
+    // privacy agreement and before business modules register their handlers.
+    // Keep an empty registry available from process start so those calls safely
+    // return null instead of crashing during Activity.onResume().
+    private final ConcurrentHashMap<String, List<Endpoint>> endpointList = new ConcurrentHashMap<>();
 
     private void register(String sid, String category, int sort, EndpointHandler iHandler) {
-        if (endpointList == null) endpointList = new ConcurrentHashMap<>();
         List<Endpoint> Endpoints;
         if (endpointList.containsKey(category)) {
             Endpoints = endpointList.get(category);

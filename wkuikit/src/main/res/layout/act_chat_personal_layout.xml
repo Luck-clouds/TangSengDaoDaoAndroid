@@ -148,6 +148,25 @@
                     <View style="@style/view_line_padding" />
 
                     <LinearLayout
+                        android:id="@+id/blacklistLayout"
+                        style="@style/layoutBg">
+
+                        <TextView
+                            android:id="@+id/blacklistTv"
+                            style="@style/leftTextView"
+                            android:layout_width="0dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="@string/push_black_list" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            style="@style/arrow_right_iv"
+                            android:layout_gravity="center_vertical" />
+                    </LinearLayout>
+
+                    <View style="@style/view_line_padding" />
+
+                    <LinearLayout
                         android:id="@+id/clearChatMsgLayout"
                         style="@style/layoutBg">
 
