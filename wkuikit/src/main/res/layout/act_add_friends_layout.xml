@@ -101,6 +101,11 @@
         <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
     </LinearLayout>
 
+    <!--
+        联系人页面与声明权限一起注释，如打开请同步打开，当前此权限与页面状态为未启用。
+        恢复此入口时，请将 visibility 改为 visible，并同步取消 app 模块
+        AndroidManifest.xml 中 READ_CONTACTS 权限声明的注释及删除合并移除规则。
+    -->
     <LinearLayout
         android:id="@+id/mailListLayout"
         style="@style/layoutBg"

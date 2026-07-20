@@ -1,8 +1,6 @@
 package com.chat.login.ui;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.text.Editable;
@@ -13,9 +11,6 @@ import android.text.method.PasswordTransformationMethod;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -38,7 +33,7 @@ import java.util.Objects;
  */
 public class WKResetLoginPwdActivity extends WKBaseActivity<ActResetLoginPwdLayoutBinding> implements LoginContract.LoginView {
 
-    private String code = "0086";
+    private final String code = "0086";
     private LoginPresenter presenter;
 
     @Override
@@ -60,12 +55,6 @@ public class WKResetLoginPwdActivity extends WKBaseActivity<ActResetLoginPwdLayo
         boolean canEditPhone = getIntent().getBooleanExtra("canEditPhone", false);
         wkVBinding.nameEt.setEnabled(canEditPhone);
         wkVBinding.nameEt.setText(WKConfig.getInstance().getUserInfo().phone);
-        String zone = WKConfig.getInstance().getUserInfo().zone;
-        if (!TextUtils.isEmpty(zone)) {
-            code = zone;
-            String codeName = code.substring(2);
-            wkVBinding.codeTv.setText(String.format("+%s", codeName));
-        }
         if (!canEditPhone || !TextUtils.isEmpty(Objects.requireNonNull(wkVBinding.nameEt.getText()).toString())) {
             wkVBinding.getVerCodeBtn.setEnabled(true);
             wkVBinding.getVerCodeBtn.setAlpha(1);
@@ -139,10 +128,9 @@ public class WKResetLoginPwdActivity extends WKBaseActivity<ActResetLoginPwdLayo
             }
             wkVBinding.pwdEt.setSelection(Objects.requireNonNull(wkVBinding.pwdEt.getText()).length());
         });
-        wkVBinding.chooseCodeTv.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChooseAreaCodeActivity.class);
-            intentActivityResultLauncher.launch(intent);
-        });
+        // 重置密码仅支持中国大陆手机号，区号固定为 +86，不开放地区选择入口。
+        wkVBinding.chooseCodeTv.setEnabled(false);
+        wkVBinding.chooseCodeTv.setClickable(false);
         wkVBinding.sureBtn.setOnClickListener(v -> {
 
             String phone = Objects.requireNonNull(wkVBinding.nameEt.getText()).toString();
@@ -178,19 +166,6 @@ public class WKResetLoginPwdActivity extends WKBaseActivity<ActResetLoginPwdLayo
         } else {
             wkVBinding.sureBtn.setAlpha(0.2f);
             wkVBinding.sureBtn.setEnabled(false);
-        }
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
-            CountryCodeEntity entity = data.getParcelableExtra("entity");
-            assert entity != null;
-            code = entity.code;
-            String codeName = code.substring(2);
-            wkVBinding.codeTv.setText(String.format("+%s", codeName));
         }
     }
 
@@ -255,16 +230,4 @@ public class WKResetLoginPwdActivity extends WKBaseActivity<ActResetLoginPwdLayo
     public void hideLoading() {
         loadingPopup.dismiss();
     }
-
-
-    ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        //此处是跳转的result回调方法
-        if (result.getData() != null && result.getResultCode() == Activity.RESULT_OK) {
-            CountryCodeEntity entity = result.getData().getParcelableExtra("entity");
-            assert entity != null;
-            code = entity.code;
-            String codeName = code.substring(2);
-            wkVBinding.codeTv.setText(String.format("+%s", codeName));
-        }
-    });
 }

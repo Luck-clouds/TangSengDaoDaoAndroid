@@ -28,10 +28,6 @@
     <!-- 可以提高室内定位的精确度 -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
-    <!-- 这个权限用于进行网络定位 -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- 这个权限用于访问GPS定位 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission
@@ -59,7 +55,17 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--
+        联系人页面与声明权限一起注释，如打开请同步打开，当前此权限与页面状态为未启用。
+        恢复联系人页面时，请同时取消下面权限声明的注释，并将
+        act_add_friends_layout.xml 中 mailListLayout 的 visibility 改为 visible，
+        同时删除下面 tools:node="remove" 的合并移除规则。
+        <uses-permission android:name="android.permission.READ_CONTACTS" />
+    -->
+    <!-- 当前禁用联系人功能：阻止第三方依赖将 READ_CONTACTS 合并回最终 Manifest。 -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
 

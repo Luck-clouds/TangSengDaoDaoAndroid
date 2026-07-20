@@ -69,23 +69,21 @@
                     android:id="@+id/chooseCodeTv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical">
+                    android:layout_gravity="center_vertical"
+                    android:clickable="false"
+                    android:enabled="false">
 
                     <TextView
                         android:id="@+id/codeTv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
-                        android:text="+ 86"
+                        android:layout_marginEnd="2px"
+                        android:text="+86"
                         android:textColor="@color/colorDark"
                         android:textSize="14sp"
                         tools:ignore="HardcodedText" />
 
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_gravity="center_vertical"
-                        android:src="@mipmap/icon_login_arrow_bottom" />
                 </LinearLayout>
 
                 <View

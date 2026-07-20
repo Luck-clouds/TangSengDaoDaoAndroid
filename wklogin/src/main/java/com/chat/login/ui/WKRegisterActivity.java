@@ -1,6 +1,5 @@
 package com.chat.login.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -14,8 +13,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -46,7 +43,7 @@ import java.util.Objects;
  * 注册
  */
 public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding> implements LoginContract.LoginView {
-    private String code = "0086";
+    private final String code = "0086";
     private LoginPresenter presenter;
     private WKAPPConfig appConfig;
     private String pendingInviteCode = "";
@@ -138,10 +135,9 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
             }
         });
         wkVBinding.loginTv.setOnClickListener(v -> startActivity(new Intent(this, WKLoginActivity.class)));
-        wkVBinding.chooseCodeTv.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChooseAreaCodeActivity.class);
-            intentActivityResultLauncher.launch(intent);
-        });
+        // 注册仅支持中国大陆手机号，区号固定为 +86，不开放地区选择入口。
+        wkVBinding.chooseCodeTv.setEnabled(false);
+        wkVBinding.chooseCodeTv.setClickable(false);
         wkVBinding.registerBtn.setOnClickListener(v -> {
             if (!wkVBinding.authCheckBox.isChecked()) {
                 showToast(R.string.agree_auth_tips);
@@ -226,17 +222,6 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
         }
     }
 
-
-    ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        //此处是跳转的result回调方法
-        if (result.getData() != null && result.getResultCode() == Activity.RESULT_OK) {
-            CountryCodeEntity entity = result.getData().getParcelableExtra("entity");
-            assert entity != null;
-            code = entity.code;
-            String codeName = code.substring(2);
-            wkVBinding.codeTv.setText(String.format("+%s", codeName));
-        }
-    });
 
     @Override
     public void loginResult(UserInfoEntity userInfoEntity) {

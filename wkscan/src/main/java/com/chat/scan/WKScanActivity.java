@@ -1,8 +1,10 @@
 package com.chat.scan;
 
+import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.Window;
 
@@ -16,6 +18,7 @@ import com.chat.base.glide.ChooseMimeType;
 import com.chat.base.glide.ChooseResult;
 import com.chat.base.glide.GlideUtils;
 import com.chat.base.ui.Theme;
+import com.chat.base.utils.WKPermissions;
 import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.base.utils.systembar.WKStatusBarUtils;
@@ -97,6 +100,27 @@ public class WKScanActivity extends BarcodeCameraScanActivity {
         });
     }
 
+    private void requestAlbumPermission() {
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+        CharSequence appName = getApplicationInfo().loadLabel(getPackageManager());
+        String desc = getString(com.chat.base.R.string.album_permissions_desc, appName);
+        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            @Override
+            public void onResult(boolean result) {
+                // 只有取得图片读取权限后才进入相册；拒绝授权时继续停留在扫码页。
+                if (result) {
+                    chooseIMG();
+                }
+            }
+
+            @Override
+            public void clickResult(boolean isCancel) {
+            }
+        }, this, desc, permission);
+    }
+
 
     @Override
     public void initCameraScan(@NonNull CameraScan<Result> cameraScan) {
@@ -168,6 +192,6 @@ public class WKScanActivity extends BarcodeCameraScanActivity {
     private void initListener() {
         ivFlash.setOnClickListener(v -> toggleTorchState());
         findViewById(R.id.backIv).setOnClickListener(v -> finish());
-        findViewById(R.id.rightIV).setOnClickListener(v -> chooseIMG());
+        findViewById(R.id.rightIV).setOnClickListener(v -> requestAlbumPermission());
     }
 }

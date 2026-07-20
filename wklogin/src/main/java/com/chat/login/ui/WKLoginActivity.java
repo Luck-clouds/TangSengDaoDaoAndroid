@@ -1,6 +1,5 @@
 package com.chat.login.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -12,8 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 
 import com.chat.base.base.WKBaseActivity;
@@ -48,7 +45,7 @@ import java.util.Objects;
  */
 public class WKLoginActivity extends WKBaseActivity<ActLoginLayoutBinding> implements LoginContract.LoginView {
     private WKAPPConfig wkappConfig;
-    private String code = "0086";
+    private final String code = "0086";
     private LoginPresenter loginPresenter;
 
     @Override
@@ -93,12 +90,6 @@ public class WKLoginActivity extends WKBaseActivity<ActLoginLayoutBinding> imple
                 wkVBinding.nameEt.setText(userInfoEntity.phone);
                 wkVBinding.nameEt.setSelection(userInfoEntity.phone.length());
 
-                String zone = WKConfig.getInstance().getUserInfo().zone;
-                if (!TextUtils.isEmpty(zone)) {
-                    code = zone;
-                    String codeName = code.substring(2);
-                    wkVBinding.codeTv.setText(String.format("+%s", codeName));
-                }
             }
         }
         wkVBinding.loginTitleTv.setText(String.format(getString(R.string.login_title), getString(R.string.app_name)));
@@ -146,10 +137,9 @@ public class WKLoginActivity extends WKBaseActivity<ActLoginLayoutBinding> imple
             loginPresenter.login(code + name, wkVBinding.pwdEt.getText().toString());
         });
         SingleClickUtil.onSingleClick(wkVBinding.registerTv, v -> startActivity(new Intent(this, WKRegisterActivity.class)));
-        SingleClickUtil.onSingleClick(wkVBinding.chooseCodeTv, v -> {
-            Intent intent = new Intent(this, ChooseAreaCodeActivity.class);
-            intentActivityResultLauncher.launch(intent);
-        });
+        // 登录仅支持中国大陆手机号，区号固定为 +86，不开放地区选择入口。
+        wkVBinding.chooseCodeTv.setEnabled(false);
+        wkVBinding.chooseCodeTv.setClickable(false);
         SingleClickUtil.onSingleClick(wkVBinding.forgetPwdTv, v -> {
             Intent intent = new Intent(this, WKResetLoginPwdActivity.class);
             intent.putExtra("canEditPhone", true);
@@ -285,17 +275,6 @@ public class WKLoginActivity extends WKBaseActivity<ActLoginLayoutBinding> imple
     public Context getContext() {
         return this;
     }
-
-    ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        //此处是跳转的result回调方法
-        if (result.getData() != null && result.getResultCode() == Activity.RESULT_OK) {
-            CountryCodeEntity entity = result.getData().getParcelableExtra("entity");
-            assert entity != null;
-            code = entity.code;
-            String codeName = code.substring(2);
-            wkVBinding.codeTv.setText(String.format("+%s", codeName));
-        }
-    });
 
     @Override
     public void finish() {
