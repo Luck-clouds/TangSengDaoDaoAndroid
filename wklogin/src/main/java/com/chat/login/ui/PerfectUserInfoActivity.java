@@ -85,7 +85,8 @@ public class PerfectUserInfoActivity extends WKBaseActivity<ActPerfectUserInfoLa
     }
 
     private void chooseIMG() {
-        GlideUtils.getInstance().chooseIMG(this, 1, true, ChooseMimeType.img, false, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(this, 1, true, ChooseMimeType.img, false,
+                com.chat.base.R.string.permission_purpose_profile_avatar, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 if (WKReader.isNotEmpty(paths)) {

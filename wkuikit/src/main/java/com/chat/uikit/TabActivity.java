@@ -91,7 +91,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         UserModel.getInstance().device();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             String desc = String.format(getString(R.string.notification_permissions_desc), getString(R.string.app_name));
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
                 }
@@ -99,7 +99,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
                 @Override
                 public void clickResult(boolean isCancel) {
                 }
-            }, this, desc, Manifest.permission.POST_NOTIFICATIONS);
+            }, this, desc, com.chat.base.R.string.permission_purpose_notification, Manifest.permission.POST_NOTIFICATIONS);
         } else {
             boolean isEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
             if (!isEnabled) {

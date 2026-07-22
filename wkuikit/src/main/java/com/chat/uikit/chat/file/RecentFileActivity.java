@@ -110,7 +110,7 @@ public class RecentFileActivity extends WKBaseActivity<ActRecentFileLayoutBindin
             permissionStr = new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO};
         }
         String desc = String.format(getString(com.chat.base.R.string.file_permissions_des), getString(com.chat.base.R.string.app_name));
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 if (result) {
@@ -123,7 +123,7 @@ public class RecentFileActivity extends WKBaseActivity<ActRecentFileLayoutBindin
             @Override
             public void clickResult(boolean isCancel) {
             }
-        }, this, desc, permissionStr);
+        }, this, desc, com.chat.base.R.string.permission_purpose_chat_file, permissionStr);
     }
 
     private void loadRecentFiles() {

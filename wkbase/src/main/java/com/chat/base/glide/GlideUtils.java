@@ -270,6 +270,19 @@ public class GlideUtils {
     }
 
     public void chooseIMG(Activity activity, int maxSelectNum, boolean isCamera, ChooseMimeType mimeType, boolean isWithSelectVideoImage, boolean isOriginalControl, final ISelectBack iSelectBack) {
+        this.chooseIMG(activity, maxSelectNum, isCamera, mimeType, isWithSelectVideoImage,
+                isOriginalControl, R.string.permission_purpose_media, iSelectBack);
+    }
+
+    public void chooseIMG(Activity activity, int maxSelectNum, boolean isCamera, ChooseMimeType mimeType,
+                          boolean isWithSelectVideoImage, int permissionPurposeRes, final ISelectBack iSelectBack) {
+        this.chooseIMG(activity, maxSelectNum, isCamera, mimeType, isWithSelectVideoImage,
+                true, permissionPurposeRes, iSelectBack);
+    }
+
+    public void chooseIMG(Activity activity, int maxSelectNum, boolean isCamera, ChooseMimeType mimeType,
+                          boolean isWithSelectVideoImage, boolean isOriginalControl,
+                          int permissionPurposeRes, final ISelectBack iSelectBack) {
         if (isCamera) WKBaseApplication.getInstance().disconnect = false;
         PictureSelectorStyle selectorStyle = new PictureSelectorStyle();
         selectorStyle.setTitleBarStyle(getTitleBarStyle());
@@ -291,7 +304,7 @@ public class GlideUtils {
                 .setMaxVideoSelectNum(maxSelectNum)
                 .setImageSpanCount(3)
                 .isWithSelectVideoImage(isWithSelectVideoImage)
-                .setPermissionsInterceptListener(createPermissionsInterceptor())
+                .setPermissionsInterceptListener(createPermissionsInterceptor(permissionPurposeRes))
 //                .setReturnEmpty(true)
 //                .DisplayOriginalSize(true)
 //                .setEditorImage(false)
@@ -353,7 +366,7 @@ public class GlideUtils {
                 });
     }
 
-    private OnPermissionsInterceptListener createPermissionsInterceptor() {
+    private OnPermissionsInterceptListener createPermissionsInterceptor(int permissionPurposeRes) {
         return new OnPermissionsInterceptListener() {
             @Override
             public void requestPermission(Fragment fragment, String[] permissionArray, OnRequestPermissionListener call) {
@@ -363,7 +376,7 @@ public class GlideUtils {
                 String desc = activity.getString(cameraPermission
                         ? R.string.camera_permissions_desc
                         : R.string.album_permissions_desc, appName);
-                WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+                WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                     @Override
                     public void onResult(boolean result) {
                         call.onCall(permissionArray, result);
@@ -372,7 +385,7 @@ public class GlideUtils {
                     @Override
                     public void clickResult(boolean isCancel) {
                     }
-                }, activity, desc, permissionArray);
+                }, activity, desc, permissionPurposeRes, permissionArray);
             }
 
             @Override

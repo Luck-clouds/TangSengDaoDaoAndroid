@@ -8,6 +8,7 @@ import android.os.Build;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.annotation.StringRes;
 
 import com.chat.base.R;
 import com.chat.base.ui.Theme;
@@ -26,11 +27,29 @@ public class WKPermissions {
     }
 
     public void checkPermissions(final IPermissionResult iPermissionResult, FragmentActivity activity, String authDesc, String... permissions) {
+        checkPermissionsWithPurpose(iPermissionResult, activity, authDesc,
+                buildPermissionPurpose(activity, permissions), permissions);
+    }
+
+    public void checkPermissionsWithPurpose(final IPermissionResult iPermissionResult,
+                                            FragmentActivity activity,
+                                            String authDesc,
+                                            @StringRes int purposeRes,
+                                            String... permissions) {
+        CharSequence appName = activity.getApplicationInfo().loadLabel(activity.getPackageManager());
+        checkPermissionsWithPurpose(iPermissionResult, activity, authDesc,
+                activity.getString(purposeRes, appName), permissions);
+    }
+
+    public void checkPermissionsWithPurpose(final IPermissionResult iPermissionResult,
+                                            FragmentActivity activity,
+                                            String authDesc,
+                                            CharSequence purpose,
+                                            String... permissions) {
         if (hasPermissions(activity, permissions)) {
             iPermissionResult.onResult(true);
             return;
         }
-        String purpose = buildPermissionPurpose(activity, permissions);
         WKDialogUtils.getInstance().showDialog(activity,
                 activity.getString(R.string.authorization_request),
                 purpose,
@@ -52,12 +71,8 @@ public class WKPermissions {
     public boolean hasPermissions(FragmentActivity activity, String... permissions) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true;
         if (permissions == null || permissions.length == 0) return true;
-        boolean partialMediaAccess = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-                && ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-                == PackageManager.PERMISSION_GRANTED;
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
-                if (partialMediaAccess && isVisualMediaPermission(permission)) continue;
                 return false;
             }
         }
@@ -67,8 +82,7 @@ public class WKPermissions {
     private void requestSystemPermissions(final IPermissionResult iPermissionResult, FragmentActivity activity, String authDesc, String... permissions) {
         RxPermissions rxPermissions = new RxPermissions(activity);
         rxPermissions.request(permissions).subscribe(aBoolean -> {
-            boolean granted = aBoolean || hasPermissions(activity, permissions);
-            if (!granted) {
+            if (!aBoolean) {
                 WKDialogUtils.getInstance().showDialog(activity, activity.getString(R.string.authorization_request), authDesc ,false,activity.getString(R.string.cancel), activity.getString(R.string.to_set),0, Theme.colorAccount, index -> {
                     if (index == 1) {
                         Intent intent = new Intent();
@@ -79,7 +93,7 @@ public class WKPermissions {
                     iPermissionResult.clickResult(index == 0);
                 });
             }
-            iPermissionResult.onResult(granted);
+            iPermissionResult.onResult(aBoolean);
         });
     }
 
@@ -126,14 +140,6 @@ public class WKPermissions {
             if (target.equals(permission)) return true;
         }
         return false;
-    }
-
-    private boolean isVisualMediaPermission(String permission) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false;
-        if (Manifest.permission.READ_MEDIA_IMAGES.equals(permission)
-                || Manifest.permission.READ_MEDIA_VIDEO.equals(permission)) return true;
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-                && Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED.equals(permission);
     }
 
     public interface IPermissionResult {

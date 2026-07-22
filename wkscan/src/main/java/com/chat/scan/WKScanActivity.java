@@ -75,7 +75,8 @@ public class WKScanActivity extends BarcodeCameraScanActivity {
     }
 
     private void chooseIMG() {
-        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false,
+                com.chat.base.R.string.permission_purpose_scan_album, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 if (WKReader.isNotEmpty(paths)) {
@@ -106,7 +107,7 @@ public class WKScanActivity extends BarcodeCameraScanActivity {
                 : Manifest.permission.READ_EXTERNAL_STORAGE;
         CharSequence appName = getApplicationInfo().loadLabel(getPackageManager());
         String desc = getString(com.chat.base.R.string.album_permissions_desc, appName);
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 // 只有取得图片读取权限后才进入相册；拒绝授权时继续停留在扫码页。
@@ -118,7 +119,7 @@ public class WKScanActivity extends BarcodeCameraScanActivity {
             @Override
             public void clickResult(boolean isCancel) {
             }
-        }, this, desc, permission);
+        }, this, desc, com.chat.base.R.string.permission_purpose_scan_album, permission);
     }
 
 

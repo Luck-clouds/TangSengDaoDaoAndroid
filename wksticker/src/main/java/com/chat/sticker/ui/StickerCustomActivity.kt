@@ -171,10 +171,11 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
             arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         val desc = getString(com.chat.base.R.string.album_permissions_desc, getString(com.chat.base.R.string.app_name))
-        WKPermissions.getInstance().checkPermissions(object : WKPermissions.IPermissionResult {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
             override fun onResult(result: Boolean) {
                 if (!result) return
-                GlideUtils.getInstance().chooseIMG(this@StickerCustomActivity, 1, true, ChooseMimeType.img, false, false, object : GlideUtils.ISelectBack {
+                GlideUtils.getInstance().chooseIMG(this@StickerCustomActivity, 1, true, ChooseMimeType.img, false, false,
+                    com.chat.base.R.string.permission_purpose_custom_sticker, object : GlideUtils.ISelectBack {
                     override fun onBack(paths: List<ChooseResult>) {
                         val path = paths.firstOrNull()?.path.orEmpty()
                         if (path.isEmpty()) return
@@ -188,6 +189,6 @@ class StickerCustomActivity : WKBaseActivity<ActStickerCustomLayoutBinding>() {
             }
 
             override fun clickResult(isCancel: Boolean) = Unit
-        }, this, desc, *permissions)
+        }, this, desc, com.chat.base.R.string.permission_purpose_custom_sticker, *permissions)
     }
 }

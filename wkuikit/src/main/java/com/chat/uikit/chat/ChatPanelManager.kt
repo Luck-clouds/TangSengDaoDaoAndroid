@@ -1784,7 +1784,7 @@ class ChatPanelManager(
             activity.getString(R.string.microphone_permissions_des),
             activity.getString(R.string.app_name)
         )
-        WKPermissions.getInstance().checkPermissions(object : WKPermissions.IPermissionResult {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
             override fun onResult(result: Boolean) {
                 if (result) {
                     toolBarClick(
@@ -1796,7 +1796,7 @@ class ChatPanelManager(
             }
 
             override fun clickResult(isCancel: Boolean) {}
-        }, activity, desc, Manifest.permission.RECORD_AUDIO)
+        }, activity, desc, com.chat.base.R.string.permission_purpose_voice_message, Manifest.permission.RECORD_AUDIO)
     }
 
 

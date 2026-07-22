@@ -701,7 +701,8 @@ public class FlagshipRichTextEditorActivity extends WKBaseActivity<ActFlagshipRi
     }
 
     private void chooseImages() {
-        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false, true, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false, true,
+                com.chat.base.R.string.permission_purpose_rich_text_image, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 for (ChooseResult result : paths) {

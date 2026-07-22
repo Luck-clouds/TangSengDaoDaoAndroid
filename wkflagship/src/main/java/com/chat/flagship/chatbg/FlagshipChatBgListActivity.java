@@ -70,7 +70,8 @@ public class FlagshipChatBgListActivity extends WKBaseActivity<ActFlagshipChatBg
 
     @Override
     protected void rightLayoutClick() {
-        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(this, 1, false, ChooseMimeType.img, false,
+                com.chat.base.R.string.permission_purpose_chat_background, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 if (WKReader.isEmpty(paths) || paths.get(0) == null || TextUtils.isEmpty(paths.get(0).path)) {

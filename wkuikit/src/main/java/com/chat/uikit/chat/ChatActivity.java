@@ -511,7 +511,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 return;
             }
             String desc = String.format(getString(R.string.microphone_permissions_des), getString(R.string.app_name));
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
                     if (result) {
@@ -554,7 +554,8 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 @Override
                 public void clickResult(boolean isCancel) {
                 }
-            }, this, desc, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
+            }, this, desc, com.chat.base.R.string.permission_purpose_voice_call,
+                    Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
         });
         videoCallIV.setOnClickListener(view -> {
             WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
@@ -563,7 +564,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 return;
             }
             String desc = String.format(getString(R.string.microphone_permissions_des), getString(R.string.app_name));
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
                     if (result) {
@@ -606,7 +607,8 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 @Override
                 public void clickResult(boolean isCancel) {
                 }
-            }, this, desc, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
+            }, this, desc, com.chat.base.R.string.permission_purpose_video_call,
+                    Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
         });
 
         WKDialogUtils.getInstance().setViewLongClickPopup(wkVBinding.chatUnreadLayout.groupApproveLayout, getGroupApprovePopupItems());

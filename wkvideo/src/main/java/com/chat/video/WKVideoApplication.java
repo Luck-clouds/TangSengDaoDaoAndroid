@@ -87,7 +87,7 @@ public class WKVideoApplication {
         CharSequence appName = application.getApplicationInfo().loadLabel(application.getPackageManager());
         String desc = application.getString(R.string.video_capture_permission_desc, appName);
         // 小视频默认会尝试录制有声视频，所以这里一次性申请相机和麦克风。
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 if (result) {
@@ -98,6 +98,7 @@ public class WKVideoApplication {
             @Override
             public void clickResult(boolean isCancel) {
             }
-        }, conversationContext.getChatActivity(), desc, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
+        }, conversationContext.getChatActivity(), desc, com.chat.base.R.string.permission_purpose_short_video,
+                Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
     }
 }

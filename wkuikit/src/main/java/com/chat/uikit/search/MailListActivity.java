@@ -60,7 +60,7 @@ public class MailListActivity extends WKBaseActivity<ActMailListLayoutBinding> {
     @Override
     protected void initPresenter() {
         String desc = String.format(getString(R.string.contact_permissions_des), getString(R.string.app_name));
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 if (result) {
@@ -72,7 +72,7 @@ public class MailListActivity extends WKBaseActivity<ActMailListLayoutBinding> {
             public void clickResult(boolean isCancel) {
                 finish();
             }
-        }, this, desc, Manifest.permission.READ_CONTACTS);
+        }, this, desc, com.chat.base.R.string.permission_purpose_contacts, Manifest.permission.READ_CONTACTS);
 
     }
 

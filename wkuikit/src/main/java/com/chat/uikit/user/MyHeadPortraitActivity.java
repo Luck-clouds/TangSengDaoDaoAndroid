@@ -111,7 +111,7 @@ public class MyHeadPortraitActivity extends WKBaseActivity<ActMyHeadPortraitLayo
     private void chooseIMG() {
         String desc = String.format(getString(R.string.file_permissions_des), getString(R.string.app_name));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
                     if (result) {
@@ -122,9 +122,9 @@ public class MyHeadPortraitActivity extends WKBaseActivity<ActMyHeadPortraitLayo
                 @Override
                 public void clickResult(boolean isCancel) {
                 }
-            }, this, desc, Manifest.permission.CAMERA);
+            }, this, desc, com.chat.base.R.string.permission_purpose_profile_avatar, Manifest.permission.CAMERA);
         } else {
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
                     if (result) {
@@ -135,7 +135,8 @@ public class MyHeadPortraitActivity extends WKBaseActivity<ActMyHeadPortraitLayo
                 @Override
                 public void clickResult(boolean isCancel) {
                 }
-            }, this, desc, Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE);
+            }, this, desc, com.chat.base.R.string.permission_purpose_profile_avatar,
+                    Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE);
         }
 
 
@@ -143,7 +144,8 @@ public class MyHeadPortraitActivity extends WKBaseActivity<ActMyHeadPortraitLayo
 
     private void success() {
 
-        GlideUtils.getInstance().chooseIMG(MyHeadPortraitActivity.this, 1, true, ChooseMimeType.img, false,false, new GlideUtils.ISelectBack() {
+        GlideUtils.getInstance().chooseIMG(MyHeadPortraitActivity.this, 1, true, ChooseMimeType.img, false, false,
+                com.chat.base.R.string.permission_purpose_profile_avatar, new GlideUtils.ISelectBack() {
             @Override
             public void onBack(List<ChooseResult> paths) {
                 if (WKReader.isNotEmpty(paths)) {

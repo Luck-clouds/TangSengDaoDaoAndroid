@@ -275,9 +275,25 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
     override fun initData() {
         wkVBinding.countTv.text = "0/500"
         when (intent.getStringExtra(EXTRA_AUTO_ACTION)) {
-            ACTION_CAPTURE -> wkVBinding.mediaRecyclerView.post { captureLauncher.launch(WKVideoCapture.request("moment_compose")) }
+            ACTION_CAPTURE -> wkVBinding.mediaRecyclerView.post { requestMomentCapture() }
             ACTION_ALBUM -> wkVBinding.mediaRecyclerView.post { chooseMediaFromAlbum() }
         }
+    }
+
+    private fun requestMomentCapture() {
+        val appName = applicationInfo.loadLabel(packageManager)
+        val desc = getString(com.chat.video.R.string.video_capture_permission_desc, appName)
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
+            override fun onResult(result: Boolean) {
+                if (result) {
+                    captureLauncher.launch(WKVideoCapture.request("moment_compose"))
+                }
+            }
+
+            override fun clickResult(isCancel: Boolean) {
+            }
+        }, this, desc, com.chat.base.R.string.permission_purpose_moment_capture,
+            Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
     }
 
     override fun rightLayoutClick() {
@@ -307,10 +323,11 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
         }
         val desc = getString(com.chat.base.R.string.album_permissions_desc, getString(com.chat.base.R.string.app_name))
         val mimeType = if (medias.any { it.type == MomentComposeMedia.TYPE_IMAGE }) ChooseMimeType.img else ChooseMimeType.all
-        WKPermissions.getInstance().checkPermissions(object : WKPermissions.IPermissionResult {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
             override fun onResult(result: Boolean) {
                 if (!result) return
-                GlideUtils.getInstance().chooseIMG(this@MomentComposeActivity, remainingSelectCount(), false, mimeType, true, object : GlideUtils.ISelectBack {
+                GlideUtils.getInstance().chooseIMG(this@MomentComposeActivity, remainingSelectCount(), false, mimeType, true,
+                    com.chat.base.R.string.permission_purpose_moment_publish, object : GlideUtils.ISelectBack {
                     override fun onBack(paths: List<ChooseResult>) {
                         addAlbumResults(paths)
                     }
@@ -322,7 +339,7 @@ class MomentComposeActivity : WKBaseActivity<ActMomentComposeLayoutBinding>() {
 
             override fun clickResult(isCancel: Boolean) {
             }
-        }, this, desc, *permissions)
+        }, this, desc, com.chat.base.R.string.permission_purpose_moment_publish, *permissions)
     }
 
     private fun addAlbumResults(paths: List<ChooseResult>) {

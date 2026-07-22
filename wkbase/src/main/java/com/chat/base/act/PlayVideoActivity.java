@@ -246,7 +246,7 @@ public class PlayVideoActivity extends GSYBaseActivityDetail<VideoPlayer> {
                 getString(R.string.app_name)
         );
         if (Build.VERSION.SDK_INT < 33) {
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                                                              @Override
                                                              public void onResult(boolean result) {
                                                                  if (result) {
@@ -261,11 +261,12 @@ public class PlayVideoActivity extends GSYBaseActivityDetail<VideoPlayer> {
                                                          },
                     this,
                     desc,
+                    R.string.permission_purpose_save_media,
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
             );
         } else {
-            WKPermissions.getInstance().checkPermissions(
+            WKPermissions.getInstance().checkPermissionsWithPurpose(
                     new WKPermissions.IPermissionResult() {
                         @Override
                         public void onResult(boolean result) {
@@ -281,6 +282,7 @@ public class PlayVideoActivity extends GSYBaseActivityDetail<VideoPlayer> {
                     },
                     this,
                     desc,
+                    R.string.permission_purpose_save_media,
                     Manifest.permission.READ_MEDIA_AUDIO,
                     Manifest.permission.READ_MEDIA_VIDEO,
                     Manifest.permission.READ_MEDIA_IMAGES

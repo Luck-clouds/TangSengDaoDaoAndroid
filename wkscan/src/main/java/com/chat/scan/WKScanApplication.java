@@ -95,7 +95,7 @@ public class WKScanApplication {
     private void openScan(FragmentActivity activity) {
         CharSequence appName = activity.getApplicationInfo().loadLabel(activity.getPackageManager());
         String desc = activity.getString(com.chat.base.R.string.camera_permissions_desc, appName);
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 if (result) {
@@ -106,7 +106,7 @@ public class WKScanApplication {
             @Override
             public void clickResult(boolean isCancel) {
             }
-        }, activity, desc, Manifest.permission.CAMERA);
+        }, activity, desc, com.chat.base.R.string.permission_purpose_scan_camera, Manifest.permission.CAMERA);
     }
 
 }

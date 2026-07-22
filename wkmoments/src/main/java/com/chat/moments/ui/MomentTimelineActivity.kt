@@ -400,10 +400,26 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         )
         showMomentBottomSheet(getString(R.string.moment_action_publish), items, icons) { index ->
             when (index) {
-                0 -> mediaCaptureLauncher.launch(WKVideoCapture.request("moment_compose"))
+                0 -> requestMomentCapture()
                 1 -> chooseComposeMediaFromAlbum()
             }
         }
+    }
+
+    private fun requestMomentCapture() {
+        val appName = applicationInfo.loadLabel(packageManager)
+        val desc = getString(com.chat.video.R.string.video_capture_permission_desc, appName)
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
+            override fun onResult(result: Boolean) {
+                if (result) {
+                    mediaCaptureLauncher.launch(WKVideoCapture.request("moment_compose"))
+                }
+            }
+
+            override fun clickResult(isCancel: Boolean) {
+            }
+        }, this, desc, com.chat.base.R.string.permission_purpose_moment_capture,
+            Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
     }
 
     private fun showCoverBottomSheet() {
@@ -454,10 +470,11 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         val desc = getString(com.chat.base.R.string.album_permissions_desc, getString(com.chat.base.R.string.app_name))
-        WKPermissions.getInstance().checkPermissions(object : WKPermissions.IPermissionResult {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
             override fun onResult(result: Boolean) {
                 if (!result) return
-                GlideUtils.getInstance().chooseIMG(this@MomentTimelineActivity, 1, false, ChooseMimeType.img, false, object : GlideUtils.ISelectBack {
+                GlideUtils.getInstance().chooseIMG(this@MomentTimelineActivity, 1, false, ChooseMimeType.img, false,
+                    com.chat.base.R.string.permission_purpose_moment_cover, object : GlideUtils.ISelectBack {
                     override fun onBack(paths: List<ChooseResult>) {
                         val first = paths.firstOrNull() ?: return
                         if (first.model == ChooseResultModel.video) {
@@ -480,7 +497,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
 
             override fun clickResult(isCancel: Boolean) {
             }
-        }, this, desc, *permissions)
+        }, this, desc, com.chat.base.R.string.permission_purpose_moment_cover, *permissions)
     }
 
     private fun chooseComposeMediaFromAlbum() {
@@ -490,10 +507,11 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         val desc = getString(com.chat.base.R.string.album_permissions_desc, getString(com.chat.base.R.string.app_name))
-        WKPermissions.getInstance().checkPermissions(object : WKPermissions.IPermissionResult {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(object : WKPermissions.IPermissionResult {
             override fun onResult(result: Boolean) {
                 if (!result) return
-                GlideUtils.getInstance().chooseIMG(this@MomentTimelineActivity, 9, false, ChooseMimeType.all, true, object : GlideUtils.ISelectBack {
+                GlideUtils.getInstance().chooseIMG(this@MomentTimelineActivity, 9, false, ChooseMimeType.all, true,
+                    com.chat.base.R.string.permission_purpose_moment_publish, object : GlideUtils.ISelectBack {
                     override fun onBack(paths: List<ChooseResult>) {
                         val medias = buildAlbumComposeMedias(paths) ?: return
                         openComposeWithMedias(ArrayList(medias))
@@ -506,7 +524,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
 
             override fun clickResult(isCancel: Boolean) {
             }
-        }, this, desc, *permissions)
+        }, this, desc, com.chat.base.R.string.permission_purpose_moment_publish, *permissions)
     }
 
     private fun openComposeWithMedias(medias: ArrayList<MomentComposeMedia>) {

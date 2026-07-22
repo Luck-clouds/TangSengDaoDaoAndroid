@@ -36,7 +36,7 @@ class ErrorLogsActivity : WKBaseActivity<ActCommonListLayoutBinding>() {
             getString(R.string.app_name)
         )
         if (Build.VERSION.SDK_INT < 33) {
-            WKPermissions.getInstance().checkPermissions(
+            WKPermissions.getInstance().checkPermissionsWithPurpose(
                 object : IPermissionResult {
                     override fun onResult(result: Boolean) {}
 
@@ -46,11 +46,12 @@ class ErrorLogsActivity : WKBaseActivity<ActCommonListLayoutBinding>() {
                 },
                 this,
                 desc,
+                com.chat.base.R.string.permission_purpose_error_logs,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
         } else {
-            WKPermissions.getInstance().checkPermissions(
+            WKPermissions.getInstance().checkPermissionsWithPurpose(
                 object : IPermissionResult {
                     override fun onResult(result: Boolean) {}
 
@@ -60,6 +61,7 @@ class ErrorLogsActivity : WKBaseActivity<ActCommonListLayoutBinding>() {
                 },
                 this,
                 desc,
+                com.chat.base.R.string.permission_purpose_error_logs,
                 Manifest.permission.READ_MEDIA_AUDIO,
                 Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_IMAGES

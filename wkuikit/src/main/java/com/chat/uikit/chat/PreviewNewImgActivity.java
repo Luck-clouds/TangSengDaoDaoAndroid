@@ -77,7 +77,7 @@ public class PreviewNewImgActivity extends WKBaseActivity<ActPreviewNewImgLayout
     @Override
     protected void initPresenter() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
 
@@ -87,7 +87,9 @@ public class PreviewNewImgActivity extends WKBaseActivity<ActPreviewNewImgLayout
                 public void clickResult(boolean isCancel) {
 
                 }
-            }, this, getString(R.string.personal_info), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }, this, getString(R.string.personal_info),
+                    com.chat.base.R.string.permission_purpose_save_media,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         }
 

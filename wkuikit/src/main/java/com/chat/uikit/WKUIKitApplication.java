@@ -1029,7 +1029,7 @@ public class WKUIKitApplication {
             permissionStr = new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO};
         }
         String desc = String.format(iConversationContext.getChatActivity().getString(R.string.album_permissions_desc), iConversationContext.getChatActivity().getString(R.string.app_name));
-        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+        WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
             @Override
             public void onResult(boolean result) {
                 ChooseMimeType mimeType = ChooseMimeType.img;
@@ -1041,7 +1041,8 @@ public class WKUIKitApplication {
                             mimeType = ChooseMimeType.all;
                         }
                     }
-                    GlideUtils.getInstance().chooseIMG(iConversationContext.getChatActivity(), 9, true, mimeType, true, new GlideUtils.ISelectBack() {
+                    GlideUtils.getInstance().chooseIMG(iConversationContext.getChatActivity(), 9, true, mimeType, true,
+                            com.chat.base.R.string.permission_purpose_chat_album, new GlideUtils.ISelectBack() {
                         @Override
                         public void onBack(List<ChooseResult> paths) {
                             if (paths.size() == 1 && paths.get(0).model == ChooseResultModel.video) {
@@ -1099,7 +1100,8 @@ public class WKUIKitApplication {
             @Override
             public void clickResult(boolean isCancel) {
             }
-        }, iConversationContext.getChatActivity(), desc, permissionStr);
+        }, iConversationContext.getChatActivity(), desc,
+                com.chat.base.R.string.permission_purpose_chat_album, permissionStr);
     }
 
     private void chooseFile(IConversationContext iConversationContext) {

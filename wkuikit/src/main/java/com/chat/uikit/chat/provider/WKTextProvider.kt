@@ -340,7 +340,7 @@ open class WKTextProvider : WKChatBaseProvider() {
                                             context.getString(R.string.call_phone_permissions_desc),
                                             context.getString(R.string.app_name)
                                         );
-                                        WKPermissions.getInstance().checkPermissions(
+                                        WKPermissions.getInstance().checkPermissionsWithPurpose(
                                             object : IPermissionResult {
                                                 override fun onResult(result: Boolean) {
                                                     if (result) {
@@ -359,6 +359,7 @@ open class WKTextProvider : WKChatBaseProvider() {
                                             },
                                             chatAdapter.conversationContext.chatActivity,
                                             desc,
+                                            com.chat.base.R.string.permission_purpose_phone,
                                             Manifest.permission.CALL_PHONE
                                         )
 
