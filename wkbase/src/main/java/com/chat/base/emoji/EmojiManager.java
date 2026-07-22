@@ -49,6 +49,7 @@ public class EmojiManager {
     private LruCache<String, Bitmap> drawableCache;
 
     private String patternStr = "";
+    private boolean initialized = false;
 
     private EmojiManager() {
 
@@ -62,10 +63,16 @@ public class EmojiManager {
         return EmojiManagerBinder.emoji;
     }
 
-    public void init() {
+    public synchronized void init() {
+        if (initialized) {
+            return;
+        }
 
         Context context = WKBaseApplication.getInstance().getContext();
 
+        defaultEntries.clear();
+        text2entry.clear();
+        patternStr = "";
         load(context, EMOT_DIR + "emoji.xml");
         pattern = makePattern();
         drawableCache = new LruCache<String, Bitmap>(CACHE_MAX_SIZE) {
@@ -75,7 +82,7 @@ public class EmojiManager {
                     oldValue.recycle();
             }
         };
-
+        initialized = true;
 
     }
 
@@ -96,25 +103,29 @@ public class EmojiManager {
     }
 
     public Drawable getDisplayDrawable(Context context, int index) {
-        String text = (index >= 0 && index < defaultEntries.size() ?
-                defaultEntries.get(index).text : null);
+        Entry entry = index >= 0 && index < defaultEntries.size() ? defaultEntries.get(index) : null;
+        String text = entry != null ? entry.text : null;
         return text == null ? null : getDrawable(context, text);
     }
 
     public String getDisplayText(int index) {
-        return index >= 0 && index < defaultEntries.size() ? defaultEntries
-                .get(index).text : null;
+        Entry entry = index >= 0 && index < defaultEntries.size() ? defaultEntries.get(index) : null;
+        return entry != null ? entry.text : null;
     }
 
-    public Pattern getPattern() {
+    public synchronized Pattern getPattern() {
+        if (pattern == null) {
+            pattern = makePattern();
+        }
         return pattern;
     }
 
     public Drawable getDrawableWithTag(Context context, String tag) {
         Drawable drawable = null;
         for (int i = 0; i < defaultEntries.size(); i++) {
-            if (defaultEntries.get(i).id.equals(tag)) {
-                drawable = getDrawable(context, defaultEntries.get(i).text);
+            Entry entry = defaultEntries.get(i);
+            if (entry != null && entry.id.equals(tag)) {
+                drawable = getDrawable(context, entry.text);
                 break;
             }
         }
@@ -123,8 +134,9 @@ public class EmojiManager {
     public EmojiEntry getEmojiWithTag(String tag){
         EmojiEntry entry = null;
         for (int i = 0; i < defaultEntries.size(); i++) {
-            if (defaultEntries.get(i).id.equals(tag)) {
-                entry = new EmojiEntry(defaultEntries.get(i).id,defaultEntries.get(i).text,defaultEntries.get(i).assetPath);
+            Entry defaultEntry = defaultEntries.get(i);
+            if (defaultEntry != null && defaultEntry.id.equals(tag)) {
+                entry = new EmojiEntry(defaultEntry.id,defaultEntry.text,defaultEntry.assetPath);
                 break;
             }
         }
@@ -142,6 +154,15 @@ public class EmojiManager {
         Entry entry = text2entry.get(text);
         if (entry == null) {
             return null;
+        }
+        if (drawableCache == null) {
+            drawableCache = new LruCache<String, Bitmap>(CACHE_MAX_SIZE) {
+                @Override
+                protected void entryRemoved(boolean evicted, @NotNull String key, @NotNull Bitmap oldValue, Bitmap newValue) {
+                    if (oldValue != newValue)
+                        oldValue.recycle();
+                }
+            };
         }
 
         Bitmap cache = drawableCache.get(entry.assetPath);
@@ -165,13 +186,21 @@ public class EmojiManager {
             StringBuilder sb = new StringBuilder();
             sb.append("(");
             for (int i = 0, size = defaultEntries.size(); i < size; i++) {
+                Entry entry = defaultEntries.get(i);
+                if (entry == null || TextUtils.isEmpty(entry.text)) {
+                    continue;
+                }
                 if (!sb.toString().endsWith("(")) {
                     sb.append("|");
                 }
-                sb.append(defaultEntries.get(i).text);
+                sb.append(Pattern.quote(entry.text));
             }
-            sb.append(")");
-            patternStr = sb.toString();
+            if (sb.toString().endsWith("(")) {
+                patternStr = "(?!)";
+            } else {
+                sb.append(")");
+                patternStr = sb.toString();
+            }
         }
         return patternStr;
         // return "[^\\u0000-\\uFFFF]";
@@ -237,10 +266,25 @@ public class EmojiManager {
         public void startElement(String uri, String localName, String qName, Attributes attributes) {
             if (localName.equals("Catalog")) {
                 catalog = attributes.getValue(uri, "Title");
+                if (TextUtils.isEmpty(catalog)) {
+                    catalog = attributes.getValue("Title");
+                }
             } else if (localName.equals("Emoticon")) {
                 String tag = attributes.getValue(uri, "Tag");
                 String id = attributes.getValue(uri, "ID");
                 String fileName = attributes.getValue(uri, "File");
+                if (TextUtils.isEmpty(tag)) {
+                    tag = attributes.getValue("Tag");
+                }
+                if (TextUtils.isEmpty(id)) {
+                    id = attributes.getValue("ID");
+                }
+                if (TextUtils.isEmpty(fileName)) {
+                    fileName = attributes.getValue("File");
+                }
+                if (TextUtils.isEmpty(catalog) || TextUtils.isEmpty(tag) || TextUtils.isEmpty(id) || TextUtils.isEmpty(fileName)) {
+                    return;
+                }
                 Entry entry = new Entry(id, tag, EMOT_DIR + catalog + "/" + fileName);
                 text2entry.put(entry.text, entry);
                 if (catalog.equals("default")) {
@@ -267,19 +311,23 @@ public class EmojiManager {
     public List<EmojiEntry> getEmojiWithType(String type) {
         List<EmojiEntry> list = new ArrayList<>();
         for (int i = 0, size = defaultEntries.size(); i < size; i++) {
-            if (defaultEntries.get(i).id.contains("color")) {
+            Entry defaultEntry = defaultEntries.get(i);
+            if (defaultEntry == null || TextUtils.isEmpty(defaultEntry.id) || TextUtils.isEmpty(defaultEntry.text)) {
+                continue;
+            }
+            if (defaultEntry.id.contains("color")) {
                 continue;
             }
             boolean isAdd = true;
             for (EmojiEntry entry : list) {
-                if (entry.getText().equals(defaultEntries.get(i).text)) {
+                if (entry.getText().equals(defaultEntry.text)) {
                     isAdd = false;
                     break;
                 }
             }
             if (isAdd) {
-                if (defaultEntries.get(i).id.startsWith(type)) {
-                    EmojiEntry entry = new EmojiEntry(defaultEntries.get(i).id, defaultEntries.get(i).text, defaultEntries.get(i).assetPath);
+                if (defaultEntry.id.startsWith(type)) {
+                    EmojiEntry entry = new EmojiEntry(defaultEntry.id, defaultEntry.text, defaultEntry.assetPath);
                     list.add(entry);
                 }
             }
