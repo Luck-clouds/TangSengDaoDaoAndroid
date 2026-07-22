@@ -1,5 +1,6 @@
 package com.chat.base.glide;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
@@ -10,6 +11,8 @@ import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -26,6 +29,7 @@ import com.chat.base.config.WKConstants;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.EditImgMenu;
 import com.chat.base.utils.WKLogUtils;
+import com.chat.base.utils.WKPermissions;
 import com.luck.picture.lib.animators.AnimationType;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.config.PictureMimeType;
@@ -33,6 +37,8 @@ import com.luck.picture.lib.config.SelectMimeType;
 import com.luck.picture.lib.engine.CompressFileEngine;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.interfaces.OnKeyValueResultCallbackListener;
+import com.luck.picture.lib.interfaces.OnPermissionsInterceptListener;
+import com.luck.picture.lib.interfaces.OnRequestPermissionListener;
 import com.luck.picture.lib.interfaces.OnResultCallbackListener;
 import com.luck.picture.lib.style.BottomNavBarStyle;
 import com.luck.picture.lib.style.PictureSelectorStyle;
@@ -285,6 +291,7 @@ public class GlideUtils {
                 .setMaxVideoSelectNum(maxSelectNum)
                 .setImageSpanCount(3)
                 .isWithSelectVideoImage(isWithSelectVideoImage)
+                .setPermissionsInterceptListener(createPermissionsInterceptor())
 //                .setReturnEmpty(true)
 //                .DisplayOriginalSize(true)
 //                .setEditorImage(false)
@@ -344,6 +351,43 @@ public class GlideUtils {
                         iSelectBack.onCancel();
                     }
                 });
+    }
+
+    private OnPermissionsInterceptListener createPermissionsInterceptor() {
+        return new OnPermissionsInterceptListener() {
+            @Override
+            public void requestPermission(Fragment fragment, String[] permissionArray, OnRequestPermissionListener call) {
+                FragmentActivity activity = fragment.requireActivity();
+                boolean cameraPermission = containsPermission(permissionArray, Manifest.permission.CAMERA);
+                CharSequence appName = activity.getApplicationInfo().loadLabel(activity.getPackageManager());
+                String desc = activity.getString(cameraPermission
+                        ? R.string.camera_permissions_desc
+                        : R.string.album_permissions_desc, appName);
+                WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+                    @Override
+                    public void onResult(boolean result) {
+                        call.onCall(permissionArray, result);
+                    }
+
+                    @Override
+                    public void clickResult(boolean isCancel) {
+                    }
+                }, activity, desc, permissionArray);
+            }
+
+            @Override
+            public boolean hasPermissions(Fragment fragment, String[] permissionArray) {
+                return WKPermissions.getInstance().hasPermissions(fragment.requireActivity(), permissionArray);
+            }
+        };
+    }
+
+    private boolean containsPermission(String[] permissions, String target) {
+        if (permissions == null) return false;
+        for (String permission : permissions) {
+            if (target.equals(permission)) return true;
+        }
+        return false;
     }
 
     private String getRealPathFromUri(Context context, Uri contentUri) {

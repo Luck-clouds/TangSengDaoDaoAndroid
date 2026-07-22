@@ -1,9 +1,12 @@
 package com.chat.scan;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.king.zxing.util.CodeUtils;
 import com.chat.base.act.WKWebViewActivity;
@@ -11,6 +14,7 @@ import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.ParseQrCodeMenu;
 import com.chat.base.entity.PopupMenuItem;
+import com.chat.base.utils.WKPermissions;
 
 import java.lang.ref.WeakReference;
 
@@ -35,17 +39,18 @@ public class WKScanApplication {
     public void init(Context context) {
         mContext = new WeakReference<>(context);
         EndpointManager.getInstance().setMethod("wk_scan_show", object -> {
-            Intent intent = new Intent(context, WKScanActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+            if (object instanceof FragmentActivity) {
+                openScan((FragmentActivity) object);
+            }
             return null;
         });
         //添加tab页扫一扫功能
-        EndpointManager.getInstance().setMethod(EndpointCategory.tabMenus + "_scan", EndpointCategory.tabMenus, 99, object -> new PopupMenuItem( context.getString(R.string.wk_scan_module_scan), R.mipmap.menu_scan,() -> {
-            Intent intent = new Intent(context, WKScanActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        }));
+        EndpointManager.getInstance().setMethod(EndpointCategory.tabMenus + "_scan", EndpointCategory.tabMenus, 99, object -> {
+            FragmentActivity activity = object instanceof FragmentActivity ? (FragmentActivity) object : null;
+            return new PopupMenuItem(context.getString(R.string.wk_scan_module_scan), R.mipmap.menu_scan, () -> {
+                if (activity != null) openScan(activity);
+            });
+        });
 
         EndpointManager.getInstance().setMethod("create_qrcode", object -> {
             String qrcode = (String) object;
@@ -85,6 +90,23 @@ public class WKScanApplication {
             }
             return null;
         });
+    }
+
+    private void openScan(FragmentActivity activity) {
+        CharSequence appName = activity.getApplicationInfo().loadLabel(activity.getPackageManager());
+        String desc = activity.getString(com.chat.base.R.string.camera_permissions_desc, appName);
+        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            @Override
+            public void onResult(boolean result) {
+                if (result) {
+                    activity.startActivity(new Intent(activity, WKScanActivity.class));
+                }
+            }
+
+            @Override
+            public void clickResult(boolean isCancel) {
+            }
+        }, activity, desc, Manifest.permission.CAMERA);
     }
 
 }

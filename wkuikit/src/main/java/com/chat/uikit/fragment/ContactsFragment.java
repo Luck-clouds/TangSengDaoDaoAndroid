@@ -137,7 +137,7 @@ public class ContactsFragment extends WKBaseFragment<FragContactsLayoutBinding> 
             }
         }));
         wkVBinding.rightIv.setOnClickListener(view -> {
-            List<PopupMenuItem> list = EndpointManager.getInstance().invokes(EndpointCategory.tabMenus, null);
+            List<PopupMenuItem> list = EndpointManager.getInstance().invokes(EndpointCategory.tabMenus, requireActivity());
             WKDialogUtils.getInstance().showScreenPopup(view, list);
         });
         //成员刷新监听

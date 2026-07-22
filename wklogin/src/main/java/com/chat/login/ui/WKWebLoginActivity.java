@@ -51,7 +51,7 @@ public class WKWebLoginActivity extends WKBaseActivity<ActWebLoginLayoutBinding>
             WKToastUtils.getInstance().showToastNormal(getString(R.string.copied));
         });
         wkVBinding.scanLayout.setOnClickListener(v -> {
-            EndpointManager.getInstance().invoke("wk_scan_show", null);
+            EndpointManager.getInstance().invoke("wk_scan_show", this);
         });
     }
 }

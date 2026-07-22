@@ -82,6 +82,15 @@
     <string name="max_file_size"> Maximum 500M</string>
     <string name="min_file_size"> Unsupported file</string>
     <string name="authorization_request">Authorization Request</string>
+    <string name="permission_purpose_camera">%1$s wants to use the camera for taking photos or scanning QR codes.</string>
+    <string name="permission_purpose_microphone">%1$s wants to use the microphone for voice messages and audio or video calls.</string>
+    <string name="permission_purpose_camera_microphone">%1$s wants to use the camera and microphone for recording and audio or video calls.</string>
+    <string name="permission_purpose_media">%1$s wants to access photos and videos on this device.</string>
+    <string name="permission_purpose_contacts">%1$s wants to access contacts on this device to find and add contacts.</string>
+    <string name="permission_purpose_notification">%1$s wants to send notifications so you can receive new-message alerts.</string>
+    <string name="permission_purpose_phone">%1$s wants to place phone calls from phone numbers in chats.</string>
+    <string name="permission_purpose_other">%1$s wants to use the required device permission for this feature.</string>
+    <string name="permission_purpose_install">%1$s wants permission to install apps for version updates.</string>
     <string name="to_set">To set</string>
     <string name="contact_permissions_des">Allow contacts access in Setting-Apps-%s to search contacts</string>
     <string name="microphone_permissions_des">Allow microphone access in Setting-Apps-%s to use audio and Sight</string>

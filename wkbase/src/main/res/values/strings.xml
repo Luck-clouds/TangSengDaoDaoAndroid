@@ -81,6 +81,15 @@
     <string name="max_file_size"> 最大支持500M</string>
     <string name="min_file_size">不支持的文件</string>
     <string name="authorization_request">权限申请</string>
+    <string name="permission_purpose_camera">%1$s想要申请使用设备相机，用于拍摄或扫一扫</string>
+    <string name="permission_purpose_microphone">%1$s想要申请使用设备麦克风，用于发送语音消息或进行音视频通话</string>
+    <string name="permission_purpose_camera_microphone">%1$s想要申请使用设备相机和麦克风，用于拍摄、语音或音视频通话</string>
+    <string name="permission_purpose_media">%1$s想要申请访问设备上的照片与视频</string>
+    <string name="permission_purpose_contacts">%1$s想要申请访问设备上的联系人，用于查找和添加联系人</string>
+    <string name="permission_purpose_notification">%1$s想要申请发送通知，用于及时提醒新消息</string>
+    <string name="permission_purpose_phone">%1$s想要申请拨打电话，用于从聊天内容中发起系统通话</string>
+    <string name="permission_purpose_other">%1$s想要申请使用相关设备权限，以正常使用当前功能</string>
+    <string name="permission_purpose_install">%1$s想要申请安装应用权限，用于安装版本更新</string>
     <string name="to_set">去设置</string>
     <string name="contact_permissions_des">在设置-应用-%s-权限中开读取手机联系人权限。以正常使用联系人查找功能</string>
     <string name="microphone_permissions_des">在设置-应用-%s-权限中开启麦克风权限。以正常使用语音、音视频通话、小视频等功能</string>

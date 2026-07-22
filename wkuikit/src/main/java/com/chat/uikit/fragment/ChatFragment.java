@@ -130,7 +130,7 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
     @Override
     protected void initListener() {
         wkVBinding.rightIv.setOnClickListener(view -> {
-            List<PopupMenuItem> list = EndpointManager.getInstance().invokes(EndpointCategory.tabMenus, null);
+            List<PopupMenuItem> list = EndpointManager.getInstance().invokes(EndpointCategory.tabMenus, requireActivity());
             WKDialogUtils.getInstance().showScreenPopup(view, list);
         });
 

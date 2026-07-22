@@ -38,10 +38,10 @@ import com.chat.base.utils.ActManagerUtils;
 import com.chat.base.utils.LayoutHelper;
 import com.chat.base.utils.WKDeviceUtils;
 import com.chat.base.utils.WKDialogUtils;
+import com.chat.base.utils.WKPermissions;
 import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKTimeUtils;
 import com.chat.base.utils.language.WKMultiLanguageUtil;
-import com.chat.base.utils.rxpermissions.RxPermissions;
 import com.chat.uikit.contacts.service.FriendModel;
 import com.chat.uikit.databinding.ActTabMainBinding;
 import com.chat.uikit.fragment.ChatFragment;
@@ -91,16 +91,15 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         UserModel.getInstance().device();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             String desc = String.format(getString(R.string.notification_permissions_desc), getString(R.string.app_name));
-            RxPermissions rxPermissions = new RxPermissions(this);
-            rxPermissions.request(Manifest.permission.POST_NOTIFICATIONS).subscribe(aBoolean -> {
-                if (!aBoolean) {
-                    WKDialogUtils.getInstance().showDialog(this, getString(com.chat.base.R.string.authorization_request), desc, true, getString(R.string.cancel), getString(R.string.to_set), 0, Theme.colorAccount, index -> {
-                        if (index == 1) {
-                            EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
-                        }
-                    });
+            WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+                @Override
+                public void onResult(boolean result) {
                 }
-            });
+
+                @Override
+                public void clickResult(boolean isCancel) {
+                }
+            }, this, desc, Manifest.permission.POST_NOTIFICATIONS);
         } else {
             boolean isEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
             if (!isEnabled) {

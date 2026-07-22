@@ -1,6 +1,7 @@
 package com.chat.base.utils;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -23,6 +24,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.chat.base.WKBaseApplication;
 import com.chat.base.R;
+import com.chat.base.ui.Theme;
 
 import java.io.File;
 
@@ -283,6 +285,23 @@ public class DownloadApkUtils {
      */
     public void requestPermissions(Context activity) {
         //注意这个是8.0新API
+        Activity currentActivity = ActManagerUtils.getInstance().getCurrentActivity();
+        if (currentActivity == null) return;
+        CharSequence appName = currentActivity.getApplicationInfo().loadLabel(currentActivity.getPackageManager());
+        WKDialogUtils.getInstance().showDialog(currentActivity,
+                currentActivity.getString(R.string.authorization_request),
+                currentActivity.getString(R.string.permission_purpose_install, appName),
+                false,
+                currentActivity.getString(R.string.cancel),
+                currentActivity.getString(R.string.sure),
+                0,
+                Theme.colorAccount,
+                index -> {
+                    if (index == 1) openUnknownSourcesSettings(activity);
+                });
+    }
+
+    private void openUnknownSourcesSettings(Context activity) {
         try {
             Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
             Uri packageURI = Uri.parse("package:" + activity.getPackageName());

@@ -1,7 +1,6 @@
 package com.chat.rtc.ui;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -27,14 +26,15 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import com.chat.base.config.WKConfig;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
 import com.chat.base.utils.WKToastUtils;
+import com.chat.base.utils.WKPermissions;
 import com.chat.rtc.R;
 import com.chat.rtc.RtcManager;
 import com.chat.rtc.entity.RtcCallPayload;
@@ -59,9 +59,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-public class RtcCallActivity extends Activity implements RtcManager.SessionListener {
+public class RtcCallActivity extends FragmentActivity implements RtcManager.SessionListener {
     private static final String TAG = "WKRTC";
-    private static final int REQUEST_MEDIA_PERMISSION = 3701;
     private static final int REQUEST_PICK_INVITE_MEMBERS = 3702;
     private static final String EXTRA_DIRECTION = "direction";
     private static final String EXTRA_CHANNEL_ID = "channel_id";
@@ -518,7 +517,7 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
     private void startOutgoingAfterPermission() {
         clearPendingEndScreen();
         if (!hasMediaPermissions()) {
-            ActivityCompat.requestPermissions(this, permissionsForCall(), REQUEST_MEDIA_PERMISSION);
+            requestMediaPermissions(this::startOutgoingAfterPermission);
             return;
         }
         RtcManager.getInstance().startOutgoing(channel, callType, inviteUIDs, inviteNames, inviteAll, new IRequestResultListener<>() {
@@ -539,7 +538,7 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
 
     private void joinCurrentCallAfterPermission() {
         if (!hasMediaPermissions()) {
-            ActivityCompat.requestPermissions(this, permissionsForCall(), REQUEST_MEDIA_PERMISSION);
+            requestMediaPermissions(this::joinCurrentCallAfterPermission);
             return;
         }
         RtcSession session = RtcManager.getInstance().currentSession();
@@ -573,7 +572,7 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
 
     private void acceptIncoming() {
         if (!hasMediaPermissions()) {
-            ActivityCompat.requestPermissions(this, permissionsForCall(), REQUEST_MEDIA_PERMISSION);
+            requestMediaPermissions(this::acceptIncoming);
             return;
         }
         RtcManager.getInstance().dismissIncomingAlert();
@@ -2017,24 +2016,22 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
         return new String[]{Manifest.permission.RECORD_AUDIO};
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode != REQUEST_MEDIA_PERMISSION) {
-            return;
-        }
-        if (!hasMediaPermissions()) {
-            WKToastUtils.getInstance().showToastNormal(getString(callType == 1 ? R.string.wkrtc_permission_video : R.string.wkrtc_permission_audio));
-            finish();
-            return;
-        }
-        if (DIRECTION_INCOMING.equals(direction)) {
-            acceptIncoming();
-        } else if (DIRECTION_JOIN.equals(direction)) {
-            joinCurrentCallAfterPermission();
-        } else {
-            startOutgoingAfterPermission();
-        }
+    private void requestMediaPermissions(Runnable onGranted) {
+        CharSequence appName = getApplicationInfo().loadLabel(getPackageManager());
+        String desc = getString(callType == 1
+                ? com.chat.base.R.string.camera_permissions_desc
+                : com.chat.base.R.string.microphone_permissions_des, appName);
+        WKPermissions.getInstance().checkPermissions(new WKPermissions.IPermissionResult() {
+            @Override
+            public void onResult(boolean result) {
+                if (result) onGranted.run();
+            }
+
+            @Override
+            public void clickResult(boolean isCancel) {
+                finish();
+            }
+        }, this, desc, permissionsForCall());
     }
 
     private GradientDrawable circleDrawable(int color) {

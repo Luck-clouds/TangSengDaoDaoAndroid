@@ -43,7 +43,7 @@ public class AddFriendsActivity extends WKBaseActivity<ActAddFriendsLayoutBindin
     protected void initListener() {
         SingleClickUtil.onSingleClick(wkVBinding.qrIv, v -> startActivity(new Intent(this, UserQrActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.searchLayout, v -> startActivity(new Intent(this, SearchUserActivity.class)));
-        SingleClickUtil.onSingleClick(wkVBinding.scanLayout, v -> EndpointManager.getInstance().invoke("wk_scan_show", null));
+        SingleClickUtil.onSingleClick(wkVBinding.scanLayout, v -> EndpointManager.getInstance().invoke("wk_scan_show", this));
         SingleClickUtil.onSingleClick(wkVBinding.mailListLayout, v -> startActivity(new Intent(this, MailListActivity.class)));
     }
 
