@@ -93,7 +93,9 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
             String desc = String.format(getString(R.string.notification_permissions_desc), getString(R.string.app_name));
             RxPermissions rxPermissions = new RxPermissions(this);
             rxPermissions.request(Manifest.permission.POST_NOTIFICATIONS).subscribe(aBoolean -> {
-                if (!aBoolean) {
+                if (aBoolean) {
+                    EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+                } else {
                     WKDialogUtils.getInstance().showDialog(this, getString(com.chat.base.R.string.authorization_request), desc, true, getString(R.string.cancel), getString(R.string.to_set), 0, Theme.colorAccount, index -> {
                         if (index == 1) {
                             EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
@@ -103,7 +105,9 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
             });
         } else {
             boolean isEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
-            if (!isEnabled) {
+            if (isEnabled) {
+                EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+            } else {
                 EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
             }
         }

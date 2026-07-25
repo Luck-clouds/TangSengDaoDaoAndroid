@@ -32,8 +32,7 @@ import com.chat.base.utils.language.WKMultiLanguageUtil
 import com.chat.flagship.WKFlagshipApplication
 import com.chat.login.WKLoginApplication
 import com.chat.moments.WKMomentsApplication
-// 厂商推送/FCM 已关闭；恢复 :wkpush 依赖后取消此 import 的注释。
-// import com.chat.push.WKPushApplication
+import com.chat.push.WKPushApplication
 import com.chat.rtc.WKRTCApplication
 import com.chat.scan.WKScanApplication
 import com.chat.sticker.WKStickerApplication
@@ -44,6 +43,7 @@ import com.chat.uikit.setting.TeenModeManager
 import com.chat.uikit.user.service.UserModel
 import com.chat.video.WKVideoApplication
 import com.qinghangim.app.R
+import androidx.core.app.NotificationManagerCompat
 import kotlin.system.exitProcess
 
 class TSApplication : MultiDexApplication() {
@@ -57,6 +57,8 @@ class TSApplication : MultiDexApplication() {
 
     @Volatile
     private var businessInitialized = false
+    @Volatile
+    private var pushInitialized = false
 
     override fun onCreate() {
         super.onCreate()
@@ -143,10 +145,19 @@ class TSApplication : MultiDexApplication() {
         WKMomentsApplication.getInstance().init(this)
         WKStickerApplication.getInstance().init(this)
         WKRTCApplication.getInstance().init(this)
-        // 厂商推送/FCM 已关闭。恢复依赖后可在隐私协议同意后的此处重新初始化。
-        // WKPushApplication.getInstance().init(getAppPackageName(), this)
+        WKPushApplication.getInstance().registerNotificationDialog(getAppPackageName(), this)
+        initPushAfterNotificationAllowed()
         addAppFrontBack()
         addListener()
+    }
+
+    @Synchronized
+    fun initPushAfterNotificationAllowed() {
+        if (pushInitialized || !NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            return
+        }
+        pushInitialized = true
+        WKPushApplication.getInstance().init(getAppPackageName(), this)
     }
 
     private fun initApi() {
@@ -248,6 +259,10 @@ class TSApplication : MultiDexApplication() {
 
         EndpointManager.getInstance().setMethod("play_new_msg_Media") {
             WKPlaySound.getInstance().playRecordMsg(R.raw.newmsg)
+            null
+        }
+        EndpointManager.getInstance().setMethod("init_push_after_notification_allowed") {
+            initPushAfterNotificationAllowed()
             null
         }
         EndpointManager.getInstance().setMethod("app_is_foreground") {
