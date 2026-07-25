@@ -65,6 +65,7 @@
             <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
         </LinearLayout>
 
+        <!-- 检查新版本入口暂时隐藏，如需恢复请同步打开 WKAboutActivity 中的点击与检查逻辑
         <View
             android:layout_width="match_parent"
             android:layout_height="15dp"
@@ -88,6 +89,7 @@
 
             <androidx.appcompat.widget.AppCompatImageView style="@style/arrow_right_iv" />
         </LinearLayout>
+        -->
     </LinearLayout>
 
     <View

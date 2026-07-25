@@ -48,8 +48,9 @@ public class WKAboutActivity extends WKBaseActivity<ActAboutLayoutBinding> {
             // 用户协议
             showWebView(WKApiConfig.baseWebUrl + "user_agreement.html");
         });
-        SingleClickUtil.onSingleClick(wkVBinding.checkNewVersionLayout, view1 -> checkNewVersion(true));
-        checkNewVersion(false);
+        // 检查新版本入口暂时隐藏，如需恢复请同步打开 act_about_layout.xml 中的入口布局
+        // SingleClickUtil.onSingleClick(wkVBinding.checkNewVersionLayout, view1 -> checkNewVersion(true));
+        // checkNewVersion(false);
         String v = WKDeviceUtils.getInstance().getVersionName(this);
         wkVBinding.versionTv.setText(String.format("version %s", v));
         wkVBinding.appNameTv.setText(R.string.app_name);
@@ -61,19 +62,19 @@ public class WKAboutActivity extends WKBaseActivity<ActAboutLayoutBinding> {
         wkVBinding.avatarView.showAvatar(WKSystemAccount.system_team, WKChannelType.PERSONAL);
     }
 
-    private void checkNewVersion(boolean isShowDialog) {
-        WKCommonModel.getInstance().getAppNewVersion(isShowDialog, version -> {
-            if (version != null && !TextUtils.isEmpty(version.download_url)) {
-                if (isShowDialog) {
-                    WKDialogUtils.getInstance().showNewVersionDialog(WKAboutActivity.this, version);
-                } else {
-                    wkVBinding.newVersionIv.setVisibility(View.VISIBLE);
-                }
-            } else {
-                wkVBinding.newVersionIv.setVisibility(View.GONE);
-            }
-        });
-    }
+//    private void checkNewVersion(boolean isShowDialog) {
+//        WKCommonModel.getInstance().getAppNewVersion(isShowDialog, version -> {
+//            if (version != null && !TextUtils.isEmpty(version.download_url)) {
+//                if (isShowDialog) {
+//                    WKDialogUtils.getInstance().showNewVersionDialog(WKAboutActivity.this, version);
+//                } else {
+//                    wkVBinding.newVersionIv.setVisibility(View.VISIBLE);
+//                }
+//            } else {
+//                wkVBinding.newVersionIv.setVisibility(View.GONE);
+//            }
+//        });
+//    }
 
 
 }
