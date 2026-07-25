@@ -3,6 +3,16 @@ plugins {
     id 'kotlin-parcelize'
     id 'kotlin-android'
 }
+
+def readPushKey(String keyName, String defaultValue = "") {
+    def pushKeysFile = file('src/main/java/com/chat/push/PushKeys.java')
+    if (!pushKeysFile.exists()) {
+        return defaultValue
+    }
+    def matcher = pushKeysFile.text =~ /public\s+static\s+final\s+String\s+${keyName}\s*=\s*"([^"]*)"/
+    return matcher.find() ? matcher.group(1) : defaultValue
+}
+
 android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -11,6 +21,9 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+        manifestPlaceholders = [
+                HONOR_PUSH_APP_ID: readPushKey("honorAPPID")
+        ]
     }
 
     buildTypes {
