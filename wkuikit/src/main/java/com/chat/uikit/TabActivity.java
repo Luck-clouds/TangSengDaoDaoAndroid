@@ -94,6 +94,9 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
             WKPermissions.getInstance().checkPermissionsWithPurpose(new WKPermissions.IPermissionResult() {
                 @Override
                 public void onResult(boolean result) {
+                    if (result) {
+                        EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+                    }
                 }
 
                 @Override
@@ -102,7 +105,9 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
             }, this, desc, com.chat.base.R.string.permission_purpose_notification, Manifest.permission.POST_NOTIFICATIONS);
         } else {
             boolean isEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
-            if (!isEnabled) {
+            if (isEnabled) {
+                EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+            } else {
                 EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
             }
         }

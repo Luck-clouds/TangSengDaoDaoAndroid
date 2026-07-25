@@ -51,6 +51,7 @@ public class WKPushApplication {
 
     private WeakReference<Context> mContext;
     public String pushBundleID;
+    private boolean listenerAdded = false;
 
     public static WKPushApplication getInstance() {
         return PushApplicationBinder.push;
@@ -64,6 +65,12 @@ public class WKPushApplication {
         addListener();
         initPush();
         EndpointManager.getInstance().setMethod("", EndpointCategory.loginMenus, object -> new LoginMenu(this::initPush));
+    }
+
+    public void registerNotificationDialog(String pushBundleID, final Context context) {
+        this.pushBundleID = pushBundleID;
+        this.mContext = new WeakReference<>(context);
+        addListener();
     }
 
     private void initPush() {
@@ -184,6 +191,10 @@ public class WKPushApplication {
     }
 
     private void addListener() {
+        if (listenerAdded) {
+            return;
+        }
+        listenerAdded = true;
         EndpointManager.getInstance().setMethod("show_open_notification_dialog", object -> {
             Context context = (Context) object;
             WKDialogUtils.getInstance().showDialog(context, context.getString(R.string.open_notification_title), context.getString(R.string.open_notification_content), true, "", context.getString(R.string.open_setting), 0, Theme.colorAccount, index -> {

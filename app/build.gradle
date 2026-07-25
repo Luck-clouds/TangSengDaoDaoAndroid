@@ -2,9 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-parcelize'
     id 'kotlin-android'
-    // 厂商推送/FCM 已按合规要求关闭。恢复离线推送时取消下一行注释，
-    // 并同时恢复下方 :wkpush 依赖和 TSApplication 中的初始化代码。
-    // id 'com.google.gms.google-services'
+    id 'com.google.gms.google-services'
 }
 
 // 读取 local.properties 中的 applicationId
@@ -112,8 +110,7 @@ dependencies {
     implementation project(path: ':wkuikit')
     implementation project(path: ':wklogin')
     implementation project(path: ':wkscan')
-    // 厂商推送/FCM 已关闭；恢复时取消此行及 plugins 中对应配置的注释。
-    // implementation project(path: ':wkpush')
+    implementation project(path: ':wkpush')
     implementation project(path: ':wkflagship')
     implementation project(path: ':wkvideo')
     implementation project(path: ':wkmoments')
