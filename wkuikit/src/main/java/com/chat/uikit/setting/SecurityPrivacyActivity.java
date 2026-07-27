@@ -3,12 +3,10 @@ package com.chat.uikit.setting;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.config.WKConfig;
-import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.entity.UserInfoEntity;
 import com.chat.base.entity.UserInfoSetting;
 import com.chat.base.endpoint.EndpointManager;
@@ -80,12 +78,6 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
                     },
                     () -> wkVBinding.offlineProtectionSwitch.setChecked(userInfoEntity.setting.offline_protection == 1));
         });
-        wkVBinding.disableScreenshotSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!buttonView.isPressed()) {
-                return;
-            }
-            updateDisableScreenshot(isChecked);
-        });
         SingleClickUtil.onSingleClick(wkVBinding.loginPwdLayout, v -> {
             try {
                 EndpointManager.getInstance().invoke("chow_reset_login_pwd_view", null);
@@ -122,7 +114,6 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
         wkVBinding.searchByPhoneSwitch.setChecked(userInfoEntity.setting.search_by_phone == 1);
         wkVBinding.searchByShortSwitch.setChecked(userInfoEntity.setting.search_by_short == 1);
         wkVBinding.offlineProtectionSwitch.setChecked(userInfoEntity.setting.offline_protection == 1);
-        wkVBinding.disableScreenshotSwitch.setChecked(isDisableScreenshotEnabled());
         wkVBinding.deviceLockStatusTv.setText(userInfoEntity.setting.device_lock == 1 ? R.string.enabled : R.string.disabled);
     }
 
@@ -160,30 +151,4 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
         }
     }
 
-    private void updateDisableScreenshot(boolean isChecked) {
-        try {
-            String uid = WKConfig.getInstance().getUid();
-            if (!TextUtils.isEmpty(uid)) {
-                WKSharedPreferencesUtil.getInstance().putBooleanWithUID("disable_screenshot", isChecked);
-            } else {
-                WKSharedPreferencesUtil.getInstance().putBoolean("disable_screenshot", isChecked);
-            }
-            if (isChecked) {
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-            } else {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-        } catch (Exception e) {
-            wkVBinding.disableScreenshotSwitch.setChecked(isDisableScreenshotEnabled());
-            showToast(R.string.unknown_error);
-        }
-    }
-
-    private boolean isDisableScreenshotEnabled() {
-        String uid = WKConfig.getInstance().getUid();
-        if (!TextUtils.isEmpty(uid)) {
-            return WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_disable_screenshot", false);
-        }
-        return WKSharedPreferencesUtil.getInstance().getBoolean("disable_screenshot", false);
-    }
 }

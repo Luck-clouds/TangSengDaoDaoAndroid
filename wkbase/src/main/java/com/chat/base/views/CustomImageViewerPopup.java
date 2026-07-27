@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -23,8 +22,6 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.chat.base.R;
-import com.chat.base.config.WKConfig;
-import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.entity.BottomSheetItem;
 import com.chat.base.entity.ImagePopupBottomSheetItem;
 import com.chat.base.ui.components.SecretDeleteTimer;
@@ -218,20 +215,6 @@ public class CustomImageViewerPopup extends ImageViewerPopupView {
     public void dismiss() {
         super.dismiss();
         WKIM.getInstance().getMsgManager().removeDeleteMsgListener("view_img");
-        if (msg != null && msg.flame == 1) {
-            boolean disable_screenshot;
-            String uid = WKConfig.getInstance().getUid();
-            if (!TextUtils.isEmpty(uid)) {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_disable_screenshot");
-            } else {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean("disable_screenshot");
-            }
-            if (disable_screenshot)
-                ((Activity) context).getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-            else {
-                ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-        }
     }
 
     public interface IImgPopupMenu {

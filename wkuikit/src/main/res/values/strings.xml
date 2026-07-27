@@ -256,7 +256,7 @@
     <string name="time_120">2分钟</string>
     <string name="time_180">3分钟</string>
     <string name="can_not_call">阅后即焚模式下无法音视频聊天</string>
-    <string name="can_not_call_forbidden">禁言中无法音视频聊天</string>
+    <string name="can_not_call_forbidden">您已被禁言，无法发起音视频通话</string>
     <string name="phone">手机</string>
     <string name="web">Web</string>
     <string name="pc">PC</string>
@@ -409,8 +409,6 @@
     <string name="security_lock_after_one_minute">离开1分钟后</string>
     <string name="security_lock_after_minutes">离开%1$d分钟后</string>
     <string name="security_lock_after_one_hour">离开1小时后</string>
-    <string name="security_disable_screenshot">禁止截屏</string>
-    <string name="security_disable_screenshot_desc">开启后，不可在应用内截屏或录屏</string>
     <string name="security_device_lock">设备锁</string>
     <string name="security_device_lock_desc">开启设备锁可以保障卿航账号安全。在未验证的设备上进行登录操作时，需要验证手机号，即使密码泄露他人也无法登录。</string>
     <string name="security_device_list_title">登录过的设备列表</string>

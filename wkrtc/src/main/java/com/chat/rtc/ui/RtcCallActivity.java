@@ -519,6 +519,9 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
 
     private void startOutgoingAfterPermission() {
         clearPendingEndScreen();
+        if (stopIfRtcOperationForbidden(R.string.wkrtc_outgoing_call_forbidden)) {
+            return;
+        }
         if (!hasMediaPermissions()) {
             requestMediaPermissions();
             return;
@@ -540,6 +543,9 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
     }
 
     private void joinCurrentCallAfterPermission() {
+        if (stopIfRtcOperationForbidden(R.string.wkrtc_join_call_forbidden)) {
+            return;
+        }
         if (!hasMediaPermissions()) {
             requestMediaPermissions();
             return;
@@ -574,6 +580,9 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
     }
 
     private void acceptIncoming() {
+        if (stopIfRtcOperationForbidden(R.string.wkrtc_join_call_forbidden)) {
+            return;
+        }
         if (!hasMediaPermissions()) {
             requestMediaPermissions();
             return;
@@ -599,6 +608,20 @@ public class RtcCallActivity extends Activity implements RtcManager.SessionListe
                 finish();
             }
         });
+    }
+
+    private boolean stopIfRtcOperationForbidden(int messageResId) {
+        RtcSession currentSession = RtcManager.getInstance().currentSession();
+        WKChannel targetChannel = currentSession != null && currentSession.channel != null
+                ? currentSession.channel
+                : channel;
+        if (!RtcManager.getInstance().isRtcOperationForbidden(targetChannel)) {
+            return false;
+        }
+        WKToastUtils.getInstance().showToastNormal(getString(messageResId));
+        RtcManager.getInstance().finish();
+        finish();
+        return true;
     }
 
     private void hangup() {

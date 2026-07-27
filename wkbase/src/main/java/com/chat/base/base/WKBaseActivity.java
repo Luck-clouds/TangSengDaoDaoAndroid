@@ -26,9 +26,6 @@ import androidx.viewbinding.ViewBinding;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chat.base.R;
 import com.chat.base.act.WKWebViewActivity;
-import com.chat.base.config.WKConfig;
-import com.chat.base.config.WKSharedPreferencesUtil;
-import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.ui.Theme;
 import com.chat.base.ui.components.RadialProgressView;
 import com.chat.base.utils.ActManagerUtils;
@@ -109,21 +106,7 @@ public abstract class WKBaseActivity<WKVBinding extends ViewBinding> extends Swi
     @Override
     protected void onResume() {
         super.onResume();
-        Object addSecurityModule = EndpointManager.getInstance().invoke("add_security_module", null);
-        if (addSecurityModule instanceof Boolean) {
-            boolean disable_screenshot;
-            String uid = WKConfig.getInstance().getUid();
-            if (!TextUtils.isEmpty(uid)) {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_disable_screenshot",false);
-            } else {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean("disable_screenshot",false);
-            }
-            if (disable_screenshot)
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-            else {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-        }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
     }
 
     protected void initData(Bundle savedInstanceState) {
