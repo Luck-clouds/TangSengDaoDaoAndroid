@@ -22,7 +22,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -302,21 +301,6 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelId, channelType));
         startRtcMiniUpdates();
 
-        Object addSecurityModule = EndpointManager.getInstance().invoke("add_security_module", null);
-        if (addSecurityModule instanceof Boolean) {
-            boolean disable_screenshot;
-            String uid = WKConfig.getInstance().getUid();
-            if (!TextUtils.isEmpty(uid)) {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean(uid + "_disable_screenshot", false);
-            } else {
-                disable_screenshot = WKSharedPreferencesUtil.getInstance().getBoolean("disable_screenshot", false);
-            }
-            if (disable_screenshot)
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-            else {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-        }
     }
 
     @Override
@@ -505,8 +489,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         helper.attachToRecyclerView(wkVBinding.recyclerView);
         wkVBinding.topLayout.backIv.setOnClickListener(v -> setBackListener());
         callIV.setOnClickListener(view -> {
-            WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
-            if (getChatChannelInfo().forbidden == 1 || (member != null && member.forbiddenExpirationTime > 0)) {
+            if (isCurrentUserForbiddenFromRtc()) {
                 WKToastUtils.getInstance().showToast(getString(R.string.can_not_call_forbidden));
                 return;
             }
@@ -557,8 +540,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             }, this, desc, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
         });
         videoCallIV.setOnClickListener(view -> {
-            WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(channelId, channelType, loginUID);
-            if (getChatChannelInfo().forbidden == 1 || (member != null && member.forbiddenExpirationTime > 0)) {
+            if (isCurrentUserForbiddenFromRtc()) {
                 WKToastUtils.getInstance().showToast(getString(R.string.can_not_call_forbidden));
                 return;
             }
@@ -1054,6 +1036,28 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
             intent.putExtra("callType", callType);
             startActivity(intent);
         });
+    }
+
+    private boolean isCurrentUserForbiddenFromRtc() {
+        WKChannel channel = getChatChannelInfo();
+        if (channel == null) {
+            return false;
+        }
+        WKChannelMember member = WKIM.getInstance().getChannelMembersManager().getMember(
+                channelId,
+                channelType,
+                loginUID
+        );
+        if (member != null && member.forbiddenExpirationTime > 0) {
+            return true;
+        }
+        if (channel.forbidden != 1) {
+            return false;
+        }
+        if (channelType != WKChannelType.GROUP) {
+            return true;
+        }
+        return member == null || member.role == WKChannelMemberRole.normal;
     }
 
     private void showGroupCallTypePicker(View anchorView, boolean inviteAll) {

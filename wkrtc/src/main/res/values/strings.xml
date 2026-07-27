@@ -26,5 +26,7 @@
     <string name="wkrtc_call_ended">通话已结束</string>
     <string name="wkrtc_permission_audio">需要麦克风权限才能发起语音通话</string>
     <string name="wkrtc_permission_video">需要麦克风和摄像头权限才能发起视频通话</string>
+    <string name="wkrtc_outgoing_call_forbidden">您已被禁言，无法发起音视频通话</string>
+    <string name="wkrtc_join_call_forbidden">您已被禁言，无法接听或加入音视频通话</string>
     <string name="wkrtc_me">&#25105;</string>
 </resources>

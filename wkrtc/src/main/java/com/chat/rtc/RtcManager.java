@@ -22,6 +22,7 @@ import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.CreateVideoCallMenu;
 import com.chat.base.endpoint.entity.RTCMenu;
 import com.chat.base.msg.IConversationContext;
+import com.chat.base.msgitem.WKChannelMemberRole;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.base.net.IRequestResultListener;
@@ -289,12 +290,50 @@ public class RtcManager {
         if (activity == null || channel == null) {
             return;
         }
+        if (isRtcOperationForbidden(channel)) {
+            WKToastUtils.getInstance().showToastNormal(
+                    activity.getString(R.string.wkrtc_outgoing_call_forbidden)
+            );
+            return;
+        }
         if (isCalling()) {
             reopenCurrentCall(activity);
             return;
         }
         Intent intent = RtcCallActivity.newOutgoingIntent(activity, channel, callType, inviteUIDs, inviteNames, inviteAll);
         activity.startActivity(intent);
+    }
+
+    /**
+     * RTC follows the existing message-send mute semantics: during a group-wide
+     * mute, only the owner and administrators may operate calls. An individually
+     * muted member is blocked regardless of role.
+     */
+    public boolean isRtcOperationForbidden(WKChannel targetChannel) {
+        if (targetChannel == null || TextUtils.isEmpty(targetChannel.channelID)) {
+            return false;
+        }
+        WKChannel cachedChannel = WKIM.getInstance().getChannelManager().getChannel(
+                targetChannel.channelID,
+                targetChannel.channelType
+        );
+        boolean groupWideForbidden = targetChannel.forbidden == 1
+                || (cachedChannel != null && cachedChannel.forbidden == 1);
+        WKChannelMember loginMember = WKIM.getInstance().getChannelMembersManager().getMember(
+                targetChannel.channelID,
+                targetChannel.channelType,
+                WKConfig.getInstance().getUid()
+        );
+        if (loginMember != null && loginMember.forbiddenExpirationTime > 0) {
+            return true;
+        }
+        if (!groupWideForbidden) {
+            return false;
+        }
+        if (targetChannel.channelType != WKChannelType.GROUP) {
+            return true;
+        }
+        return loginMember == null || loginMember.role == WKChannelMemberRole.normal;
     }
 
     private void appendAllGroupMembers(String groupId, List<String> inviteUIDs, List<String> inviteNames) {
@@ -469,6 +508,13 @@ public class RtcManager {
             showCallEndedToast();
             return;
         }
+        WKChannel incomingChannel = buildIncomingChannel(payload);
+        if (isRtcOperationForbidden(incomingChannel)) {
+            WKToastUtils.getInstance().showToastNormal(
+                    appContext.getString(R.string.wkrtc_join_call_forbidden)
+            );
+            return;
+        }
         if (isCalling()) {
             if (session != null && TextUtils.equals(session.callId, payload.call_id)) {
                 openCurrentCallFromApp();
@@ -480,7 +526,7 @@ public class RtcManager {
         session = new RtcSession();
         session.callId = payload.call_id;
         session.roomName = payload.room_name;
-        session.channel = buildIncomingChannel(payload);
+        session.channel = incomingChannel;
         session.callType = "video".equals(payload.call_type) ? 1 : 0;
         session.status = RtcSession.JOINING;
         session.serverStatus = "connected";
@@ -673,6 +719,12 @@ public class RtcManager {
                 clearIgnoredInviteEffects("non-target invite");
                 return;
             }
+            WKChannel incomingChannel = buildIncomingChannel(payload);
+            if (isRtcOperationForbidden(incomingChannel)) {
+                Log.i(TAG, "ignore invite while current member is muted, callId=" + payload.call_id);
+                clearIgnoredInviteEffects("muted member invite");
+                return;
+            }
             Log.i(TAG, "receive invite, callId=" + payload.call_id
                     + ", channelId=" + payload.channel_id
                     + ", channelType=" + payload.channel_type
@@ -682,7 +734,7 @@ public class RtcManager {
             session = new RtcSession();
             session.callId = payload.call_id;
             session.roomName = payload.room_name;
-            session.channel = buildIncomingChannel(payload);
+            session.channel = incomingChannel;
             session.callType = "video".equals(payload.call_type) ? 1 : 0;
             session.status = RtcSession.INCOMING;
             session.incoming = true;

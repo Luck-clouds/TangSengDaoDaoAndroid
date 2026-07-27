@@ -255,7 +255,7 @@
     <string name="time_120">2 minutes</string>
     <string name="time_180">3 minutes</string>
     <string name="can_not_call">No audio and video chat in burn after reading mode</string>
-    <string name="can_not_call_forbidden">No voice video chat in forbidden</string>
+    <string name="can_not_call_forbidden">You have been muted and cannot start an audio or video call</string>
     <string name="phone">Phone</string>
     <string name="web">Web</string>
     <string name="pc">PC</string>
@@ -370,8 +370,6 @@
     <string name="security_lock_after_one_minute">After 1 minute away</string>
     <string name="security_lock_after_minutes">After %1$d minutes away</string>
     <string name="security_lock_after_one_hour">After 1 hour away</string>
-    <string name="security_disable_screenshot">Disable Screenshots</string>
-    <string name="security_disable_screenshot_desc">When enabled, screenshots and screen recording are blocked in the app</string>
     <string name="security_device_lock">Device Lock</string>
     <string name="security_device_lock_desc">Turning on device lock helps protect your account. Logging in on an unverified device requires phone verification even if the password is leaked.</string>
     <string name="security_device_list_title">Logged-in Devices</string>

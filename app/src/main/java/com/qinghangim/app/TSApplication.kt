@@ -17,6 +17,7 @@ import android.os.Looper
 import android.os.Process
 import android.text.TextUtils
 import android.util.Log
+import android.view.WindowManager
 import androidx.multidex.MultiDexApplication
 import com.chat.base.WKBaseApplication
 import com.chat.base.config.WKApiConfig
@@ -75,12 +76,14 @@ class TSApplication : MultiDexApplication() {
         }
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(p0: Activity, p1: Bundle?) {
+                enforceScreenshotProtection(p0)
             }
 
             override fun onActivityStarted(p0: Activity) {
             }
 
             override fun onActivityResumed(p0: Activity) {
+                enforceScreenshotProtection(p0)
                 ActManagerUtils.getInstance().currentActivity = p0
             }
 
@@ -96,6 +99,10 @@ class TSApplication : MultiDexApplication() {
             override fun onActivityDestroyed(p0: Activity) {
             }
         })
+    }
+
+    private fun enforceScreenshotProtection(activity: Activity) {
+        activity.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
