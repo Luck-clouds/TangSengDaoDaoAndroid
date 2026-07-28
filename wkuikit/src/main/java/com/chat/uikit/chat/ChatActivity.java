@@ -96,6 +96,7 @@ import com.chat.uikit.chat.msgmodel.WKCardContent;
 import com.chat.uikit.contacts.ChooseContactsActivity;
 import com.chat.uikit.databinding.ActChatLayoutBinding;
 import com.chat.uikit.group.ChooseVideoCallMembersActivity;
+import com.chat.uikit.group.GroupCallSettings;
 import com.chat.uikit.group.GroupDetailActivity;
 import com.chat.uikit.group.service.GroupModel;
 import com.chat.uikit.message.MsgModel;
@@ -404,8 +405,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                 CommonAnim.getInstance().rotateImage(wkVBinding.topLayout.backIv, 180f, 360f, R.mipmap.ic_ab_back);
                 numberTextView.setNumber(0, true);
                 CommonAnim.getInstance().showOrHide(numberTextView, false, true);
-                CommonAnim.getInstance().showOrHide(callIV, true, true);
-                CommonAnim.getInstance().showOrHide(videoCallIV, true, true);
+                updateCallButtonVisibility(true);
                 return null;
             }, path -> {
                 Intent intent = new Intent(ChatActivity.this, PreviewNewImgActivity.class);
@@ -489,6 +489,10 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         helper.attachToRecyclerView(wkVBinding.recyclerView);
         wkVBinding.topLayout.backIv.setOnClickListener(v -> setBackListener());
         callIV.setOnClickListener(view -> {
+            if (!isGroupCallEnabled(0)) {
+                showToast(R.string.group_call_disabled);
+                return;
+            }
             if (isCurrentUserForbiddenFromRtc()) {
                 WKToastUtils.getInstance().showToast(getString(R.string.can_not_call_forbidden));
                 return;
@@ -541,6 +545,10 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                     Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO);
         });
         videoCallIV.setOnClickListener(view -> {
+            if (!isGroupCallEnabled(1)) {
+                showToast(R.string.group_call_disabled);
+                return;
+            }
             if (isCurrentUserForbiddenFromRtc()) {
                 WKToastUtils.getInstance().showToast(getString(R.string.can_not_call_forbidden));
                 return;
@@ -731,6 +739,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
                             }
                         }
                     }
+                    updateCallButtonVisibility(true);
                 }
                 EndpointManager.getInstance().invoke("set_chat_bg", new SetChatBgMenu(channelId, channelType, wkVBinding.imageView, wkVBinding.rootView, wkVBinding.blurView));
             } else {
@@ -1016,6 +1025,11 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
     }
 
     private void startGroupCall(boolean inviteAll, int callType) {
+        if (!isGroupCallEnabled(callType)) {
+            showToast(R.string.group_call_disabled);
+            updateCallButtonVisibility(true);
+            return;
+        }
         WKCommonModel.getInstance().getChannelState(channelId, channelType, channelState -> {
             if (channelState != null
                     && channelState.call_info != null
@@ -1151,6 +1165,7 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         MsgModel.getInstance().syncExtraMsg(channelId, channelType);
         WKRobotModel.getInstance().syncRobotData(getChatChannelInfo());
         getChannelState();
+        refreshGroupCallSettings();
 
         chatAdapter.setList(new ArrayList<>());
         if (WKSystemAccount.isSystemAccount(channelId) || channelType == WKChannelType.CUSTOMER_SERVICE) {
@@ -1588,8 +1603,32 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
         if (channelType == WKChannelType.PERSONAL && (channel.isDeleted == 1 || UserUtils.getInstance().checkFriendRelation(channelId))) {
             isShow = false;
         }
-        CommonAnim.getInstance().showOrHide(callIV, isShow, true);
-        CommonAnim.getInstance().showOrHide(videoCallIV, isShow, true);
+        updateCallButtonVisibility(isShow);
+    }
+
+    private boolean isGroupCallEnabled(int callType) {
+        return channelType != WKChannelType.GROUP
+                || GroupCallSettings.isEnabled(getChatChannelInfo(), callType);
+    }
+
+    private void updateCallButtonVisibility(boolean baseVisible) {
+        boolean audioVisible = baseVisible && isGroupCallEnabled(0);
+        boolean videoVisible = baseVisible && isGroupCallEnabled(1);
+        CommonAnim.getInstance().showOrHide(callIV, audioVisible, true);
+        CommonAnim.getInstance().showOrHide(videoCallIV, videoVisible, true);
+    }
+
+    private void refreshGroupCallSettings() {
+        if (channelType != WKChannelType.GROUP) {
+            return;
+        }
+        GroupModel.getInstance().getGroupDetail(channelId, (code, msg, detail) -> {
+            if (code != HttpResponseCode.success || detail == null) {
+                return;
+            }
+            GroupCallSettings.apply(channelId, detail.audio_call_enabled, detail.video_call_enabled);
+            updateCallButtonVisibility(true);
+        });
     }
 
     private void resetReminder(List<WKReminder> list) {

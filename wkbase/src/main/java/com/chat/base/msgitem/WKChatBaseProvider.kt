@@ -515,13 +515,8 @@ abstract class WKChatBaseProvider : BaseItemProvider<WKUIChatMsgItemEntity>() {
                     showName = uiChatMsgItemEntity.wkMsg.memberOfFrom.memberName
                 }
             }
-            val os = getMsgOS(uiChatMsgItemEntity.wkMsg.clientMsgNO)
             if (receivedNameTv.tag is String && receivedNameTv.tag == uiChatMsgItemEntity.wkMsg.fromUID) {
-                if (uiChatMsgItemEntity.wkMsg.type == WKContentType.typing) {
-                    receivedNameTv.text = showName
-                } else {
-                    receivedNameTv.text = String.format("%s/%s", showName, os)
-                }
+                receivedNameTv.text = showName
             }
 
 

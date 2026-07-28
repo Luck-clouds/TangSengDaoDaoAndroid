@@ -127,6 +127,7 @@ import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.favorite.FavoriteListActivity;
 import com.chat.uikit.favorite.FavoriteModel;
 import com.chat.uikit.group.ChooseVideoCallMembersActivity;
+import com.chat.uikit.group.GroupCallSettings;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
 import com.chat.uikit.group.manage.GroupAvatarActivity;
@@ -1118,6 +1119,12 @@ public class WKUIKitApplication {
             return;
         }
         if (conversationContext.getChatChannelInfo().channelType != WKChannelType.PERSONAL) {
+            if (!GroupCallSettings.isEnabled(conversationContext.getChatChannelInfo(), callType)) {
+                WKToastUtils.getInstance().showToastNormal(
+                        conversationContext.getChatActivity().getString(R.string.group_call_disabled)
+                );
+                return;
+            }
             showGroupCallModeDialog(conversationContext, callType);
             return;
         }

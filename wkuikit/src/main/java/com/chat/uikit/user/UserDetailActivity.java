@@ -152,7 +152,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
                     }
                 }
                 if (!TextUtils.isEmpty(name)) {
-                    wkVBinding.joinGroupWayLayout.setVisibility(View.VISIBLE);
+                    wkVBinding.joinGroupWayLayout.setVisibility(View.GONE);
                     String showTime = "";
                     if (!TextUtils.isEmpty(member.createdAt) && member.createdAt.contains(" ")) {
                         showTime = member.createdAt.split(" ")[0];
@@ -348,12 +348,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
                         wkVBinding.identityLayout.setVisibility(View.VISIBLE);
                         wkVBinding.appIdNumTv.setText(userInfo.short_no);
                     }
-                    if (!TextUtils.isEmpty(userInfo.source_desc)) {
-                        wkVBinding.sourceFromTv.setText(userInfo.source_desc);
-                        wkVBinding.fromLayout.setVisibility(View.VISIBLE);
-                    } else {
-                        wkVBinding.fromLayout.setVisibility(View.GONE);
-                    }
+                    wkVBinding.fromLayout.setVisibility(View.GONE);
 
                     if (userInfo.status == 2) {
                         wkVBinding.blacklistTv.setText(R.string.pull_out_black_list);
@@ -371,7 +366,7 @@ public class UserDetailActivity extends WKBaseActivity<ActUserDetailLayoutBindin
                     }
 
                     if (!TextUtils.isEmpty(userInfo.join_group_invite_uid)){
-                        wkVBinding.joinGroupWayLayout.setVisibility(View.VISIBLE);
+                        wkVBinding.joinGroupWayLayout.setVisibility(View.GONE);
                         String content = String.format("%s %s", userInfo.join_group_time, String.format(getString(R.string.invite_join_group), userInfo.join_group_invite_name));
                         wkVBinding.joinGroupWayTv.setText(content);
                         int index = content.indexOf(userInfo.join_group_invite_name);

@@ -229,7 +229,7 @@
 #----------收藏模块（历史包名保留）----------
 -keepclassmembers class com.chat.favorite.entity.**{ <fields>; }
 #----------扫一扫模块（wkscan / com.chat.scan）----------
--keepclassmembers class com.chat.scan.entity.** { <fields>; }
+-keep class com.chat.scan.entity.** { *; }
 #----------朋友圈模块（wkmoments / com.chat.moments）----------
 -keepclassmembers class com.chat.moments.entity.** { <fields>; }
 #----------标签模块（历史包名保留）----------
