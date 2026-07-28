@@ -4,6 +4,7 @@ import android.content.Intent
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.chat.base.base.WKBaseActivity
@@ -60,34 +61,18 @@ class MainActivity : WKBaseActivity<ActivityMainBinding>() {
 
     private fun showDialog() {
         val content = getString(R.string.dialog_content)
-        val linkSpan = SpannableStringBuilder()
-        linkSpan.append(content)
-        val userAgreementIndex = content.indexOf(getString(R.string.main_user_agreement))
-        linkSpan.setSpan(
-            NormalClickableSpan(
-                true,
-                ContextCompat.getColor(this, R.color.blue),
-                NormalClickableContent(NormalClickableContent.NormalClickableTypes.Other, ""),
-                object : NormalClickableSpan.IClick {
-                    override fun onClick(view: View) {
-                        showWebView(
-                            WKApiConfig.baseWebUrl + "user_agreement.html"
-                        )
-                    }
-                }), userAgreementIndex, userAgreementIndex + 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        val linkSpan = SpannableStringBuilder(content)
+        addAgreementLinkSpan(
+            linkSpan,
+            content,
+            getString(R.string.main_user_agreement),
+            WKApiConfig.baseWebUrl + "user_agreement.html"
         )
-        val privacyPolicyIndex = content.indexOf(getString(R.string.main_privacy_policy))
-        linkSpan.setSpan(
-            NormalClickableSpan(true,
-                ContextCompat.getColor(this, R.color.blue),
-                NormalClickableContent(NormalClickableContent.NormalClickableTypes.Other, ""),
-                object : NormalClickableSpan.IClick {
-                    override fun onClick(view: View) {
-                        showWebView(
-                            WKApiConfig.baseWebUrl + "privacy_policy.html"
-                        )
-                    }
-                }), privacyPolicyIndex, privacyPolicyIndex + 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        addAgreementLinkSpan(
+            linkSpan,
+            content,
+            getString(R.string.main_privacy_policy),
+            WKApiConfig.baseWebUrl + "privacy_policy.html"
         )
 
         WKDialogUtils.getInstance().showDialog(
@@ -109,5 +94,37 @@ class MainActivity : WKBaseActivity<ActivityMainBinding>() {
                 finish()
             }
         }
+    }
+
+    private fun addAgreementLinkSpan(
+        linkSpan: SpannableStringBuilder,
+        content: String,
+        linkText: String,
+        url: String
+    ) {
+        val start = content.indexOf(linkText)
+        if (start < 0) {
+            Log.e(TAG, "Agreement link text was not found in dialog content: $linkText")
+            return
+        }
+        linkSpan.setSpan(
+            NormalClickableSpan(
+                true,
+                ContextCompat.getColor(this, R.color.blue),
+                NormalClickableContent(NormalClickableContent.NormalClickableTypes.Other, ""),
+                object : NormalClickableSpan.IClick {
+                    override fun onClick(view: View) {
+                        showWebView(url)
+                    }
+                }
+            ),
+            start,
+            start + linkText.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+    }
+
+    private companion object {
+        const val TAG = "MainActivity"
     }
 }

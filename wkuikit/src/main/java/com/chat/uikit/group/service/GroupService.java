@@ -40,6 +40,12 @@ public interface GroupService {
     @GET("groups/{groupNo}")
     Observable<GroupEntity> getGroupInfo(@Path("groupNo") String groupNo);
 
+    @GET("groups/{groupNo}/detail")
+    Observable<GroupEntity> getGroupDetail(@Path("groupNo") String groupNo);
+
+    @PUT("groups/{groupNo}/call-settings")
+    Observable<CommonResponse> updateGroupCallSettings(@Path("groupNo") String groupNo, @Body JSONObject jsonObject);
+
     @GET("groups/{groupNo}/membersync")
     Observable<List<GroupMember>> syncGroupMembers(@Path("groupNo") String groupNo, @Query("limit") int limit, @Query("version") long version);
 

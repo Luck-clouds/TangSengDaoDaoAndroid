@@ -87,6 +87,12 @@ public class ChooseVideoCallMembersActivity extends WKBaseActivity<ActChooseVide
     @Override
     protected void rightButtonClick() {
         super.rightButtonClick();
+        WKChannel groupChannel = WKIM.getInstance().getChannelManager().getChannel(channelID, WKChannelType.GROUP);
+        if (isCreate && !GroupCallSettings.isEnabled(groupChannel, callType)) {
+            showToast(R.string.group_call_disabled);
+            finish();
+            return;
+        }
         if (refreshExcludedUIDsFromRtc()) {
             applyExcludedStateToLoadedMembers();
         }

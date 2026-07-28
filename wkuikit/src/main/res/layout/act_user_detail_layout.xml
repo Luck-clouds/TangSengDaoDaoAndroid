@@ -160,7 +160,7 @@
                     <LinearLayout
                         android:id="@+id/fromLayout"
                         style="@style/layoutBg"
-                        android:visibility="visible">
+                        android:visibility="gone">
 
                         <TextView
                             style="@style/leftTextView"
