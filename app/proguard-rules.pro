@@ -341,22 +341,16 @@
 #-----------oppo----------------
 -keep class com.heytap.msp.** { *;}
 
-#------------FMC---------------
-# 保留Firebase的类和成员不被混淆
--keep class com.google.firebase.** { *; }
+#------------FCM（未使用，规则已停用）---------------
+# -keep class com.google.firebase.** { *; }
 -keep class org.apache.** { *; }
 -keep class javax.** { *; }
 -keep class uk.** { *; }
 
-# 如果你使用Firebase动态链接或通知等，还需要添加以下规则
--keep class com.google.firebase.dynamiclinks.** { *; }
--keep class com.google.firebase.messaging.** { *; }
-
-# 如果你使用Firebase Remote Config
--keep class com.google.firebase.remoteconfig.** { *; }
-
-# 如果你使用Firebase Crashlytics
--keep class com.google.firebase.crash.** { *; }
+# -keep class com.google.firebase.dynamiclinks.** { *; }
+# -keep class com.google.firebase.messaging.** { *; }
+# -keep class com.google.firebase.remoteconfig.** { *; }
+# -keep class com.google.firebase.crash.** { *; }
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
 

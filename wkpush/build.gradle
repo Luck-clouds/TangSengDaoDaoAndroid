@@ -54,10 +54,10 @@ dependencies {
     implementation project(path: ':MyLibs:vivopush')
     // honor
     implementation project(path: ':MyLibs:honorpush')
-    // firebase
-    implementation platform('com.google.firebase:firebase-bom:32.8.1')
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-messaging'
+    // FCM/Firebase 未使用。保持依赖停用，避免自动合入后台 Receiver、Provider 和 Job。
+    // implementation platform('com.google.firebase:firebase-bom:32.8.1')
+    // implementation 'com.google.firebase:firebase-analytics'
+    // implementation 'com.google.firebase:firebase-messaging'
 
 }
 

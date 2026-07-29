@@ -6,6 +6,7 @@ import com.chat.base.net.entity.CommonResponse;
 import io.reactivex.rxjava3.core.Observable;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 
 /**
@@ -18,7 +19,7 @@ public interface PushService {
     Observable<CommonResponse> registerAppToken(@Body JSONObject jsonObject);
 
     @DELETE("user/device_token")
-    Observable<CommonResponse> unRegisterAppToken();
+    Observable<CommonResponse> unRegisterAppToken(@Header("token") String token);
 
     @POST("user/device_badge")
     Observable<CommonResponse> registerBadge(@Body JSONObject jsonObject);
