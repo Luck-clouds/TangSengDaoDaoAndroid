@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.chat.base.base.WKBaseModel;
 import com.chat.base.config.WKConfig;
 import com.chat.base.config.WKConstants;
+import com.chat.base.net.HttpResponseCode;
 import com.chat.base.net.ICommonListener;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
@@ -75,7 +76,14 @@ public class PushModel extends WKBaseModel {
      * 注销推送token
      */
     public void unRegisterDeviceToken(final ICommonListener iCommonListener) {
-        request(createService(PushService.class).unRegisterAppToken(), new IRequestResultListener<CommonResponse>() {
+        // 退出流程会立即清空 WKConfig。先快照认证 token，并通过显式 Header
+        // 传给异步请求，避免拦截器稍后读取到空 token 导致注销失败。
+        String token = WKConfig.getInstance().getToken();
+        if (TextUtils.isEmpty(token)) {
+            iCommonListener.onResult(HttpResponseCode.success, "");
+            return;
+        }
+        request(createService(PushService.class).unRegisterAppToken(token), new IRequestResultListener<CommonResponse>() {
             @Override
             public void onSuccess(CommonResponse result) {
                 iCommonListener.onResult(result.status, result.msg);

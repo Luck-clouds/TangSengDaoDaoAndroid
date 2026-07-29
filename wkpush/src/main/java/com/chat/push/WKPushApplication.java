@@ -18,13 +18,8 @@ import com.chat.base.endpoint.entity.LoginMenu;
 import com.chat.base.net.HttpResponseCode;
 import com.chat.base.ui.Theme;
 import com.chat.base.utils.WKDialogUtils;
-import com.chat.base.utils.WKToastUtils;
 import com.chat.base.utils.systembar.WKOSUtils;
 import com.chat.push.service.PushModel;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.heytap.msp.push.HeytapPushManager;
 import com.heytap.msp.push.callback.ICallBackResultService;
 import com.hihonor.push.sdk.HonorPushCallback;
@@ -75,7 +70,6 @@ public class WKPushApplication {
 
     private void initPush() {
         if (mContext == null || mContext.get() == null) return;
-        FirebaseApp.initializeApp(mContext.get());
         notifyChannel(WKBaseApplication.getInstance().application);
         getPushToken();
 //        if (!TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
@@ -131,6 +125,13 @@ public class WKPushApplication {
         });
     }
     private void initXiaoMiPush(Context context) {
+        String regId = MiPushClient.getRegId(context);
+        if (!TextUtils.isEmpty(regId)) {
+            // SDK 已注册时复用现有 RegID，只补传当前账号，避免重复 register
+            // 触发不必要的服务启动、网络重连和 token 刷新。
+            PushModel.getInstance().registerDeviceToken(regId, pushBundleID, "MI");
+            return;
+        }
         MiPushClient.registerPush(context, PushKeys.xiaoMiAppID, PushKeys.xiaoMiAppKey);
     }
 
@@ -207,11 +208,17 @@ public class WKPushApplication {
         //注销推送
         EndpointManager.getInstance().setMethod("wk_logout", object -> {
             OsUtils.setBadge(WKBaseApplication.getInstance().getContext(), 0);
-//            PushModel.getInstance().unRegisterDeviceToken((code, msg) -> {
-//                if (code != HttpResponseCode.success) {
-//                    WKToastUtils.getInstance().showToastNormal(msg);
-//                }
-//            });
+            // 后端解绑使用退出前快照的登录 token；失败不阻塞正常退出。
+            PushModel.getInstance().unRegisterDeviceToken((code, msg) -> {
+                if (code != HttpResponseCode.success) {
+                    Log.w("注销push", code + ":" + msg);
+                }
+            });
+            Context context = mContext == null ? null : mContext.get();
+            if (context != null && OsUtils.isMiui()) {
+                // 停止小米本地推送注册及其心跳/重连；下次登录会重新 registerPush。
+                MiPushClient.unregisterPush(context);
+            }
             return null;
         });
 
@@ -225,59 +232,20 @@ public class WKPushApplication {
     }
 
     private void getPushToken() {
-        int statusCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(mContext.get());
-        Log.e("google play services", statusCode + "");
-        if (statusCode == ConnectionResult.SUCCESS) {
-            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task1 -> {
-                if (!task1.isSuccessful()) {
-                    Log.e("获取FCM令牌错误", "-->");
-                    Log.w("Firebase", "Fetching FCM registration token failed", task1.getException());
-                    return;
-                }
-                // Get new FCM registration token
-                String token = task1.getResult();
-                Log.e("获取到FCM令牌", token);
-                PushModel.getInstance().registerDeviceToken(token, pushBundleID,"FIREBASE");
-            });
-        }else {
-            if (!TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
-                if (HonorPushClient.getInstance().checkSupportHonorPush(mContext.get())) {
-                    initHonorPush(mContext.get());
-                } else if (OsUtils.isEmui()) {
-                    new Thread(() -> getHuaWeiToken(mContext.get())).start();
-                } else if (OsUtils.isMiui()) {
-                    initXiaoMiPush(mContext.get());
-                } else if (OsUtils.isOppo()) {
-                    initOPPO();
-                } else if (OsUtils.isVivo()) {
-                    initVIVO();
-                }
-            }
+        if (TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
+            return;
         }
-//        GoogleApiAvailability.getInstance().makeGooglePlayServicesAvailable(mContext.get()).addOnCompleteListener(new OnCompleteListener<Void>() {
-//            @Override
-//            public void onComplete(@NonNull Task<Void> task) {
-//                if (task.isSuccessful()) {
-//                    Log.d("Firebase", "onComplete: Play services OKAY");
-//                    //firebase 推送 （FCM）获取token（FCM令牌）
-//                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task1 -> {
-//                        if (!task1.isSuccessful()) {
-//                            Log.e("获取FCM令牌错误", "-->");
-//                            Log.w("Firebase", "Fetching FCM registration token failed", task1.getException());
-//                            return;
-//                        }
-//                        // Get new FCM registration token
-//                        String token = task1.getResult();
-//                        Log.e("获取到FCM令牌", token);
-//                    });
-//
-//                } else {
-//                    Log.e("获取FCM令牌错误11", "-->");
-//                    // Show the user some UI explaining that the needed version
-//                    // of Play services Could not be installed and the app can't run.
-//                }
-//            }
-//        });
+        if (HonorPushClient.getInstance().checkSupportHonorPush(mContext.get())) {
+            initHonorPush(mContext.get());
+        } else if (OsUtils.isEmui()) {
+            new Thread(() -> getHuaWeiToken(mContext.get())).start();
+        } else if (OsUtils.isMiui()) {
+            initXiaoMiPush(mContext.get());
+        } else if (OsUtils.isOppo()) {
+            initOPPO();
+        } else if (OsUtils.isVivo()) {
+            initVIVO();
+        }
     }
 
     private static void notifyChannel(Application context) {

@@ -50,6 +50,7 @@ public class WKBaseApplication {
 
     public String versionName;
     public String appID = "wukongchat";
+    private boolean fullyInitialized;
 
     public static volatile Handler applicationHandler;
 
@@ -68,7 +69,7 @@ public class WKBaseApplication {
     public Application application;
     private List<AppModule> appModules;
 
-    public void init(@NonNull String packageName, Application context) {
+    public synchronized void init(@NonNull String packageName, Application context) {
         applicationHandler = new Handler(context.getMainLooper());
         this.packageName = packageName;
         this.application = context;
@@ -79,6 +80,9 @@ public class WKBaseApplication {
         if (isShowDialog) {
             return;
         }
+        if (fullyInitialized) {
+            return;
+        }
         String json = WKSharedPreferencesUtil.getInstance().getSPWithUID("app_module");
         if (!TextUtils.isEmpty(json)) {
             appModules = JSON.parseArray(json, AppModule.class);
@@ -86,6 +90,7 @@ public class WKBaseApplication {
         versionName = WKDeviceUtils.getInstance().getVersionName(context);
         Glide.get(context).getRegistry().replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory());
         initCacheDir();
+        fullyInitialized = true;
         new Thread(() -> {
             EmojiManager.getInstance().init();
             LottieUtils.init(context);

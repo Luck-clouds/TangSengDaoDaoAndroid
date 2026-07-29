@@ -19,7 +19,8 @@ buildscript {
         classpath 'com.huawei.agconnect:agcp:1.6.0.300'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // classpath 'com.google.gms.google-services:4.4.1'
-        classpath 'com.google.gms:google-services:4.4.2' // 使用最新版本
+        // FCM/Firebase 未使用，停用 Google Services 构建插件。
+        // classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 

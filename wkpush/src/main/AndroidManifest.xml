@@ -132,7 +132,8 @@
             android:name="com.vivo.push.sdk.service.CommandClientService"
             android:exported="true"
             android:permission="com.push.permission.UPSTAGESERVICE" />
-        <!--Firebase-->
+        <!--
+        FCM 未使用，停用 FirebaseMessagingService。
         <service
             android:name="com.chat.push.push.WKFirebaseMessagingService"
             android:exported="false">
@@ -140,6 +141,7 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        -->
     </application>
     <queries>
         <intent>

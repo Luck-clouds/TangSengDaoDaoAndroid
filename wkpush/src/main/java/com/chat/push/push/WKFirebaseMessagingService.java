@@ -1,3 +1,7 @@
+/*
+FCM 未使用。保留历史实现作为参考，但整份源码停用，避免在移除
+firebase-messaging 依赖后继续编译或注册 Firebase 后台服务。
+
 package com.chat.push.push;
 
 import android.text.TextUtils;
@@ -30,3 +34,4 @@ public class WKFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 }
+*/

@@ -2,7 +2,8 @@ plugins {
     id 'com.android.application'
     id 'kotlin-parcelize'
     id 'kotlin-android'
-    id 'com.google.gms.google-services'
+    // FCM/Firebase 未使用，不再应用 Google Services 插件。
+    // id 'com.google.gms.google-services'
 }
 
 // 读取 local.properties 中的 applicationId
@@ -17,19 +18,19 @@ if (appId == null || appId.isEmpty()) {
     throw new GradleException("❌ 错误：请在 local.properties 中设置 applicationId=你的包名，并在MainActivity和TSApplication文件中导包设置的包名")
 }
 
-// 自动更新 google-services.json 中的 package_name
-def googleServicesFile = file('google-services.json')
-if (googleServicesFile.exists()) {
-    def jsonContent = googleServicesFile.text
-    def updatedContent = jsonContent.replaceAll(
-        /"package_name":\s*"[^"]*"/,
-        "\"package_name\": \"${appId}\""
-    )
-    if (jsonContent != updatedContent) {
-        googleServicesFile.write(updatedContent)
-        println "✅ google-services.json 的 package_name 已更新为: ${appId}"
-    }
-}
+// FCM/Firebase 未使用，停用 google-services.json 的构建期处理。
+// def googleServicesFile = file('google-services.json')
+// if (googleServicesFile.exists()) {
+//     def jsonContent = googleServicesFile.text
+//     def updatedContent = jsonContent.replaceAll(
+//         /"package_name":\s*"[^"]*"/,
+//         "\"package_name\": \"${appId}\""
+//     )
+//     if (jsonContent != updatedContent) {
+//         googleServicesFile.write(updatedContent)
+//         println "google-services.json package_name updated: ${appId}"
+//     }
+// }
 
 android {
     signingConfigs {
