@@ -1,13 +1,10 @@
 package com.chat.uikit.setting;
 
 import android.content.Intent;
-import android.text.TextUtils;
-import android.view.View;
 import android.widget.TextView;
 
 import com.chat.base.act.WKWebViewActivity;
 import com.chat.base.base.WKBaseActivity;
-import com.chat.base.common.WKCommonModel;
 import com.chat.base.config.WKApiConfig;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.ChatBgItemMenu;
@@ -89,13 +86,7 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
         SingleClickUtil.onSingleClick(wkVBinding.aboutLayout, view1 -> startActivity(new Intent(this, WKAboutActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.fontSizeLayout, view1 -> startActivity(new Intent(this, WKSetFontSizeActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.teenModeLayout, view1 -> startActivity(new Intent(this, TeenModeActivity.class)));
-        WKCommonModel.getInstance().getAppNewVersion(false, version -> {
-            if (version != null && !TextUtils.isEmpty(version.download_url)) {
-                wkVBinding.newVersionIv.setVisibility(View.VISIBLE);
-            } else {
-                wkVBinding.newVersionIv.setVisibility(View.GONE);
-            }
-        });
+        // HUAWEI 分支不检查应用内更新，也不显示新版本角标。
 
         SingleClickUtil.onSingleClick(wkVBinding.msgBackupLayout, view1 -> {
             Intent intent = new Intent(this, BackupRestoreMessageActivity.class);

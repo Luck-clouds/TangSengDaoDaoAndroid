@@ -20,9 +20,10 @@ dependencyResolutionManagement {
 }
 rootProject.name = "TsddClient"
 include ':MyLibs:rlottie'
-include ':MyLibs:oppopush'
-include ':MyLibs:vivopush'
-include ':MyLibs:honorpush'
+// HUAWEI 分支不编译其他厂商推送模块。
+// include ':MyLibs:oppopush'
+// include ':MyLibs:vivopush'
+// include ':MyLibs:honorpush'
 include ':app'
 include ':wkbase'
 include ':wkuikit'

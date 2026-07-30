@@ -4,15 +4,6 @@ plugins {
     id 'kotlin-android'
 }
 
-def readPushKey(String keyName, String defaultValue = "") {
-    def pushKeysFile = file('src/main/java/com/chat/push/PushKeys.java')
-    if (!pushKeysFile.exists()) {
-        return defaultValue
-    }
-    def matcher = pushKeysFile.text =~ /public\s+static\s+final\s+String\s+${keyName}\s*=\s*"([^"]*)"/
-    return matcher.find() ? matcher.group(1) : defaultValue
-}
-
 android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -21,9 +12,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
-        manifestPlaceholders = [
-                HONOR_PUSH_APP_ID: readPushKey("honorAPPID")
-        ]
     }
 
     buildTypes {
@@ -38,26 +26,18 @@ android {
     }
     namespace 'com.chat.push'
 
+    sourceSets {
+        main {
+            // 厂商回调实现保留在仓库中供以后接入华为推送时参考，
+            // 当前不参与编译，避免引入任何厂商推送 SDK。
+            java.exclude 'com/chat/push/push/**'
+        }
+    }
 }
 
 dependencies {
     api project(':wkbase')
-    implementation 'com.huawei.hms:push:6.1.0.300'
-    implementation files('libs/MiPush_SDK_Client_3_7_5.jar')
-
-    //oppo
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'commons-codec:commons-codec:1.11'
-    implementation 'androidx.annotation:annotation:1.6.0'
-    implementation project(path: ':MyLibs:oppopush')
-    //vivo
-    implementation project(path: ':MyLibs:vivopush')
-    // honor
-    implementation project(path: ':MyLibs:honorpush')
-    // FCM/Firebase 未使用。保持依赖停用，避免自动合入后台 Receiver、Provider 和 Job。
-    // implementation platform('com.google.firebase:firebase-bom:32.8.1')
-    // implementation 'com.google.firebase:firebase-analytics'
-    // implementation 'com.google.firebase:firebase-messaging'
-
+    // 华为推送尚未配置应用信息，暂不引入；配置完成后只恢复这一项。
+    // implementation 'com.huawei.hms:push:6.1.0.300'
 }
 

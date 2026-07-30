@@ -36,8 +36,6 @@ import com.chat.base.ui.Theme;
 import com.chat.base.ui.components.CounterView;
 import com.chat.base.utils.ActManagerUtils;
 import com.chat.base.utils.LayoutHelper;
-import com.chat.base.utils.WKDeviceUtils;
-import com.chat.base.utils.WKDialogUtils;
 import com.chat.base.utils.WKPermissions;
 import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKTimeUtils;
@@ -141,12 +139,8 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         fragments.add(new MyFragment());
 
         wkVBinding.vp.setAdapter(new WKFragmentStateAdapter(this, fragments));
-        WKCommonModel.getInstance().getAppNewVersion(false, version -> {
-            String v = WKDeviceUtils.getInstance().getVersionName(TabActivity.this);
-            if (version != null && !TextUtils.isEmpty(version.download_url) && !version.app_version.equals(v)) {
-                WKDialogUtils.getInstance().showNewVersionDialog(TabActivity.this, version);
-            }
-        });
+        // HUAWEI 分支不启用应用内自更新。恢复时还需同步恢复
+        // REQUEST_INSTALL_PACKAGES 权限及其 Manifest 合并规则。
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_chat).setVisible(false);

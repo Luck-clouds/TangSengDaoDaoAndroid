@@ -15,8 +15,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        //华为推送
-        classpath 'com.huawei.agconnect:agcp:1.6.0.300'
+        // 华为推送尚未配置应用信息，暂不加载 AGConnect 构建插件。
+        // classpath 'com.huawei.agconnect:agcp:1.6.0.300'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // classpath 'com.google.gms.google-services:4.4.1'
         // FCM/Firebase 未使用，停用 Google Services 构建插件。

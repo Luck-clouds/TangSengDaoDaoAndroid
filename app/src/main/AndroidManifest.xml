@@ -89,15 +89,16 @@
     <!--检测wifi状态 | Detecting WiFi status-->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!--获取用户手机的IMEI，用来唯一的标识设备。 | Gets the IMEI of the user's phone, used to uniquely identify the device.-->
-    <!-- Android O版本调用安装需要使用该权限 -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!--
+        HUAWEI 分支不启用应用内自更新，因此不申请“安装未知应用”权限。
+        <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    -->
+    <!-- 同时阻止依赖库将该权限重新合并到最终 Manifest。 -->
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES"
+        tools:node="remove" />
 
     <uses-permission android:name="android.permission.GET_TASKS" />
-    <permission
-        android:name="${applicationId}.permission.MIPUSH_RECEIVE"
-        android:protectionLevel="signature" />
-    <uses-permission android:name="${applicationId}.permission.MIPUSH_RECEIVE" />
-
     <queries package="${applicationId}">
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE">

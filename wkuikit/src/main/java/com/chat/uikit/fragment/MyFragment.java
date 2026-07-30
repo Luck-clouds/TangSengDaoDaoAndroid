@@ -4,14 +4,12 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import com.chat.base.base.WKBaseFragment;
-import com.chat.base.common.WKCommonModel;
 import com.chat.base.config.WKConfig;
 import com.chat.base.config.WKSharedPreferencesUtil;
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.PersonalInfoMenu;
 import com.chat.base.ui.Theme;
-import com.chat.base.utils.WKLogUtils;
 import com.chat.base.utils.singleclick.SingleClickUtil;
 import com.chat.uikit.R;
 import com.chat.uikit.databinding.FragMyLayoutBinding;
@@ -81,30 +79,7 @@ public class MyFragment extends WKBaseFragment<FragMyLayoutBinding> {
         wkVBinding.avatarView.showAvatar(WKConfig.getInstance().getUid(), WKChannelType.PERSONAL);
         if (null != adapter) {
             setPersonalMenus();
-            try {
-                WKCommonModel.getInstance().getAppNewVersion(false, version -> {
-                    int index = -1;
-                    for (int i = 0; i < adapter.getData().size(); i++) {
-                        if (getString(R.string.currency).equals(adapter.getData().get(i).text)) {
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index != -1) {
-                        if (version != null && !TextUtils.isEmpty(version.download_url)) {
-                            if (!adapter.getData().get(index).isNewVersionIv) {
-                                adapter.getData().get(index).setIsNewVersionIv(true);
-                                adapter.notifyItemChanged(index);
-                            }
-                        } else if (adapter.getData().get(index).isNewVersionIv) {
-                            adapter.getData().get(index).setIsNewVersionIv(false);
-                            adapter.notifyItemChanged(index);
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                WKLogUtils.w("检查新版本错误");
-            }
+            // HUAWEI 分支不检查应用内更新，也不显示新版本角标。
         }
     }
 
