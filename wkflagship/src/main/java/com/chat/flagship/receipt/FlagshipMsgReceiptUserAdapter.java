@@ -1,5 +1,6 @@
 package com.chat.flagship.receipt;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -23,7 +24,12 @@ public class FlagshipMsgReceiptUserAdapter extends RecyclerView.Adapter<Flagship
     public void setData(List<FlagshipReceiptUser> list) {
         data.clear();
         if (list != null) {
-            data.addAll(list);
+            for (FlagshipReceiptUser item : list) {
+                // 防止接口异常数据在 RecyclerView 绑定头像时触发空指针。
+                if (item != null && !TextUtils.isEmpty(item.uid)) {
+                    data.add(item);
+                }
+            }
         }
         notifyDataSetChanged();
     }
