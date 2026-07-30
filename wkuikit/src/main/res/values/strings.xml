@@ -118,6 +118,7 @@
     <string name="exit_group_tips">退出后不会通知群聊中其他成员，且不会再接受此群聊消息</string>
     <string name="download_open">下载并打开</string>
     <string name="online">在线</string>
+    <string name="offline">离线</string>
     <string name="delete_select_msg">确定删除选中的消息吗？</string>
     <string name="chat_records">聊天记录</string>
     <string name="chat_title_records">%s的聊天记录</string>

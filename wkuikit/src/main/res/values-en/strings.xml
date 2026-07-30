@@ -118,6 +118,7 @@
     <string name="exit_group_tips">After logging out, other members in the group chat will not be notified, and the group chat messages will no longer be accepted</string>
     <string name="download_open">Download and Open</string>
     <string name="online">Online</string>
+    <string name="offline">Offline</string>
     <string name="delete_select_msg">Delete now?</string>
     <string name="chat_records">Chat History</string>
     <string name="chat_title_records">Chat History for %s</string>
