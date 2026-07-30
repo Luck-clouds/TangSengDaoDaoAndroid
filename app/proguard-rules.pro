@@ -139,10 +139,11 @@
 -keepattributes InnerClasses
 -keepattributes Signature
 -keepattributes SourceFile,LineNumberTable
--keep class com.huawei.updatesdk.**{*;}
--keep class com.huawei.hms.**{*;}
--keep class com.huawei.android.hms.agent.**{*;}
--keep class com.huawei.hianalytics.**{*;}
+# 华为 Push 在 new 分支停用。
+#-keep class com.huawei.updatesdk.**{*;}
+#-keep class com.huawei.hms.**{*;}
+#-keep class com.huawei.android.hms.agent.**{*;}
+#-keep class com.huawei.hianalytics.**{*;}
 -keep class com.hihonor.push.sdk.**{*;}
 
 -keepattributes Signature

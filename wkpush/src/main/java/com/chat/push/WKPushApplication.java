@@ -24,8 +24,6 @@ import com.heytap.msp.push.HeytapPushManager;
 import com.heytap.msp.push.callback.ICallBackResultService;
 import com.hihonor.push.sdk.HonorPushCallback;
 import com.hihonor.push.sdk.HonorPushClient;
-import com.huawei.hms.aaid.HmsInstanceId;
-import com.huawei.hms.common.ApiException;
 import com.vivo.push.PushClient;
 import com.vivo.push.util.VivoPushException;
 import com.xiaomi.mipush.sdk.MiPushClient;
@@ -72,35 +70,6 @@ public class WKPushApplication {
         if (mContext == null || mContext.get() == null) return;
         notifyChannel(WKBaseApplication.getInstance().application);
         getPushToken();
-//        if (!TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
-//            if (OsUtils.isEmui()) {
-//                new Thread(() -> getHuaWeiToken(mContext.get())).start();
-//            } else if (OsUtils.isMiui()) {
-//                initXiaoMiPush(mContext.get());
-//            } else if (OsUtils.isOppo()) {
-//                initOPPO();
-//            } else if (OsUtils.isVivo()) {
-//                initVIVO();
-//            }
-//        }
-
-    }
-
-    private void getHuaWeiToken(Context context) {
-        try {
-            // 从agconnect-service.json文件中读取appId
-//            String appId = new AGConnectOptionsBuilder().build(context).getString("client/app_id");
-//            String appId = AGConnectServicesConfig.fromContext(context).getString("client/app_id");
-            // 输入token标识"HCM"
-            String tokenScope = "HCM";
-            String token = HmsInstanceId.getInstance(context).getToken(PushKeys.huaweiAPPID, tokenScope);
-            // 判断token是否为空
-            if (!TextUtils.isEmpty(token)) {
-                Log.e("华为推送token", token);
-                PushModel.getInstance().registerDeviceToken(token, pushBundleID,"");
-            }
-        } catch (ApiException e) {
-        }
     }
 
     private void initHonorPush(Context context) {
@@ -237,8 +206,6 @@ public class WKPushApplication {
         }
         if (HonorPushClient.getInstance().checkSupportHonorPush(mContext.get())) {
             initHonorPush(mContext.get());
-        } else if (OsUtils.isEmui()) {
-            new Thread(() -> getHuaWeiToken(mContext.get())).start();
         } else if (OsUtils.isMiui()) {
             initXiaoMiPush(mContext.get());
         } else if (OsUtils.isOppo()) {

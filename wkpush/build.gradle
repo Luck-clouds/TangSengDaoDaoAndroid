@@ -38,12 +38,19 @@ android {
     }
     namespace 'com.chat.push'
 
+    // new 分支不编译华为 Push 接收服务，保留源码便于其他分支继续使用。
+    sourceSets {
+        main {
+            java.exclude 'com/chat/push/push/HuaweiHmsMessageService.java'
+        }
+    }
 }
 
 dependencies {
     api project(':wkbase')
-    implementation 'com.huawei.hms:push:6.1.0.300'
-    implementation files('libs/MiPush_SDK_Client_3_7_5.jar')
+    // 华为 Push 在 new 分支停用。
+    // implementation 'com.huawei.hms:push:6.1.0.300'
+    implementation files('libs/MiPush_SDK_Client_7_12_4-C_3rd.aar')
 
     //oppo
     implementation 'com.google.code.gson:gson:2.8.9'
