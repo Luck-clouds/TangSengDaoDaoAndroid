@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -28,6 +27,7 @@ import com.chat.base.ui.components.SecretDeleteTimer;
 import com.chat.base.utils.ImageUtils;
 import com.chat.base.utils.LayoutHelper;
 import com.chat.base.utils.WKDialogUtils;
+import com.chat.base.utils.WKScreenCapturePolicy;
 import com.chat.base.utils.WKToastUtils;
 import com.lxj.xpopup.core.ImageViewerPopupView;
 import com.lxj.xpopup.util.XPopupUtils;
@@ -82,7 +82,7 @@ public class CustomImageViewerPopup extends ImageViewerPopupView {
         FrameLayout contentLayout = findViewById(R.id.contentLayout);
         SecretDeleteTimer deleteTimer = new SecretDeleteTimer(context);
         if (msg != null && msg.flame == 1) {
-            ((Activity) context).getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+            WKScreenCapturePolicy.apply((Activity) context);
             imgMoreIv.setVisibility(View.GONE);
             deleteTimer.setSize(25);
             deleteTimer.setDestroyTime(

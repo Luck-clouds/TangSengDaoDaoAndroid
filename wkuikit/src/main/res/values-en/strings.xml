@@ -353,6 +353,13 @@
     <string name="favorite_forward_failed">This favorite cannot be forwarded right now</string>
     <string name="favorite_view_now">View now</string>
     <string name="security_privacy">Security &amp; Privacy</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="contact_add_wecom">Add WeCom Contact</string>
+    <string name="contact_wecom_tips">Scan with WeCom to add us</string>
+    <string name="contact_email_value">Email: %1$s</string>
+    <string name="contact_phone_value">Phone: %1$s</string>
+    <string name="contact_reload">Reload</string>
+    <string name="contact_copied">Copied</string>
     <string name="security_search_desc">Friends can be found in the following ways</string>
     <string name="security_search_by_phone">Allow search by phone</string>
     <string name="security_search_by_short">Allow search by short number</string>

@@ -58,7 +58,6 @@ import com.chat.base.endpoint.entity.RTCMenu;
 import com.chat.base.endpoint.entity.ReadMsgMenu;
 import com.chat.base.endpoint.entity.SetChatBgMenu;
 import com.chat.base.entity.PopupMenuItem;
-import com.chat.base.entity.UserOnlineStatus;
 import com.chat.base.entity.WKChannelCustomerExtras;
 import com.chat.base.entity.WKGroupType;
 import com.chat.base.msg.ChatAdapter;
@@ -2207,27 +2206,10 @@ public class ChatActivity extends SwipeBackActivity implements IConversationCont
     }
 
     private void setOnlineView(WKChannel channel) {
-        if (channel.online == 1) {
-            String device = getString(R.string.phone);
-            if (channel.deviceFlag == UserOnlineStatus.Web) device = getString(R.string.web);
-            else if (channel.deviceFlag == UserOnlineStatus.PC) device = getString(R.string.pc);
-            String content = String.format("%s%s", device, getString(R.string.online));
-            wkVBinding.topLayout.subtitleTv.setText(content);
-            wkVBinding.topLayout.subtitleView.setVisibility(View.VISIBLE);
-        } else {
-            if (channel.lastOffline > 0) {
-                String showTime = WKTimeUtils.getInstance().getOnlineTime(channel.lastOffline);
-                if (TextUtils.isEmpty(showTime)) {
-                    wkVBinding.topLayout.subtitleView.setVisibility(View.VISIBLE);
-                    String time = WKTimeUtils.getInstance().getShowDateAndMinute(channel.lastOffline * 1000L);
-                    String content = String.format("%s%s", getString(R.string.last_seen_time), time);
-                    wkVBinding.topLayout.subtitleTv.setText(content);
-                } else {
-                    wkVBinding.topLayout.subtitleTv.setText(showTime);
-                    wkVBinding.topLayout.subtitleView.setVisibility(View.VISIBLE);
-                }
-            } else wkVBinding.topLayout.subtitleView.setVisibility(View.GONE);
-        }
+        wkVBinding.topLayout.subtitleTv.setText(
+                channel.online == 1 ? R.string.online : R.string.offline
+        );
+        wkVBinding.topLayout.subtitleView.setVisibility(View.VISIBLE);
     }
 
     @Override

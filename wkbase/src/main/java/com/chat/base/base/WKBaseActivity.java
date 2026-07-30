@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -31,6 +30,7 @@ import com.chat.base.ui.components.RadialProgressView;
 import com.chat.base.utils.ActManagerUtils;
 import com.chat.base.utils.StringUtils;
 import com.chat.base.utils.WKDialogUtils;
+import com.chat.base.utils.WKScreenCapturePolicy;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.base.utils.language.WKMultiLanguageUtil;
 import com.chat.base.utils.singleclick.SingleClickUtil;
@@ -106,7 +106,7 @@ public abstract class WKBaseActivity<WKVBinding extends ViewBinding> extends Swi
     @Override
     protected void onResume() {
         super.onResume();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        WKScreenCapturePolicy.apply(this);
     }
 
     protected void initData(Bundle savedInstanceState) {

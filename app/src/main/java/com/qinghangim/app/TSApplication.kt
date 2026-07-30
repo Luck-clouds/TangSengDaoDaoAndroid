@@ -17,9 +17,9 @@ import android.os.Looper
 import android.os.Process
 import android.text.TextUtils
 import android.util.Log
-import android.view.WindowManager
 import androidx.multidex.MultiDexApplication
 import com.chat.base.WKBaseApplication
+import com.chat.base.common.WKCommonModel
 import com.chat.base.config.WKApiConfig
 import com.chat.base.config.WKConfig
 import com.chat.base.config.WKConstants
@@ -28,6 +28,7 @@ import com.chat.base.endpoint.EndpointManager
 import com.chat.base.ui.Theme
 import com.chat.base.utils.ActManagerUtils
 import com.chat.base.utils.WKPlaySound
+import com.chat.base.utils.WKScreenCapturePolicy
 import com.chat.base.utils.WKTimeUtils
 import com.chat.base.utils.language.WKMultiLanguageUtil
 import com.chat.flagship.WKFlagshipApplication
@@ -76,14 +77,14 @@ class TSApplication : MultiDexApplication() {
         }
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(p0: Activity, p1: Bundle?) {
-                enforceScreenshotProtection(p0)
+                WKScreenCapturePolicy.apply(p0)
             }
 
             override fun onActivityStarted(p0: Activity) {
             }
 
             override fun onActivityResumed(p0: Activity) {
-                enforceScreenshotProtection(p0)
+                WKScreenCapturePolicy.apply(p0)
                 ActManagerUtils.getInstance().currentActivity = p0
             }
 
@@ -99,10 +100,6 @@ class TSApplication : MultiDexApplication() {
             override fun onActivityDestroyed(p0: Activity) {
             }
         })
-    }
-
-    private fun enforceScreenshotProtection(activity: Activity) {
-        activity.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -205,6 +202,7 @@ class TSApplication : MultiDexApplication() {
             override fun onFront() {
                 appInForeground = true
                 if (!TextUtils.isEmpty(WKConfig.getInstance().token)) {
+                    WKCommonModel.getInstance().getAppConfig(null)
                     if (WKBaseApplication.getInstance().disconnect) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             EndpointManager.getInstance()

@@ -149,7 +149,6 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         });
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
-        WKCommonModel.getInstance().getAppConfig(null);
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_chat).setVisible(false);
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_my).setVisible(false);
 //        wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_workplace).setVisible(false);
@@ -263,6 +262,8 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
     @Override
     protected void onResume() {
         super.onResume();
+        // 从后台恢复或返回主页时刷新子管理员下发的截屏与联系配置。
+        WKCommonModel.getInstance().getAppConfig(null);
         getAllRedDot();
         FriendModel.getInstance().syncFriends((code, msg) -> {
             if (code != HttpResponseCode.success && !TextUtils.isEmpty(msg)) {
