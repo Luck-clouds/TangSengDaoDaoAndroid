@@ -392,6 +392,13 @@
     <string name="favorite_forward_failed">当前收藏暂时无法发送给朋友</string>
     <string name="favorite_view_now">立即查看</string>
     <string name="security_privacy">安全与隐私</string>
+    <string name="contact_us">联系我们</string>
+    <string name="contact_add_wecom">添加企业微信</string>
+    <string name="contact_wecom_tips">请使用企业微信扫一扫添加</string>
+    <string name="contact_email_value">邮箱：%1$s</string>
+    <string name="contact_phone_value">电话：%1$s</string>
+    <string name="contact_reload">重新加载</string>
+    <string name="contact_copied">已复制</string>
     <string name="security_search_desc">可以通过以下方式搜索好友</string>
     <string name="security_search_by_phone">允许手机号搜索</string>
     <string name="security_search_by_short">允许短号搜索</string>

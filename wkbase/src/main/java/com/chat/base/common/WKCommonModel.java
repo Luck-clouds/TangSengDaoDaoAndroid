@@ -21,6 +21,8 @@ import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.DispatchQueuePool;
 import com.chat.base.utils.WKDeviceUtils;
 import com.chat.base.utils.WKReader;
+import com.chat.base.utils.ActManagerUtils;
+import com.chat.base.utils.WKScreenCapturePolicy;
 import com.chat.base.utils.WKToastUtils;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
@@ -80,7 +82,15 @@ public class WKCommonModel extends WKBaseModel {
         request(createService(WKCommonService.class).getAppConfig(), new IRequestResultListener<>() {
             @Override
             public void onSuccess(WKAPPConfig result) {
+                if (result == null) {
+                    if (iAppConfig != null) {
+                        iAppConfig.onResult(HttpResponseCode.error, "", null);
+                    }
+                    return;
+                }
                 WKConfig.getInstance().saveAppConfig(result);
+                WKScreenCapturePolicy.apply(ActManagerUtils.getInstance().getCurrentActivity());
+                EndpointManager.getInstance().invoke("refresh_personal_center", null);
                 if (iAppConfig != null) {
                     iAppConfig.onResult(HttpResponseCode.success, "", result);
                 }

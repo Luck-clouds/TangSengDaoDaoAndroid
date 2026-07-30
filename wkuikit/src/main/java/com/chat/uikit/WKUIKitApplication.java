@@ -141,6 +141,7 @@ import com.chat.uikit.message.ProhibitWordModel;
 import com.chat.uikit.search.AddFriendsActivity;
 import com.chat.uikit.setting.SecurityPrivacyManager;
 import com.chat.uikit.setting.SecurityPrivacyActivity;
+import com.chat.uikit.setting.ContactUsActivity;
 import com.chat.uikit.setting.ChatPwdManager;
 import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
@@ -576,27 +577,37 @@ public class WKUIKitApplication {
         });
 
         //添加个人中心
-        EndpointManager.getInstance().setMethod("personal_center_collect", EndpointCategory.personalCenter, 4, object -> new PersonalInfoMenu(R.mipmap.icon_collect, mContext.get().getString(R.string.wk_kit_collect), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_collect", EndpointCategory.personalCenter, 40, object -> new PersonalInfoMenu(R.mipmap.icon_collect, mContext.get().getString(R.string.wk_kit_collect), () -> {
             Intent intent = new Intent(mContext.get(), FavoriteListActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_security_privacy", EndpointCategory.personalCenter, 3, object -> new PersonalInfoMenu(R.mipmap.icon_security_privacy, mContext.get().getString(R.string.security_privacy), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_security_privacy", EndpointCategory.personalCenter, 30, object -> new PersonalInfoMenu(R.mipmap.icon_security_privacy, mContext.get().getString(R.string.security_privacy), () -> {
             Intent intent = new Intent(mContext.get(), SecurityPrivacyActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_new_msg_notice", EndpointCategory.personalCenter, 2, object -> new PersonalInfoMenu(R.mipmap.icon_notice, mContext.get().getString(R.string.new_msg_notice), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_contact_us", EndpointCategory.personalCenter, 25, object -> {
+            if (!ContactUsActivity.hasContact(WKConfig.getInstance().getAppConfig())) {
+                return null;
+            }
+            return new PersonalInfoMenu(R.drawable.ic_contact_us, mContext.get().getString(R.string.contact_us), () -> {
+                Intent intent = new Intent(mContext.get(), ContactUsActivity.class);
+                intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                mContext.get().startActivity(intent);
+            });
+        });
+        EndpointManager.getInstance().setMethod("personal_center_new_msg_notice", EndpointCategory.personalCenter, 20, object -> new PersonalInfoMenu(R.mipmap.icon_notice, mContext.get().getString(R.string.new_msg_notice), () -> {
             Intent intent = new Intent(mContext.get(), MsgNoticesSettingActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_currency", EndpointCategory.personalCenter, 1, object -> new PersonalInfoMenu(R.mipmap.icon_setting, mContext.get().getString(R.string.currency), () -> {
+        EndpointManager.getInstance().setMethod("personal_center_currency", EndpointCategory.personalCenter, 10, object -> new PersonalInfoMenu(R.mipmap.icon_setting, mContext.get().getString(R.string.currency), () -> {
             Intent intent = new Intent(mContext.get(), SettingActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_invite_code", EndpointCategory.personalCenter, 5, object -> new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog));
+        EndpointManager.getInstance().setMethod("personal_center_invite_code", EndpointCategory.personalCenter, 50, object -> new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog));
 
         EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login), () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get())));
 

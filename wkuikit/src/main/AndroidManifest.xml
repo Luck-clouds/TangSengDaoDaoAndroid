@@ -35,6 +35,7 @@
         <activity android:name=".favorite.FavoriteListActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteDetailActivity" android:exported="false" />
         <activity android:name=".setting.SecurityPrivacyActivity" android:exported="false" />
+        <activity android:name=".setting.ContactUsActivity" android:exported="false" />
         <activity
             android:name=".setting.ChatPwdSettingActivity"
             android:exported="false"

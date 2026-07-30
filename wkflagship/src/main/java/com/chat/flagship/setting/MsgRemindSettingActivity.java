@@ -53,11 +53,6 @@ public class MsgRemindSettingActivity extends WKBaseActivity<ActMsgRemindSetting
 
     @Override
     protected void initListener() {
-        wkVBinding.screenshotSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isPressed()) {
-                updateSetting(WKChannelExtras.screenshot, isChecked, wkVBinding.screenshotSwitch);
-            }
-        });
         wkVBinding.revokeRemindSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isPressed()) {
                 updateSetting(WKChannelExtras.revokeRemind, isChecked, wkVBinding.revokeRemindSwitch);
@@ -79,7 +74,6 @@ public class MsgRemindSettingActivity extends WKBaseActivity<ActMsgRemindSetting
 
     private void bindLocalState() {
         WKChannel channel = getChannel();
-        wkVBinding.screenshotSwitch.setChecked(readExtra(channel, WKChannelExtras.screenshot) == 1);
         wkVBinding.revokeRemindSwitch.setChecked(readExtra(channel, WKChannelExtras.revokeRemind) == 1);
     }
 
