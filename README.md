@@ -38,7 +38,7 @@
 
 - **OPPO** 修改此模块下的`PushKeys`文件中的`oppoAppKey` 和 `oppoAppSecret`即可
 
-- **VIVO** 修改此模块`AndroidManifest.xml` 文件中的名为`com.vivo.push.api_key`的`meta-data`的value 和修改名为`com.vivo.push.app_id`的`meta-data`的value即可
+- **VIVO** 修改此模块 `AndroidManifest.xml` 中名为 `api_key` 和 `app_id` 的 `meta-data` 值即可
 
 - **FCM**  进入（[Firebase官网](https://firebase.google.com/ "Firebase官网")）获取 `google-services.json` 文件 。下载`google-services.json`文件覆盖`app`模块下的该文件
 

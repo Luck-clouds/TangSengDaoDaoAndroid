@@ -68,6 +68,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
     private TextView chatTV, contactsTV, meTV;
     private long lastClickChatTabTime = 0L;
     private final boolean isShowTabText = true;
+    private boolean notificationPermissionRequested;
 
     @Override
     protected ActTabMainBinding getViewBinding() {
@@ -84,34 +85,10 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         return false;
     }
 
-    @SuppressLint("CheckResult")
     @Override
     protected void initView() {
 //        wkVBinding.vp.setUserInputEnabled(false);
         UserModel.getInstance().device();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            String desc = String.format(getString(R.string.notification_permissions_desc), getString(R.string.app_name));
-            RxPermissions rxPermissions = new RxPermissions(this);
-            rxPermissions.request(Manifest.permission.POST_NOTIFICATIONS).subscribe(aBoolean -> {
-                if (aBoolean) {
-                    EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
-                } else {
-                    WKDialogUtils.getInstance().showDialog(this, getString(com.chat.base.R.string.authorization_request), desc, true, getString(R.string.cancel), getString(R.string.to_set), 0, Theme.colorAccount, index -> {
-                        if (index == 1) {
-                            EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
-                        }
-                    });
-                }
-            });
-        } else {
-            boolean isEnabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
-            if (isEnabled) {
-                EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
-            } else {
-                EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
-            }
-        }
-
         chatIV = new RLottieImageView(this);
         contactsIV = new RLottieImageView(this);
 //        workplaceIV = new RLottieImageView(this);
@@ -262,6 +239,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
     @Override
     protected void onResume() {
         super.onResume();
+        initPushIfNotificationAllowed();
         // 从后台恢复或返回主页时刷新子管理员下发的截屏与联系配置。
         WKCommonModel.getInstance().getAppConfig(null);
         getAllRedDot();
@@ -270,6 +248,70 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
                 showToast(msg);
             }
         });
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            requestNotificationPermissionAfterHomeVisible();
+        }
+    }
+
+    /**
+     * Request notification permission only after the signed-in home page is
+     * visible. This prevents the system permission window from covering the
+     * first-run privacy agreement or the login flow.
+     */
+    @SuppressLint("CheckResult")
+    private void requestNotificationPermissionAfterHomeVisible() {
+        if (notificationPermissionRequested
+                || WKSharedPreferencesUtil.getInstance().getBoolean("show_agreement_dialog")
+                || !WKConstants.isLogin()) {
+            return;
+        }
+        notificationPermissionRequested = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            String desc = String.format(
+                    getString(R.string.notification_permissions_desc),
+                    getString(R.string.app_name)
+            );
+            RxPermissions rxPermissions = new RxPermissions(this);
+            rxPermissions.request(Manifest.permission.POST_NOTIFICATIONS).subscribe(granted -> {
+                if (granted) {
+                    EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+                } else {
+                    WKDialogUtils.getInstance().showDialog(
+                            this,
+                            getString(com.chat.base.R.string.authorization_request),
+                            desc,
+                            true,
+                            getString(R.string.cancel),
+                            getString(R.string.to_set),
+                            0,
+                            Theme.colorAccount,
+                            index -> {
+                                if (index == 1) {
+                                    EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
+                                }
+                            }
+                    );
+                }
+            });
+        } else if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+        } else {
+            EndpointManager.getInstance().invoke("show_open_notification_dialog", this);
+        }
+    }
+
+    private void initPushIfNotificationAllowed() {
+        if (!WKSharedPreferencesUtil.getInstance().getBoolean("show_agreement_dialog")
+                && WKConstants.isLogin()
+                && NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            EndpointManager.getInstance().invoke("init_push_after_notification_allowed", null);
+        }
     }
 
     public void setMsgCount(int number) {

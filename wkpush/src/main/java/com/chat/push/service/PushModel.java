@@ -18,6 +18,9 @@ import com.chat.push.OsUtils;
  * 推送管理w
  */
 public class PushModel extends WKBaseModel {
+    public static final String DEVICE_TYPE_HONOR = "HONOR";
+    public static final String DEVICE_TYPE_OPPO = "OPPO";
+    public static final String DEVICE_TYPE_VIVO = "VIVO";
 
     private PushModel() {
 
@@ -38,7 +41,7 @@ public class PushModel extends WKBaseModel {
      * @param bundle_id Android为包名称
      */
     public void registerDeviceToken(String token, String bundle_id, String device_type) {
-        if (!WKConstants.isLogin()) {
+        if (!WKConstants.isLogin() || TextUtils.isEmpty(token)) {
             return;
         }
         if (TextUtils.isEmpty(device_type)) {
@@ -47,10 +50,14 @@ public class PushModel extends WKBaseModel {
             } else if (OsUtils.isMiui())
                 device_type = "MI";
             else if (OsUtils.isOppo()) {
-                device_type = "OPPO";
+                device_type = DEVICE_TYPE_OPPO;
             } else if (OsUtils.isVivo()) {
-                device_type = "VIVO";
+                device_type = DEVICE_TYPE_VIVO;
             }
+        }
+        if (TextUtils.isEmpty(device_type)) {
+            Log.w("注册push", "无法识别厂商类型，忽略本次Token上报");
+            return;
         }
 
 

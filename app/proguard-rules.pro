@@ -144,7 +144,7 @@
 #-keep class com.huawei.hms.**{*;}
 #-keep class com.huawei.android.hms.agent.**{*;}
 #-keep class com.huawei.hianalytics.**{*;}
--keep class com.hihonor.push.sdk.**{*;}
+-keep class com.hihonor.push.** { *; }
 
 -keepattributes Signature
 -keepattributes Exceptions
@@ -340,7 +340,15 @@
 -dontwarn com.xiaomi.push.**
 
 #-----------oppo----------------
--keep class com.heytap.msp.** { *;}
+-keep class com.heytap.msp.** { *; }
+-keep class com.heytap.mcssdk.** { *; }
+-keep class com.mcs.aidl.** { *; }
+
+#-----------vivo----------------
+-dontwarn com.vivo.push.**
+-keep class com.vivo.push.** { *; }
+-keep class com.vivo.vms.** { *; }
+-keep class com.chat.push.push.VivoPushMessageReceiverImpl { *; }
 
 #------------FCM（未使用，规则已停用）---------------
 # -keep class com.google.firebase.** { *; }

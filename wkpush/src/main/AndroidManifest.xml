@@ -3,6 +3,14 @@
     <uses-permission android:name="com.coloros.mcs.permission.RECIEVE_MCS_MESSAGE" />
     <uses-permission android:name="com.heytap.mcs.permission.RECIEVE_MCS_MESSAGE" />
     <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" />
+
+    <!-- Android 11+ 必须声明可查询荣耀推送服务，否则可能无法发现或绑定服务。 -->
+    <queries>
+        <intent>
+            <action android:name="com.hihonor.push.action.BIND_PUSH_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:supportsRtl="true">
@@ -71,14 +79,11 @@
         </service>
         <!--vivo-->
         <meta-data
-            android:name="sdk_version_vivo"
-            android:value="484" />
-        <meta-data
-            android:name="com.vivo.push.api_key"
+            android:name="api_key"
             android:value="66d8421e03aa8ff1ca2e0913e7d1895b" />
 
         <meta-data
-            android:name="com.vivo.push.app_id"
+            android:name="app_id"
             android:value="106116791" />
 
         <!--push应用定义消息receiver声明-->

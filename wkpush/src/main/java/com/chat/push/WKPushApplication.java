@@ -25,6 +25,8 @@ import com.heytap.msp.push.callback.ICallBackResultService;
 import com.hihonor.push.sdk.HonorPushCallback;
 import com.hihonor.push.sdk.HonorPushClient;
 import com.vivo.push.PushClient;
+import com.vivo.push.PushConfig;
+import com.vivo.push.listener.IPushQueryActionListener;
 import com.vivo.push.util.VivoPushException;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
@@ -45,6 +47,48 @@ public class WKPushApplication {
     private WeakReference<Context> mContext;
     public String pushBundleID;
     private boolean listenerAdded = false;
+    private final ICallBackResultService oppoPushCallback = new ICallBackResultService() {
+        @Override
+        public void onRegister(int responseCode, String registerId, String packageName, String miniPackageName) {
+            if (responseCode == 0 && !TextUtils.isEmpty(registerId)) {
+                Log.i("OPPO推送", "注册成功");
+                PushModel.getInstance().registerDeviceToken(
+                        registerId,
+                        pushBundleID,
+                        PushModel.DEVICE_TYPE_OPPO
+                );
+            } else {
+                Log.w("OPPO推送", "注册失败:" + responseCode);
+            }
+        }
+
+        @Override
+        public void onUnRegister(int responseCode, String packageName, String miniPackageName) {
+            if (responseCode == 0) {
+                Log.i("OPPO推送", "注销成功");
+            } else {
+                Log.w("OPPO推送", "注销失败:" + responseCode);
+            }
+            reRegisterAfterLateLogoutIfNeeded();
+        }
+
+        @Override
+        public void onSetPushTime(int responseCode, String result) {
+        }
+
+        @Override
+        public void onGetPushStatus(int responseCode, int status) {
+        }
+
+        @Override
+        public void onGetNotificationStatus(int responseCode, int status) {
+        }
+
+        @Override
+        public void onError(int errorCode, String message, String packageName, String miniPackageName) {
+            Log.w("OPPO推送", "SDK错误:" + errorCode + ":" + message);
+        }
+    };
 
     public static WKPushApplication getInstance() {
         return PushApplicationBinder.push;
@@ -82,8 +126,12 @@ public class WKPushApplication {
             @Override
             public void onSuccess(String token) {
                 if (!TextUtils.isEmpty(token)) {
-                    Log.e("获取荣耀push", token);
-                    PushModel.getInstance().registerDeviceToken(token, pushBundleID, "");
+                    Log.i("荣耀推送", "获取Token成功");
+                    PushModel.getInstance().registerDeviceToken(
+                            token,
+                            pushBundleID,
+                            PushModel.DEVICE_TYPE_HONOR
+                    );
                 }
             }
 
@@ -105,58 +153,72 @@ public class WKPushApplication {
     }
 
     private void initOPPO() {
-        HeytapPushManager.init(mContext.get(), true);
-        new Thread(() -> HeytapPushManager.register(mContext.get(), PushKeys.oppoAppKey, PushKeys.oppoAppSecret, new ICallBackResultService() {
-            @Override
-            public void onRegister(int i, String s) {
-                if (i == 0) {
-                    // 注册成功
-                    Log.e("tu推送ID", HeytapPushManager.getRegisterID());
-                    PushModel.getInstance().registerDeviceToken(s, WKPushApplication.getInstance().pushBundleID,"");
-                }
-            }
-
-            @Override
-            public void onUnRegister(int i) {
-
-            }
-
-            @Override
-            public void onSetPushTime(int i, String s) {
-
-            }
-
-            @Override
-            public void onGetPushStatus(int i, int i1) {
-
-            }
-
-            @Override
-            public void onGetNotificationStatus(int i, int i1) {
-            }
-
-            @Override
-            public void onError(int i, String s) {
-
-            }
-        })).start();
-
+        Context context = getContext();
+        if (context == null) return;
+        HeytapPushManager.init(context, false);
+        if (!HeytapPushManager.isSupportPush(context)) {
+            Log.w("OPPO推送", "当前设备不支持OPPO推送");
+            return;
+        }
+        String registerId = HeytapPushManager.getRegisterID();
+        if (!TextUtils.isEmpty(registerId)) {
+            PushModel.getInstance().registerDeviceToken(
+                    registerId,
+                    pushBundleID,
+                    PushModel.DEVICE_TYPE_OPPO
+            );
+            return;
+        }
+        new Thread(
+                () -> HeytapPushManager.register(
+                        context,
+                        PushKeys.oppoAppKey,
+                        PushKeys.oppoAppSecret,
+                        oppoPushCallback
+                ),
+                "oppo-push-register"
+        ).start();
     }
 
     private void initVIVO() {
+        Context context = getContext();
+        if (context == null) return;
         try {
-            PushClient.getInstance(mContext.get()).initialize();
-            PushClient.getInstance(mContext.get()).turnOnPush(state -> {
-                // TODO: 开关状态处理， 0代表成功
-                String regId = PushClient.getInstance(mContext.get()).getRegId();
-                if (!TextUtils.isEmpty(regId)) {
-                    Log.e("获取vivopush", regId);
-                    PushModel.getInstance().registerDeviceToken(regId, pushBundleID,"");
+            PushClient pushClient = PushClient.getInstance(context);
+            PushConfig config = new PushConfig.Builder()
+                    .agreePrivacyStatement(true)
+                    .build();
+            pushClient.initialize(config);
+            if (!pushClient.isSupport()) {
+                Log.w("vivo推送", "当前设备不支持vivo推送");
+                return;
+            }
+            pushClient.turnOnPush(state -> {
+                if (state != 0) {
+                    Log.w("vivo推送", "打开推送失败:" + state);
+                    return;
                 }
-            });
+                pushClient.getRegId(new IPushQueryActionListener() {
+                    @Override
+                    public void onSuccess(String regId) {
+                        if (!TextUtils.isEmpty(regId)) {
+                            Log.i("vivo推送", "获取RegId成功");
+                            PushModel.getInstance().registerDeviceToken(
+                                    regId,
+                                    pushBundleID,
+                                    PushModel.DEVICE_TYPE_VIVO
+                            );
+                        }
+                    }
 
+                    @Override
+                    public void onFail(Integer errorCode) {
+                        Log.w("vivo推送", "获取RegId失败:" + errorCode);
+                    }
+                });
+            });
         } catch (VivoPushException e) {
-            e.printStackTrace();
+            Log.e("vivo推送", "初始化失败", e);
         }
     }
 
@@ -183,11 +245,7 @@ public class WKPushApplication {
                     Log.w("注销push", code + ":" + msg);
                 }
             });
-            Context context = mContext == null ? null : mContext.get();
-            if (context != null && OsUtils.isMiui()) {
-                // 停止小米本地推送注册及其心跳/重连；下次登录会重新 registerPush。
-                MiPushClient.unregisterPush(context);
-            }
+            unregisterVendorPush(getContext());
             return null;
         });
 
@@ -200,14 +258,94 @@ public class WKPushApplication {
         });
     }
 
+    private Context getContext() {
+        return mContext == null ? null : mContext.get();
+    }
+
+    private void unregisterVendorPush(Context context) {
+        if (context == null) return;
+        HonorPushClient honorPushClient = HonorPushClient.getInstance();
+        if (honorPushClient.checkSupportHonorPush(context)) {
+            honorPushClient.init(context, false);
+            honorPushClient.deletePushToken(new HonorPushCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    Log.i("荣耀推送", "Token注销成功");
+                    reRegisterAfterLateLogoutIfNeeded();
+                }
+
+                @Override
+                public void onFailure(int code, String errorMessage) {
+                    Log.w("荣耀推送", "Token注销失败:" + code + ":" + errorMessage);
+                    reRegisterAfterLateLogoutIfNeeded();
+                }
+            });
+        } else if (OsUtils.isMiui()) {
+            MiPushClient.unregisterPush(context);
+        } else if (OsUtils.isOppo()) {
+            HeytapPushManager.init(context, false);
+            if (HeytapPushManager.isSupportPush(context)) {
+                new Thread(
+                        () -> HeytapPushManager.unRegister(
+                                context,
+                                PushKeys.oppoAppKey,
+                                PushKeys.oppoAppSecret,
+                                null,
+                                oppoPushCallback
+                        ),
+                        "oppo-push-unregister"
+                ).start();
+            }
+        } else if (OsUtils.isVivo()) {
+            unregisterVivoPush(context);
+        }
+    }
+
+    private void unregisterVivoPush(Context context) {
+        try {
+            PushClient pushClient = PushClient.getInstance(context);
+            PushConfig config = new PushConfig.Builder()
+                    .agreePrivacyStatement(true)
+                    .build();
+            pushClient.initialize(config);
+            if (!pushClient.isSupport()) return;
+            pushClient.deleteRegid(state -> {
+                if (state == 0) {
+                    Log.i("vivo推送", "RegId注销成功");
+                } else {
+                    Log.w("vivo推送", "RegId注销失败:" + state);
+                }
+                pushClient.turnOffPush(turnOffState -> {
+                    if (turnOffState != 0) {
+                        Log.w("vivo推送", "关闭推送失败:" + turnOffState);
+                    }
+                    reRegisterAfterLateLogoutIfNeeded();
+                });
+            });
+        } catch (VivoPushException e) {
+            Log.e("vivo推送", "注销初始化失败", e);
+        }
+    }
+
+    /**
+     * 厂商注销是异步的。若用户在回调返回前已经重新登录，立即重新注册，
+     * 避免旧注销回调晚到而清掉新会话的厂商 Token。
+     */
+    private void reRegisterAfterLateLogoutIfNeeded() {
+        if (WKConstants.isLogin()) {
+            getPushToken();
+        }
+    }
+
     private void getPushToken() {
-        if (TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
+        Context context = getContext();
+        if (context == null || TextUtils.isEmpty(WKConfig.getInstance().getUid())) {
             return;
         }
-        if (HonorPushClient.getInstance().checkSupportHonorPush(mContext.get())) {
-            initHonorPush(mContext.get());
+        if (HonorPushClient.getInstance().checkSupportHonorPush(context)) {
+            initHonorPush(context);
         } else if (OsUtils.isMiui()) {
-            initXiaoMiPush(mContext.get());
+            initXiaoMiPush(context);
         } else if (OsUtils.isOppo()) {
             initOPPO();
         } else if (OsUtils.isVivo()) {

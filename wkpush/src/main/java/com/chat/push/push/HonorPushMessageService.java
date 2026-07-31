@@ -13,7 +13,11 @@ public class HonorPushMessageService extends HonorMessageService {
     public void onNewToken(String token) {
         super.onNewToken(token);
         if (!TextUtils.isEmpty(token)) {
-            PushModel.getInstance().registerDeviceToken(token, WKPushApplication.getInstance().pushBundleID, "");
+            PushModel.getInstance().registerDeviceToken(
+                    token,
+                    WKPushApplication.getInstance().pushBundleID,
+                    PushModel.DEVICE_TYPE_HONOR
+            );
         }
     }
 
