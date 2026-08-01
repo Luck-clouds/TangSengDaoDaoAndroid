@@ -160,14 +160,11 @@ public class WKPushApplication {
             Log.w("OPPO推送", "当前设备不支持OPPO推送");
             return;
         }
-        String registerId = HeytapPushManager.getRegisterID();
-        if (!TextUtils.isEmpty(registerId)) {
-            PushModel.getInstance().registerDeviceToken(
-                    registerId,
-                    pushBundleID,
-                    PushModel.DEVICE_TYPE_OPPO
-            );
-            return;
+        String cachedRegisterId = HeytapPushManager.getRegisterID();
+        if (!TextUtils.isEmpty(cachedRegisterId)) {
+            // 本地缓存只能说明 SDK 曾注册过，不能证明该 RegId 在 OPPO
+            // 平台仍然有效。保留读取用于诊断，但禁止使用缓存值上报。
+            Log.i("OPPO推送", "检测到历史RegId，重新注册获取最新Token");
         }
         new Thread(
                 () -> HeytapPushManager.register(
