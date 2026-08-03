@@ -51,7 +51,7 @@ public class WKPushApplication {
         @Override
         public void onRegister(int responseCode, String registerId, String packageName, String miniPackageName) {
             if (responseCode == 0 && !TextUtils.isEmpty(registerId)) {
-                Log.i("OPPO推送", "注册成功");
+                Log.i("OPPO推送", "注册成功，RegistrationID=" + registerId);
                 PushModel.getInstance().registerDeviceToken(
                         registerId,
                         pushBundleID,
