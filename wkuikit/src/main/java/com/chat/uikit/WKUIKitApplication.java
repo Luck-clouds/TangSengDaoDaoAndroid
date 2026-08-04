@@ -607,7 +607,12 @@ public class WKUIKitApplication {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_invite_code", EndpointCategory.personalCenter, 50, object -> new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog));
+        EndpointManager.getInstance().setMethod("personal_center_invite_code", EndpointCategory.personalCenter, 50, object -> {
+            if (!WKConfig.getInstance().getAppConfig().isRegisterInviteCodeInputVisible()) {
+                return null;
+            }
+            return new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog);
+        });
 
         EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login), () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get())));
 

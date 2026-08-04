@@ -3,6 +3,7 @@ package com.chat.base.common;
 import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.chat.base.R;
 import com.chat.base.WKBaseApplication;
 import com.chat.base.base.WKBaseModel;
@@ -79,20 +80,29 @@ public class WKCommonModel extends WKBaseModel {
     }
 
     public void getAppConfig(IAppConfig iAppConfig) {
-        request(createService(WKCommonService.class).getAppConfig(), new IRequestResultListener<>() {
+        WKAPPConfig cachedConfig = WKConfig.getInstance().getAppConfig();
+        // 旧客户端缓存可能已有 version 却缺少新开关。此时用 0 强制拉取一次
+        // 完整配置，避免服务端因版本一致只返回 version。
+        int requestVersion = cachedConfig.show_register_invite_code_input_on == null
+                ? 0 : cachedConfig.version;
+        request(createService(WKCommonService.class).getAppConfig(requestVersion), new IRequestResultListener<>() {
             @Override
-            public void onSuccess(WKAPPConfig result) {
+            public void onSuccess(JSONObject result) {
                 if (result == null) {
                     if (iAppConfig != null) {
                         iAppConfig.onResult(HttpResponseCode.error, "", null);
                     }
                     return;
                 }
-                WKConfig.getInstance().saveAppConfig(result);
+                // 服务端可能只返回有变化的字段；与本地完整配置合并后再保存。
+                JSONObject merged = (JSONObject) JSON.toJSON(cachedConfig);
+                merged.putAll(result);
+                WKAPPConfig nextConfig = merged.toJavaObject(WKAPPConfig.class);
+                WKConfig.getInstance().saveAppConfig(nextConfig);
                 WKScreenCapturePolicy.apply(ActManagerUtils.getInstance().getCurrentActivity());
                 EndpointManager.getInstance().invoke("refresh_personal_center", null);
                 if (iAppConfig != null) {
-                    iAppConfig.onResult(HttpResponseCode.success, "", result);
+                    iAppConfig.onResult(HttpResponseCode.success, "", nextConfig);
                 }
             }
 

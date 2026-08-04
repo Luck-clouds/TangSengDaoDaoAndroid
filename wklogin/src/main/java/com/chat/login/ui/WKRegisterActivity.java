@@ -147,12 +147,16 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
             String phone = Objects.requireNonNull(wkVBinding.nameEt.getText()).toString();
             String smsCode = Objects.requireNonNull(wkVBinding.verfiEt.getText()).toString();
             String pwd = Objects.requireNonNull(wkVBinding.pwdEt.getText()).toString();
-            String inviteCode = Objects.requireNonNull(wkVBinding.inviteCodeTv.getText()).toString().trim();
+            boolean showInviteCodeInput = appConfig == null || appConfig.isRegisterInviteCodeInputVisible();
+            String inviteCode = showInviteCodeInput
+                    ? Objects.requireNonNull(wkVBinding.inviteCodeTv.getText()).toString().trim()
+                    : "";
             if (!TextUtils.isEmpty(phone) && !TextUtils.isEmpty(smsCode) && !TextUtils.isEmpty(pwd)) {
                 if (pwd.length() < 6 || pwd.length() > 16) {
                     showSingleBtnDialog(getString(R.string.pwd_length_error));
                 } else {
-                    if (appConfig != null && appConfig.register_invite_on == 1 && TextUtils.isEmpty(inviteCode)) {
+                    if (showInviteCodeInput && appConfig != null
+                            && appConfig.register_invite_on == 1 && TextUtils.isEmpty(inviteCode)) {
                         showSingleBtnDialog(getString(R.string.invite_code_not_null));
                         return;
                     }
@@ -191,22 +195,30 @@ public class WKRegisterActivity extends WKBaseActivity<ActRegisterLayoutBinding>
 
     @Override
     protected void initData() {
+        appConfig = com.chat.base.config.WKConfig.getInstance().getAppConfig();
+        updateInviteCodeInput(appConfig);
         WKCommonModel.getInstance().getAppConfig((code, msg, wkappConfig) -> {
             if (code == HttpResponseCode.success) {
                 appConfig = wkappConfig;
-                if (appConfig != null && appConfig.register_invite_on == 1) {
-                    wkVBinding.inviteCodeTv.setHint(R.string.input_invite_code_must);
-                    wkVBinding.inviteLayout.setVisibility(View.VISIBLE);
-                    wkVBinding.inviteLineView.setVisibility(View.VISIBLE);
-                } else {
-                    wkVBinding.inviteCodeTv.setHint(R.string.input_invite_code_not_must);
-                    wkVBinding.inviteLayout.setVisibility(View.VISIBLE);
-                    wkVBinding.inviteLineView.setVisibility(View.VISIBLE);
-                }
+                updateInviteCodeInput(appConfig);
             } else {
                 showToast(msg);
             }
         });
+    }
+
+    private void updateInviteCodeInput(WKAPPConfig config) {
+        boolean visible = config == null || config.isRegisterInviteCodeInputVisible();
+        wkVBinding.inviteLayout.setVisibility(visible ? View.VISIBLE : View.GONE);
+        wkVBinding.inviteLineView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (!visible) {
+            wkVBinding.inviteCodeTv.setText("");
+            pendingInviteCode = "";
+            return;
+        }
+        wkVBinding.inviteCodeTv.setHint(config != null && config.register_invite_on == 1
+                ? R.string.input_invite_code_must
+                : R.string.input_invite_code_not_must);
     }
 
     private void checkStatus() {

@@ -12,8 +12,15 @@ public class WKAPPConfig {
     public int shortno_edit_off;
     public int revoke_second;
     public int register_invite_on;
+    // 旧服务端或旧缓存缺少此字段时默认显示，兼容历史部署。
+    public Integer show_register_invite_code_input_on;
     public int send_welcome_message_on;
     public int invite_system_account_join_group_on;
     public int register_user_must_complete_info_on;
     public int can_modify_api_url;
+
+    public boolean isRegisterInviteCodeInputVisible() {
+        return show_register_invite_code_input_on == null
+                || show_register_invite_code_input_on == 1;
+    }
 }
