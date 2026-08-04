@@ -3,6 +3,7 @@ package com.chat.base.common;
 import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.chat.base.R;
 import com.chat.base.WKBaseApplication;
 import com.chat.base.base.WKBaseModel;
@@ -79,20 +80,29 @@ public class WKCommonModel extends WKBaseModel {
     }
 
     public void getAppConfig(IAppConfig iAppConfig) {
-        request(createService(WKCommonService.class).getAppConfig(), new IRequestResultListener<>() {
+        WKAPPConfig cachedConfig = WKConfig.getInstance().getAppConfig();
+        // 从旧客户端升级时，缓存里可能已有 version 却没有新开关。此时强制拉取一次
+        // 完整配置，避免服务端因版本一致只返回 version，导致开关永远补不回来。
+        int requestVersion = cachedConfig.mutual_delete_on == null ? 0 : cachedConfig.version;
+        request(createService(WKCommonService.class).getAppConfig(requestVersion), new IRequestResultListener<>() {
             @Override
-            public void onSuccess(WKAPPConfig result) {
+            public void onSuccess(JSONObject result) {
                 if (result == null) {
                     if (iAppConfig != null) {
                         iAppConfig.onResult(HttpResponseCode.error, "", null);
                     }
                     return;
                 }
-                WKConfig.getInstance().saveAppConfig(result);
+                // 服务端在版本未变化时可能只返回 version。按字段合并，避免把未返回的
+                // 功能开关及其他配置重置成 Java 默认值。
+                JSONObject merged = (JSONObject) JSON.toJSON(cachedConfig);
+                merged.putAll(result);
+                WKAPPConfig nextConfig = merged.toJavaObject(WKAPPConfig.class);
+                WKConfig.getInstance().saveAppConfig(nextConfig);
                 WKScreenCapturePolicy.apply(ActManagerUtils.getInstance().getCurrentActivity());
                 EndpointManager.getInstance().invoke("refresh_personal_center", null);
                 if (iAppConfig != null) {
-                    iAppConfig.onResult(HttpResponseCode.success, "", result);
+                    iAppConfig.onResult(HttpResponseCode.success, "", nextConfig);
                 }
             }
 

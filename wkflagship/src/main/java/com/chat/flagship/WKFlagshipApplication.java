@@ -204,6 +204,7 @@ public class WKFlagshipApplication {
         // 双向删除作为旗舰模块自定义菜单项接入，保持和现有编辑、复制入口同一注册方式。
         EndpointManager.getInstance().setMethod("flagship_mutual_delete_msg", EndpointCategory.wkChatPopupItem, 70, FlagshipMutualDeleteManager.getInstance()::buildMenu);
         EndpointManager.getInstance().setMethod("flagship_batch_mutual_delete_available", object -> FlagshipMutualDeleteManager.getInstance().isBatchMutualDeleteAvailable());
+        EndpointManager.getInstance().setMethod("flagship_mutual_delete_enabled", object -> FlagshipMutualDeleteManager.getInstance().isMutualDeleteEnabled());
         EndpointManager.getInstance().setMethod("flagship_batch_mutual_delete_title", object -> FlagshipMutualDeleteManager.getInstance().getBatchMutualDeleteTitle());
         EndpointManager.getInstance().setMethod("flagship_can_batch_mutual_delete", object -> {
             if (object instanceof java.util.List<?> list) {

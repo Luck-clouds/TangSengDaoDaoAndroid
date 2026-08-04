@@ -2,6 +2,8 @@ package com.chat.base.entity;
 
 public class WKAPPConfig {
     public int version;
+    // 旧服务端或旧缓存缺少该字段时默认开启，兼容历史部署。
+    public Integer mutual_delete_on;
     public String web_url;
     // 旧服务端缺少该字段时保持允许截屏，避免升级客户端后意外全局锁屏。
     public int global_screenshot_on = 1;
@@ -16,4 +18,8 @@ public class WKAPPConfig {
     public int invite_system_account_join_group_on;
     public int register_user_must_complete_info_on;
     public int can_modify_api_url;
+
+    public boolean isMutualDeleteEnabled() {
+        return mutual_delete_on == null || mutual_delete_on == 1;
+    }
 }

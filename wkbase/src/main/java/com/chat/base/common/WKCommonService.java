@@ -21,7 +21,7 @@ interface WKCommonService {
     Observable<AppVersion> getAppNewVersion(@Path("version") String version);
 
     @GET("common/appconfig")
-    Observable<WKAPPConfig> getAppConfig();
+    Observable<com.alibaba.fastjson.JSONObject> getAppConfig(@Query("version") int version);
 
     @GET("channel/state")
     Observable<WKChannelState> getChannelState(@Query("channel_id") String channelID, @Query("channel_type") byte channelType);
