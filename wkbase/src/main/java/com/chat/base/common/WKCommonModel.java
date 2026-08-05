@@ -81,11 +81,9 @@ public class WKCommonModel extends WKBaseModel {
 
     public void getAppConfig(IAppConfig iAppConfig) {
         WKAPPConfig cachedConfig = WKConfig.getInstance().getAppConfig();
-        // 旧客户端缓存可能已有 version 却缺少新开关。此时用 0 强制拉取一次
-        // 完整配置，避免服务端因版本一致只返回 version。
-        int requestVersion = cachedConfig.show_register_invite_code_input_on == null
-                ? 0 : cachedConfig.version;
-        request(createService(WKCommonService.class).getAppConfig(requestVersion), new IRequestResultListener<>() {
+        // 保持历史请求方式：GET common/appconfig，不把本地配置版本拼到 URL。
+        // 请求头中的 version 由公共拦截器提供，含义是 App 版本号。
+        request(createService(WKCommonService.class).getAppConfig(), new IRequestResultListener<>() {
             @Override
             public void onSuccess(JSONObject result) {
                 if (result == null) {
@@ -101,6 +99,8 @@ public class WKCommonModel extends WKBaseModel {
                 WKConfig.getInstance().saveAppConfig(nextConfig);
                 WKScreenCapturePolicy.apply(ActManagerUtils.getInstance().getCurrentActivity());
                 EndpointManager.getInstance().invoke("refresh_personal_center", null);
+                EndpointManager.getInstance().invoke("refresh_offline_protection_config", null);
+                EndpointManager.getInstance().invoke("refresh_security_privacy_config", null);
                 if (iAppConfig != null) {
                     iAppConfig.onResult(HttpResponseCode.success, "", nextConfig);
                 }

@@ -15,18 +15,28 @@
     <uses-permission
         android:name="android.permission.WRITE_MEDIA_STORAGE"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
-    <!--高德地图新增权限-->
-    <!--这个权限用于获取wifi的获取权限，wifi信息会用来进行网络定位-->
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- HUAWEI 分支不读取电话状态和移动网络信息，并阻止依赖库重新合入。 -->
     <uses-permission
-        android:name="android.permission.CHANGE_CONFIGURATION"
-        tools:ignore="ProtectedPermissions" />
-    <!-- 可以提高室内定位的精确度 -->
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <!-- 可以提高室内定位的精确度 -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+        android:name="android.permission.READ_PHONE_STATE"
+        tools:node="remove" />
+
+
+    <!-- HUAWEI 分支关闭附近设备能力，并阻止依赖库重新合入蓝牙权限。 -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -47,8 +57,6 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -68,7 +76,23 @@
         android:name="android.permission.READ_CONTACTS"
         tools:node="remove" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- HUAWEI 分支停用拨打电话能力，并阻止依赖库重新合入该权限。 -->
+    <uses-permission
+        android:name="android.permission.CALL_PHONE"
+        tools:node="remove" />
+    <!-- HUAWEI 分支不使用短信、彩信及特权电话能力。 -->
+    <uses-permission
+        android:name="android.permission.SEND_SMS"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.RECEIVE_MMS"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.CALL_PRIVILEGED"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.PROCESS_OUTGOING_CALLS"
+        tools:node="remove" />
 
     <!--视频拍摄权限-->
     <uses-permission android:name="android.permission.FLASHLIGHT" />

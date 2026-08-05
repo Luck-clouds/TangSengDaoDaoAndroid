@@ -37,7 +37,6 @@ import java.util.Collections;
 public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding> {
     private String qrCodeUrl = "";
     private String email = "";
-    private String phone = "";
 
     @Override
     protected ActContactUsLayoutBinding getViewBinding() {
@@ -54,16 +53,14 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
         WKAPPConfig config = WKConfig.getInstance().getAppConfig();
         qrCodeUrl = WKApiConfig.getShowUrl(trim(config.contact_wecom_qrcode));
         email = trim(config.contact_email);
-        phone = trim(config.contact_phone);
     }
 
     @Override
     protected void initView() {
         wkVBinding.wecomLayout.setVisibility(TextUtils.isEmpty(qrCodeUrl) ? View.GONE : View.VISIBLE);
         wkVBinding.emailLayout.setVisibility(TextUtils.isEmpty(email) ? View.GONE : View.VISIBLE);
-        wkVBinding.phoneLayout.setVisibility(TextUtils.isEmpty(phone) ? View.GONE : View.VISIBLE);
+        wkVBinding.phoneLayout.setVisibility(View.GONE);
         wkVBinding.emailTv.setText(getString(R.string.contact_email_value, email));
-        wkVBinding.phoneTv.setText(getString(R.string.contact_phone_value, phone));
         if (!TextUtils.isEmpty(qrCodeUrl)) {
             loadQrCode();
         }
@@ -74,7 +71,6 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
         SingleClickUtil.onSingleClick(wkVBinding.qrCodeIv, view -> previewQrCode());
         SingleClickUtil.onSingleClick(wkVBinding.retryTv, view -> loadQrCode());
         SingleClickUtil.onSingleClick(wkVBinding.emailLayout, view -> openEmail());
-        SingleClickUtil.onSingleClick(wkVBinding.phoneLayout, view -> openPhone());
     }
 
     private void loadQrCode() {
@@ -124,11 +120,6 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
         startOrCopy(intent, email);
     }
 
-    private void openPhone() {
-        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", phone, null));
-        startOrCopy(intent, phone);
-    }
-
     private void startOrCopy(Intent intent, String value) {
         if (getPackageManager().queryIntentActivities(intent, 0).isEmpty()) {
             copyContact(value);
@@ -151,8 +142,7 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
 
     public static boolean hasContact(WKAPPConfig config) {
         return config != null && (!TextUtils.isEmpty(trim(config.contact_wecom_qrcode))
-                || !TextUtils.isEmpty(trim(config.contact_email))
-                || !TextUtils.isEmpty(trim(config.contact_phone)));
+                || !TextUtils.isEmpty(trim(config.contact_email)));
     }
 
     private static String trim(String value) {

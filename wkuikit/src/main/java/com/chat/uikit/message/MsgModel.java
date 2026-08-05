@@ -602,15 +602,26 @@ public class MsgModel extends WKBaseModel {
     // 同步敏感词
     public void syncSensitiveWords() {
         if (TextUtils.isEmpty(WKConfig.getInstance().getToken())) return;
-        long version = WKSharedPreferencesUtil.getInstance().getLong("wk_sensitive_words_version");
+        SensitiveWords cachedWords = WKUIKitApplication.getInstance().sensitiveWords;
+        boolean hasCachedWords = cachedWords != null && WKReader.isNotEmpty(cachedWords.list);
+        // 旧客户端可能只保存了版本号却没有保存词表，此时必须从 0 拉取完整数据。
+        long version = hasCachedWords
+                ? WKSharedPreferencesUtil.getInstance().getLong("wk_sensitive_words_version") : 0;
         request(createService(MsgService.class).syncSensitiveWords(version), new IRequestResultListener<>() {
             @Override
             public void onSuccess(SensitiveWords result) {
-                WKSharedPreferencesUtil.getInstance().putLong("wk_sensitive_words_version", result.version);
-                if (!TextUtils.isEmpty(result.tips)) {
+                if (result == null) {
+                    return;
+                }
+                // 提醒文案由客户端按发送方/接收方固定展示，词表有效即可缓存，不再依赖 tips。
+                if (WKReader.isNotEmpty(result.list)) {
                     WKUIKitApplication.getInstance().sensitiveWords = result;
                     String json = JSON.toJSONString(result);
                     WKSharedPreferencesUtil.getInstance().putSP("wk_sensitive_words", json);
+                    WKSharedPreferencesUtil.getInstance().putLong("wk_sensitive_words_version", result.version);
+                } else if (hasCachedWords && result.version >= version) {
+                    // 增量接口无新词时保留本地完整缓存，只推进版本号。
+                    WKSharedPreferencesUtil.getInstance().putLong("wk_sensitive_words_version", result.version);
                 }
             }
 

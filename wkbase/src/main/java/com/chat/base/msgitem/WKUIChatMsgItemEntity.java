@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -151,19 +150,6 @@ public class WKUIChatMsgItemEntity {
                                         WKToastUtils.getInstance().showToastNormal(context.getString(R.string.copyed));
                                     })
                             );
-                            list.add(new BottomSheetItem(context.getString(R.string.call), R.mipmap.msg_calls, () -> {
-                                Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + content));
-                                context.startActivity(intent);
-                            }));
-                            list.add(new BottomSheetItem(context.getString(R.string.add_to_phone_book), R.mipmap.msg_contacts, () -> {
-                                Intent addIntent = new Intent(Intent.ACTION_INSERT, Uri.withAppendedPath(Uri.parse("content://com.android.contacts"), "contacts"));
-                                addIntent.setType("vnd.android.cursor.dir/person");
-                                addIntent.setType("vnd.android.cursor.dir/contact");
-                                addIntent.setType("vnd.android.cursor.dir/raw_contact");
-                                addIntent.putExtra(ContactsContract.Intents.Insert.NAME, "");
-                                addIntent.putExtra(ContactsContract.Intents.Insert.PHONE, content);
-                                context.startActivity(addIntent);
-                            }));
                             list.add(new BottomSheetItem(context.getString(R.string.str_search), R.mipmap.ic_ab_search, () -> {
                                 if (iLinkClick != null)
                                     iLinkClick.onShowSearchUser(content);

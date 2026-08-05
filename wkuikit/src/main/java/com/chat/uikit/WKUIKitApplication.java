@@ -223,13 +223,22 @@ public class WKUIKitApplication {
         if (!TextUtils.isEmpty(json)) {
             sensitiveWords = JSON.parseObject(json, SensitiveWords.class);
         }
-        MsgModel.getInstance().syncSensitiveWords();
-        ProhibitWordModel.Companion.getInstance().sync();
+        // 已登录用户冷启动时恢复同步；首次登录则由登录成功回调触发。
+        syncMessageWordRulesAfterLogin();
         MsgModel.getInstance().deleteFlameMsg();
     }
 
     public Context getContext() {
         return mContext.get();
+    }
+
+    /** 登录成功或恢复已登录会话后，同步服务端的消息词表。 */
+    private void syncMessageWordRulesAfterLogin() {
+        if (TextUtils.isEmpty(WKConfig.getInstance().getToken())) {
+            return;
+        }
+        ProhibitWordModel.Companion.getInstance().sync();
+        MsgModel.getInstance().syncSensitiveWords();
     }
 
     private void registerRtcFloatingLifecycle(Application application) {
@@ -833,7 +842,7 @@ public class WKUIKitApplication {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
             startChat();
-            ProhibitWordModel.Companion.getInstance().sync();
+            syncMessageWordRulesAfterLogin();
             MsgModel.getInstance().deleteFlameMsg();
             //更新文件传输助手时间
             // WKIM.getInstance().getConversationManager().updateLastMsgTime(WKSystemAccount.system_file_helper, WKChannelType.PERSONAL, TimeUtils.getInstance().getCurrentSeconds());

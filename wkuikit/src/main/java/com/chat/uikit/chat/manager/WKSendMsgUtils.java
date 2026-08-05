@@ -45,6 +45,7 @@ public class WKSendMsgUtils {
             channel = new WKChannel(wkMsg.channelID, wkMsg.channelType);
         }
         EndpointManager.getInstance().invokes(EndpointSID.sendMessage, new WKSendMsgMenu(channel, options));
+        WKIMUtils.getInstance().handleOutgoingSensitiveWords(wkMsg.baseContentMsgModel, channel);
         WKIM.getInstance().getMsgManager().sendWithOptions(wkMsg.baseContentMsgModel, channel, options);
     }
 

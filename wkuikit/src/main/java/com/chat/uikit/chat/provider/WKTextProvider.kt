@@ -1,6 +1,5 @@
 package com.chat.uikit.chat.provider
 
-import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -9,7 +8,6 @@ import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.provider.ContactsContract
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -59,8 +57,6 @@ import com.chat.base.utils.SoftKeyboardUtils
 import com.chat.base.utils.StringUtils
 import com.chat.base.utils.WKDialogUtils
 import com.chat.base.utils.WKImageDisplayUtils
-import com.chat.base.utils.WKPermissions
-import com.chat.base.utils.WKPermissions.IPermissionResult
 import com.chat.base.utils.WKToastUtils
 import com.chat.base.views.BubbleLayout
 import com.chat.uikit.R
@@ -327,72 +323,6 @@ open class WKTextProvider : WKChatBaseProvider() {
                                         cm.setPrimaryClip(mClipData)
                                         WKToastUtils.getInstance()
                                             .showToastNormal(context.getString(R.string.copyed))
-                                    }
-                                })
-                        )
-                        list.add(
-                            BottomSheetItem(
-                                context.getString(R.string.call),
-                                R.mipmap.msg_calls,
-                                object : BottomSheetItem.IBottomSheetClick {
-                                    override fun onClick() {
-                                        val desc = String.format(
-                                            context.getString(R.string.call_phone_permissions_desc),
-                                            context.getString(R.string.app_name)
-                                        );
-                                        WKPermissions.getInstance().checkPermissionsWithPurpose(
-                                            object : IPermissionResult {
-                                                override fun onResult(result: Boolean) {
-                                                    if (result) {
-                                                        val intent =
-                                                            Intent(
-                                                                Intent.ACTION_CALL,
-                                                                Uri.parse("tel:$content")
-                                                            )
-                                                        context.startActivity(intent)
-                                                    }
-                                                }
-
-                                                override fun clickResult(isCancel: Boolean) {
-
-                                                }
-                                            },
-                                            chatAdapter.conversationContext.chatActivity,
-                                            desc,
-                                            com.chat.base.R.string.permission_purpose_phone,
-                                            Manifest.permission.CALL_PHONE
-                                        )
-
-                                    }
-                                })
-                        )
-                        list.add(
-                            BottomSheetItem(
-                                context.getString(R.string.add_to_phone_book),
-                                R.mipmap.msg_contacts,
-                                object : BottomSheetItem.IBottomSheetClick {
-                                    override fun onClick() {
-
-                                        val addIntent = Intent(
-                                            Intent.ACTION_INSERT,
-                                            Uri.withAppendedPath(
-                                                Uri.parse("content://com.android.contacts"),
-                                                "contacts"
-                                            )
-                                        )
-                                        addIntent.type = "vnd.android.cursor.dir/person"
-                                        addIntent.type = "vnd.android.cursor.dir/contact"
-                                        addIntent.type = "vnd.android.cursor.dir/raw_contact"
-                                        addIntent.putExtra(
-                                            ContactsContract.Intents.Insert.NAME,
-                                            ""
-                                        )
-                                        addIntent.putExtra(
-                                            ContactsContract.Intents.Insert.PHONE,
-                                            content
-                                        )
-                                        context.startActivity(addIntent)
-
                                     }
                                 })
                         )

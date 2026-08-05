@@ -101,6 +101,9 @@
     <string name="pull_out_black_list">拉出黑名单</string>
     <string name="black_list_desc">已添加至黑名单，你将不再收到对方的消息</string>
     <string name="report">投诉</string>
+    <string name="sensitive_words_sender_tips">规范发言提醒：请规范使用账号，切勿发布违法违规内容，否则平台有权进行限制相应功能，禁用账号等处罚，感谢您的理解。</string>
+    <string name="sensitive_words_receiver_tips">涉及私下交易、转账等资金问题，谨慎对待，谨防上当受骗，点击标题栏头像可投诉！ 去投诉</string>
+    <string name="sensitive_words_report_action">去投诉</string>
     <string name="input">请输入…</string>
     <string name="single_update_id">%s号只允许修改一次</string>
     <string name="complete">完成</string>

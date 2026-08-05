@@ -23,6 +23,7 @@ import com.chat.base.utils.WKDialogUtils;
 import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKToastUtils;
 import com.chat.uikit.R;
+import com.chat.uikit.chat.manager.WKIMUtils;
 import com.chat.uikit.databinding.ActFavoriteDetailLayoutBinding;
 import com.google.android.material.snackbar.Snackbar;
 import com.xinbida.wukongim.WKIM;
@@ -137,6 +138,7 @@ public class FavoriteDetailActivity extends WKBaseActivity<ActFavoriteDetailLayo
                 return;
             }
             for (WKChannel channel : list) {
+                WKIMUtils.getInstance().handleOutgoingSensitiveWords(messageContent, channel);
                 WKIM.getInstance().getMsgManager().send(messageContent, channel);
             }
             ViewGroup viewGroup = (ViewGroup) findViewById(android.R.id.content).getRootView();

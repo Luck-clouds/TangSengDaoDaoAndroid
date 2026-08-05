@@ -35,6 +35,10 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
         if (userInfoEntity.setting == null) {
             userInfoEntity.setting = new UserInfoSetting();
         }
+        EndpointManager.getInstance().setMethod("refresh_security_privacy_config", object -> {
+            renderSetting();
+            return null;
+        });
     }
 
     @Override
@@ -111,6 +115,8 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
     }
 
     private void renderSetting() {
+        boolean showOfflineProtection = WKConfig.getInstance().getAppConfig().isOfflineProtectionVisible();
+        wkVBinding.offlineProtectionLayout.setVisibility(showOfflineProtection ? View.VISIBLE : View.GONE);
         wkVBinding.searchByPhoneSwitch.setChecked(userInfoEntity.setting.search_by_phone == 1);
         wkVBinding.searchByShortSwitch.setChecked(userInfoEntity.setting.search_by_short == 1);
         wkVBinding.offlineProtectionSwitch.setChecked(userInfoEntity.setting.offline_protection == 1);
@@ -149,6 +155,12 @@ public class SecurityPrivacyActivity extends WKBaseActivity<ActSecurityPrivacyLa
             rollbackAction.run();
             showToast(R.string.unknown_error);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        EndpointManager.getInstance().remove("refresh_security_privacy_config");
+        super.onDestroy();
     }
 
 }

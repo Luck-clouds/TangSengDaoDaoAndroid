@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.Parcelable;
 import android.os.Vibrator;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.chat.base.WKBaseApplication;
 import com.chat.base.common.WKCommonModel;
@@ -57,6 +58,7 @@ import com.xinbida.wukongim.entity.WKConversationMsg;
 import com.xinbida.wukongim.entity.WKMsg;
 import com.xinbida.wukongim.entity.WKUIConversationMsg;
 import com.xinbida.wukongim.message.type.WKSendMsgResult;
+import com.xinbida.wukongim.msgmodel.WKMessageContent;
 import com.xinbida.wukongim.msgmodel.WKTextContent;
 
 import org.json.JSONException;
@@ -65,7 +67,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -73,6 +74,7 @@ import java.util.UUID;
  * im监听相关处理
  */
 public class WKIMUtils {
+    private static final String SENSITIVE_WORDS_LOG_TAG = "WKSensitiveWordsReceive";
     private boolean listenerRegistered = false;
     private final Handler rtcProbeHandler = new Handler(Looper.getMainLooper());
 
@@ -201,7 +203,6 @@ public class WKIMUtils {
             boolean isAlertMsg = false;
             String channelID = "";
             byte channelType = WKChannelType.PERSONAL;
-            WKMsg sensitiveWordsMsg = null;
             String loginUID = WKConfig.getInstance().getUid();
             if (WKReader.isNotEmpty(msgList)) {
                 channelID = msgList.get(msgList.size() - 1).channelID;
@@ -229,38 +230,14 @@ public class WKIMUtils {
                         isAlertMsg = false;
                     }
                     if (msgList.get(i).type == WKContentType.WK_TEXT) {
-                        boolean isContains = false;
-                        WKTextContent textContent = (WKTextContent) msgList.get(i).baseContentMsgModel;
-                        // 判断是否包含敏感词
-                        if (WKUIKitApplication.getInstance().sensitiveWords != null
-                                && WKReader.isNotEmpty(WKUIKitApplication.getInstance().sensitiveWords.list)
-                                && textContent != null && !TextUtils.isEmpty(textContent.getDisplayContent())) {
-                            for (String word : WKUIKitApplication.getInstance().sensitiveWords.list) {
-                                if (textContent.getDisplayContent().contains(word)) {
-                                    isContains = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (isContains) {
-                            sensitiveWordsMsg = new WKMsg();
-                            sensitiveWordsMsg.channelID = msgList.get(i).channelID;
-                            sensitiveWordsMsg.channelType = msgList.get(i).channelType;
-                            JSONObject jsonObject = new JSONObject();
-                            try {
-                                jsonObject.put("content", WKUIKitApplication.getInstance().sensitiveWords.tips);
-                                jsonObject.put("type", WKContentType.sensitiveWordsTips);
-                            } catch (JSONException e) {
-                                WKLogUtils.e("解析敏感词错误");
-                            }
-                            WKChannel channel = new WKChannel(msgList.get(i).channelID, msgList.get(i).channelType);
-                            sensitiveWordsMsg.setChannelInfo(channel);
-                            sensitiveWordsMsg.content = jsonObject.toString();
-                            sensitiveWordsMsg.type = WKContentType.sensitiveWordsTips;
-                            long tempOrderSeq = WKIM.getInstance().getMsgManager().getMessageOrderSeq(0, msgList.get(i).channelID, msgList.get(i).channelType);
-                            sensitiveWordsMsg.orderSeq = tempOrderSeq + 1;
-                            sensitiveWordsMsg.status = WKSendMsgResult.send_success;
-
+                        WKMsg receivedMsg = msgList.get(i);
+                        WKTextContent textContent = (WKTextContent) receivedMsg.baseContentMsgModel;
+                        String displayContent = getOriginalTextContent(receivedMsg, textContent);
+                        SensitiveWordMatch match = findSensitiveWordMatch(displayContent);
+                        // 本地发送在统一发送入口处理；这里只处理真正收到的消息，避免服务端回显造成重复提示。
+                        if (match != null && !TextUtils.equals(loginUID, receivedMsg.fromUID)) {
+                            logReceivedSensitiveWordsMessage(receivedMsg, match.word, match.source, displayContent);
+                            saveSensitiveWordsTip(receivedMsg.channelID, receivedMsg.channelType, false);
                         }
                     }
                 }
@@ -299,10 +276,6 @@ public class WKIMUtils {
 
             assert msgList != null;
 
-            if (sensitiveWordsMsg != null) {
-                WKMsg finalSensitiveWordsMsg = sensitiveWordsMsg;
-                new Handler(Objects.requireNonNull(Looper.myLooper())).postDelayed(() -> WKIM.getInstance().getMsgManager().saveAndUpdateConversationMsg(finalSensitiveWordsMsg, false), 1000 * 2);
-            }
         });
         WKIM.getInstance().getMsgManager().addOnUploadMsgExtraListener(msgExtra -> {
             WKMsg msg = WKIM.getInstance().getMsgManager().getWithMessageID(msgExtra.messageID);
@@ -425,6 +398,115 @@ public class WKIMUtils {
         });
     }
 
+    private void logReceivedSensitiveWordsMessage(WKMsg msg, String matchedWord, String matchedWordSource,
+                                                   String textContent) {
+        JSONObject logData = new JSONObject();
+        try {
+            logData.put("event", "received_sensitive_words_message");
+            logData.put("message_id", msg.messageID);
+            logData.put("client_msg_no", msg.clientMsgNO);
+            logData.put("message_seq", msg.messageSeq);
+            logData.put("from_uid", msg.fromUID);
+            logData.put("channel_id", msg.channelID);
+            logData.put("channel_type", msg.channelType);
+            logData.put("message_type", msg.type);
+            logData.put("matched_word", matchedWord);
+            logData.put("matched_word_source", matchedWordSource);
+            logData.put("text_content", textContent);
+            Log.i(SENSITIVE_WORDS_LOG_TAG, logData.toString());
+        } catch (JSONException e) {
+            Log.e(SENSITIVE_WORDS_LOG_TAG, "Failed to build sensitive words receive log", e);
+        }
+    }
+
+    private String getOriginalTextContent(WKMsg msg, WKTextContent textContent) {
+        String content = textContent == null ? "" : textContent.getDisplayContent();
+        if (msg == null || TextUtils.isEmpty(msg.content)) {
+            return content;
+        }
+        try {
+            String originalContent = new JSONObject(msg.content).optString("content");
+            return TextUtils.isEmpty(originalContent) ? content : originalContent;
+        } catch (JSONException ignored) {
+            return content;
+        }
+    }
+
+    public void handleOutgoingSensitiveWords(WKMessageContent messageContent, WKChannel channel) {
+        if (messageContent == null || channel == null || messageContent.type != WKContentType.WK_TEXT) {
+            return;
+        }
+        SensitiveWordMatch match = findSensitiveWordMatch(messageContent.getDisplayContent());
+        if (match != null) {
+            saveSensitiveWordsTip(channel.channelID, channel.channelType, true);
+        }
+    }
+
+    private SensitiveWordMatch findSensitiveWordMatch(String content) {
+        if (TextUtils.isEmpty(content)) {
+            return null;
+        }
+        // 管理端实际维护的是 prohibit_words，必须在展示层替换为 * 之前完成匹配。
+        List<ProhibitWord> prohibitWords = ProhibitWordModel.Companion.getInstance().getAll();
+        if (WKReader.isNotEmpty(prohibitWords)) {
+            for (ProhibitWord word : prohibitWords) {
+                if (word != null && !TextUtils.isEmpty(word.content) && content.contains(word.content)) {
+                    return new SensitiveWordMatch(word.content, "prohibit_words");
+                }
+            }
+        }
+        // 兼容旧服务端保留的 sensitive_words 提醒词表。
+        if (WKUIKitApplication.getInstance().sensitiveWords != null
+                && WKReader.isNotEmpty(WKUIKitApplication.getInstance().sensitiveWords.list)) {
+            for (String word : WKUIKitApplication.getInstance().sensitiveWords.list) {
+                if (!TextUtils.isEmpty(word) && content.contains(word)) {
+                    return new SensitiveWordMatch(word, "sensitive_words");
+                }
+            }
+        }
+        return null;
+    }
+
+    private void saveSensitiveWordsTip(String channelID, byte channelType, boolean isSelfSent) {
+        if (TextUtils.isEmpty(channelID)) {
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        try {
+            int tipsResId = isSelfSent
+                    ? R.string.sensitive_words_sender_tips
+                    : R.string.sensitive_words_receiver_tips;
+            jsonObject.put("content", WKBaseApplication.getInstance().getContext().getString(tipsResId));
+            jsonObject.put("can_report", !isSelfSent);
+            jsonObject.put("type", WKContentType.sensitiveWordsTips);
+        } catch (JSONException e) {
+            WKLogUtils.e("解析敏感词错误");
+            return;
+        }
+        rtcProbeHandler.postDelayed(() -> {
+            WKMsg tipsMsg = new WKMsg();
+            tipsMsg.channelID = channelID;
+            tipsMsg.channelType = channelType;
+            tipsMsg.setChannelInfo(new WKChannel(channelID, channelType));
+            tipsMsg.content = jsonObject.toString();
+            tipsMsg.type = WKContentType.sensitiveWordsTips;
+            tipsMsg.orderSeq = WKIM.getInstance().getMsgManager()
+                    .getMessageOrderSeq(0, channelID, channelType) + 1;
+            tipsMsg.status = WKSendMsgResult.send_success;
+            WKIM.getInstance().getMsgManager().saveAndUpdateConversationMsg(tipsMsg, false);
+        }, 2000);
+    }
+
+    private static class SensitiveWordMatch {
+        final String word;
+        final String source;
+
+        SensitiveWordMatch(String word, String source) {
+            this.word = word;
+            this.source = source;
+        }
+    }
+
     public WKUIChatMsgItemEntity msg2UiMsg(IConversationContext context, WKMsg msg, int memberCount, boolean showNickName, boolean isChoose) {
         normalizeRtcMessage(msg);
         if (msg.remoteExtra.readedCount == 0) {
@@ -511,7 +593,8 @@ public class WKIMUtils {
                     for (int i = 0; i < word.content.length(); i++) {
                         sb.append("*");
                     }
-                    content = content.replaceAll(word.content, sb.toString());
+                    // 后台词条是字面量，不应按正则表达式解释。
+                    content = content.replace(word.content, sb.toString());
                 }
             }
 

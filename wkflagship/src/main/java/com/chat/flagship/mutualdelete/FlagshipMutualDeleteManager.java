@@ -5,6 +5,8 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.chat.base.WKBaseApplication;
+import com.chat.base.common.WKCommonModel;
+import com.chat.base.config.WKConfig;
 import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.BatchMutualDeleteMenu;
 import com.chat.base.endpoint.entity.ChatItemPopupMenu;
@@ -40,7 +42,7 @@ public class FlagshipMutualDeleteManager {
     }
 
     public ChatItemPopupMenu buildMenu(Object object) {
-        if (!(object instanceof WKMsg msg) || !canMutualDelete(msg)) {
+        if (!isMutualDeleteEnabled() || !(object instanceof WKMsg msg) || !canMutualDelete(msg)) {
             return null;
         }
         Context context = WKBaseApplication.getInstance().getContext();
@@ -49,7 +51,11 @@ public class FlagshipMutualDeleteManager {
     }
 
     public boolean isBatchMutualDeleteAvailable() {
-        return true;
+        return isMutualDeleteEnabled();
+    }
+
+    public boolean isMutualDeleteEnabled() {
+        return WKConfig.getInstance().getAppConfig().isMutualDeleteEnabled();
     }
 
     public String getBatchMutualDeleteTitle() {
@@ -58,7 +64,7 @@ public class FlagshipMutualDeleteManager {
     }
 
     public boolean canBatchMutualDelete(List<WKMsg> msgList) {
-        if (msgList == null || msgList.isEmpty() || msgList.size() > 100) {
+        if (!isMutualDeleteEnabled() || msgList == null || msgList.isEmpty() || msgList.size() > 100) {
             return false;
         }
         for (WKMsg msg : msgList) {
@@ -105,10 +111,15 @@ public class FlagshipMutualDeleteManager {
             if (menu.getResult() != null) {
                 menu.getResult().onResult(false);
             }
+            refreshConfigIfDisabled(errorMsg);
         });
     }
 
     private void mutualDelete(WKMsg msg, IConversationContext conversationContext) {
+        if (!isMutualDeleteEnabled()) {
+            WKCommonModel.getInstance().getAppConfig(null);
+            return;
+        }
         Activity activity = conversationContext.getChatActivity();
         FlagshipMutualDeleteModel.getInstance().mutualDelete(msg, (code, errorMsg) -> {
             if (code == HttpResponseCode.success || code == 0) {
@@ -123,7 +134,15 @@ public class FlagshipMutualDeleteManager {
                         : errorMsg;
                 WKToastUtils.getInstance().showToastNormal(showMsg);
             }
+            refreshConfigIfDisabled(errorMsg);
         });
+    }
+
+    private void refreshConfigIfDisabled(String errorMsg) {
+        if (!TextUtils.isEmpty(errorMsg)
+                && errorMsg.toLowerCase(java.util.Locale.ROOT).contains("mutual delete is disabled")) {
+            WKCommonModel.getInstance().getAppConfig(null);
+        }
     }
 
     public boolean canMutualDelete(WKMsg msg) {

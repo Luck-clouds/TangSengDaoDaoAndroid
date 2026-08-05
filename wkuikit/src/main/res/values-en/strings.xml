@@ -101,6 +101,9 @@
     <string name="pull_out_black_list">Remove Block</string>
     <string name="black_list_desc">Has been added to the blacklist, you will no longer receive messages from the other party</string>
     <string name="report">Report</string>
+    <string name="sensitive_words_sender_tips">Please use your account responsibly. Posting illegal or prohibited content may result in feature restrictions or account suspension. Thank you for your understanding.</string>
+    <string name="sensitive_words_receiver_tips">Be cautious with private transactions, transfers, or other financial matters. Beware of fraud. Tap the title-bar avatar to report this conversation. Report</string>
+    <string name="sensitive_words_report_action">Report</string>
     <string name="input">Input…</string>
     <string name="single_update_id">%s Can only be modified once</string>
     <string name="complete">Complete</string>

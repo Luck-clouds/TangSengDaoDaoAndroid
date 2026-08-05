@@ -95,6 +95,10 @@ public class SecurityPrivacyManager {
             closeOfflineProtection();
             return null;
         });
+        EndpointManager.getInstance().setMethod("refresh_offline_protection_config", object -> {
+            refreshProtectionState();
+            return null;
+        });
     }
 
     private void registerLifecycle(@NonNull Application application) {
@@ -378,6 +382,7 @@ public class SecurityPrivacyManager {
     private boolean isOfflineProtectionEnabled() {
         return WKConfig.getInstance().getUserInfo() != null
                 && WKConfig.getInstance().getUserInfo().setting != null
+                && WKConfig.getInstance().getAppConfig().isOfflineProtectionVisible()
                 && WKConfig.getInstance().getUserInfo().setting.offline_protection == 1;
     }
 

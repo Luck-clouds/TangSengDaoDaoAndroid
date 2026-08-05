@@ -227,6 +227,9 @@ class ChatPanelManager(
         val selectedMsgList = getSelectedMessages()
         val enableMutualDelete = enableNormalAction && (EndpointManager.getInstance()
             .invoke("flagship_can_batch_mutual_delete", selectedMsgList) as? Boolean == true)
+        val showMutualDelete = EndpointManager.getInstance()
+            .invoke("flagship_mutual_delete_enabled", null) as? Boolean == true
+        mutualDeleteView?.visibility = if (showMutualDelete) View.VISIBLE else View.GONE
 
         updateMultipleChoiceActionState(forwardView, forwardIv, forwardTv, enableNormalAction)
         updateMultipleChoiceActionState(deleteView, deleteIv, deleteTv, enableNormalAction)
@@ -251,6 +254,7 @@ class ChatPanelManager(
         isDisableToolBar(true)
         helper.resetState()
         CommonAnim.getInstance().showBottom2Top(multipleChoiceView)
+        updateForwardView(getSelectedMessages().size)
     }
 
     fun hideMultipleChoice() {
