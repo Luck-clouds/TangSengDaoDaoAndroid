@@ -10,7 +10,8 @@ import java.util.UUID;
 
 public class WKConstants {
     public static final String refreshContacts = "refresh_contacts";
-    public static final String newMsgChannelID = "push_oplus_category_content";
+//    public static final String newMsgChannelID = "push_oplus_category_content";
+    public static final String newMsgChannelID = "push_oplus_category_service";
     public static final String newRTCChannelID = "wk_new_rtc_notification";
     public static String imageDir;
     public static String videoDir;
