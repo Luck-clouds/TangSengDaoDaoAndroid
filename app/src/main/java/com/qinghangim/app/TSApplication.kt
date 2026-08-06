@@ -25,6 +25,8 @@ import com.chat.base.config.WKConfig
 import com.chat.base.config.WKConstants
 import com.chat.base.config.WKSharedPreferencesUtil
 import com.chat.base.endpoint.EndpointManager
+import com.chat.base.endpoint.EndpointCategory
+import com.chat.base.endpoint.entity.LoginMenu
 import com.chat.base.ui.Theme
 import com.chat.base.utils.ActManagerUtils
 import com.chat.base.utils.WKPlaySound
@@ -61,6 +63,8 @@ class TSApplication : MultiDexApplication() {
     private var businessInitialized = false
     @Volatile
     private var pushInitialized = false
+    @Volatile
+    private var rtcInitialized = false
 
     override fun onCreate() {
         super.onCreate()
@@ -148,11 +152,38 @@ class TSApplication : MultiDexApplication() {
         WKVideoApplication.getInstance().init(this)
         WKMomentsApplication.getInstance().init(this)
         WKStickerApplication.getInstance().init(this)
-        WKRTCApplication.getInstance().init(this)
+        registerRtcInitializationAfterLogin()
         WKPushApplication.getInstance().registerNotificationDialog(getAppPackageName(), this)
         initPushAfterNotificationAllowed()
         addAppFrontBack()
         addListener()
+    }
+
+    /**
+     * RTC/LiveKit belongs to logged-in communication capability. Keep it out of
+     * the pre-login lifecycle and initialize it before the other login-success
+     * handlers start IM or enter the home page.
+     */
+    private fun registerRtcInitializationAfterLogin() {
+        EndpointManager.getInstance().setMethod(
+            "app_init_rtc_after_login",
+            EndpointCategory.loginMenus,
+            1000
+        ) { LoginMenu { initRtcAfterLogin() } }
+        if (WKConstants.isLogin() && !TextUtils.isEmpty(WKConfig.getInstance().token)) {
+            initRtcAfterLogin()
+        }
+    }
+
+    @Synchronized
+    private fun initRtcAfterLogin() {
+        if (rtcInitialized || !WKConstants.isLogin()
+            || TextUtils.isEmpty(WKConfig.getInstance().token)
+        ) {
+            return
+        }
+        rtcInitialized = true
+        WKRTCApplication.getInstance().init(this)
     }
 
     @Synchronized

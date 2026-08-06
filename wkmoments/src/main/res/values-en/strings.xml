@@ -5,6 +5,7 @@
     <string name="moment_delete">Delete</string>
     <string name="moment_reply">reply</string>
     <string name="moment_notice_empty">No moment notifications</string>
+    <string name="moment_timeline_empty">Nothing here</string>
     <string name="moment_compose_hint">What are you thinking…</string>
     <string name="moment_select_location">Location</string>
     <string name="moment_mention_title">Mention</string>

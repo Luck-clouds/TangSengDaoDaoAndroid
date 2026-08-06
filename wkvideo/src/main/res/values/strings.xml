@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="video_capture">小视频</string>
+    <string name="video_capture_with_sound">拍摄有声视频</string>
     <string name="video_capture_permission_desc">在设置-应用-%1$s-权限中开启相机与麦克风权限，以正常使用小视频拍摄与录制。</string>
     <string name="video_capture_tips">轻触拍照，长按录制</string>
     <string name="video_capture_retry">重拍</string>

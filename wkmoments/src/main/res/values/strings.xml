@@ -5,6 +5,7 @@
     <string name="moment_delete">删除</string>
     <string name="moment_reply">回复</string>
     <string name="moment_notice_empty">暂无朋友圈消息</string>
+    <string name="moment_timeline_empty">空空如也</string>
     <string name="moment_compose_hint">这一刻的想法…</string>
     <string name="moment_select_location">选择位置</string>
     <string name="moment_mention_title">提醒谁看</string>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="video_capture">Short Video</string>
+    <string name="video_capture_with_sound">Record Video with Sound</string>
     <string name="video_capture_permission_desc">Enable camera and microphone permissions in Settings > Apps > %1$s > Permissions to use short video capture and recording.</string>
     <string name="video_capture_tips">Tap to take a photo, hold to record</string>
     <string name="video_capture_retry">Retake</string>

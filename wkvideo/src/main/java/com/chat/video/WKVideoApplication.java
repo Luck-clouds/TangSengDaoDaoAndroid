@@ -7,6 +7,12 @@ package com.chat.video;
 
 import android.Manifest;
 import android.app.Application;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+
+import androidx.core.content.ContextCompat;
 
 import com.chat.base.endpoint.EndpointCategory;
 import com.chat.base.endpoint.EndpointManager;
@@ -16,6 +22,8 @@ import com.chat.base.endpoint.entity.MsgConfig;
 import com.chat.base.msg.IConversationContext;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
+import com.chat.base.ui.components.BottomSheet;
+import com.chat.base.utils.AndroidUtilities;
 import com.chat.base.utils.WKPermissions;
 import com.chat.video.provider.WKVideoProvider;
 import com.chat.video.session.VideoSendSession;
@@ -54,7 +62,7 @@ public class WKVideoApplication {
                         R.mipmap.video_toolbar_capture,
                         R.mipmap.video_toolbar_capture,
                         null,
-                        (isSelected, conversationContext) -> openCapture(conversationContext)
+                        (isSelected, conversationContext) -> showCaptureBottomSheet(conversationContext)
                 )
         );
         // 功能面板入口。
@@ -78,6 +86,37 @@ public class WKVideoApplication {
     private int getFunctionIcon() {
         // 交给 drawable / drawable-night 自动切换，避免功能面板入口只在 init 时取一次图标。
         return R.drawable.video_func_capture;
+    }
+
+    private void showCaptureBottomSheet(IConversationContext conversationContext) {
+        if (conversationContext == null || conversationContext.getChatActivity() == null) return;
+        BottomSheet.Builder builder = new BottomSheet.Builder(conversationContext.getChatActivity(), false);
+        builder.setDimBehind(true);
+        builder.setTitle(conversationContext.getChatActivity().getString(R.string.video_capture), false);
+        builder.setItems(
+                new CharSequence[]{conversationContext.getChatActivity().getString(R.string.video_capture_with_sound)},
+                new int[]{R.drawable.video_menu_capture},
+                (dialog, which) -> openCapture(conversationContext)
+        );
+        BottomSheet bottomSheet = builder.create();
+        bottomSheet.setCanceledOnTouchOutside(true);
+        bottomSheet.show();
+        if (!bottomSheet.getItemViews().isEmpty()) {
+            ImageView imageView = bottomSheet.getItemViews().get(0).getImageView();
+            if (imageView.getLayoutParams() instanceof FrameLayout.LayoutParams params) {
+                params.width = AndroidUtilities.dp(22f);
+                params.height = AndroidUtilities.dp(22f);
+                params.setMarginStart(AndroidUtilities.dp(20f));
+                params.topMargin = 0;
+                params.bottomMargin = 0;
+                imageView.setLayoutParams(params);
+            }
+            imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            Drawable drawable = ContextCompat.getDrawable(imageView.getContext(), R.drawable.video_menu_capture);
+            if (drawable != null) {
+                imageView.setImageDrawable(new InsetDrawable(drawable, AndroidUtilities.dp(2.5f)));
+            }
+        }
     }
 
     private void openCapture(IConversationContext conversationContext) {

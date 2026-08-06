@@ -177,7 +177,11 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         noticeBannerTv = headerView.findViewById(R.id.noticeBannerTv)
         headerAvatarView.setSize(84f, 16f)
         noticeBannerAvatarView.setSize(26f)
-        headerNameTv.text = if (isSelfTimeline) getString(R.string.moment_title) else headerDisplayName
+        headerNameTv.text = if (isSelfTimeline) {
+            WKConfig.getInstance().userInfo.name.orEmpty()
+        } else {
+            headerDisplayName
+        }
         adapter.addHeaderView(headerView)
         wkVBinding.recyclerView.adapter = adapter
         wkVBinding.refreshLayout.setEnableRefresh(true)
@@ -333,8 +337,8 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
                 val channelName = channel?.channelName?.takeIf { it.isNotEmpty() }
                 val displayName = headerDisplayName.takeIf { it.isNotEmpty() }
                 headerNameTv.text = if (isSelfTimeline) {
-                    channelName
-                        ?: fallbackName.ifEmpty { getString(R.string.moment_title) }
+                    // 本人的昵称只认登录成功后保存的用户资料，避免频道缓存或 UID 被当作昵称显示。
+                    WKConfig.getInstance().userInfo.name.orEmpty()
                 } else {
                     remarkName
                         ?: channelName
@@ -345,6 +349,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
                 refreshHeaderCoverFromProfile()
                 if (isRefresh) {
                     adapter.setList(page.list)
+                    updateEmptyState()
                 } else {
                     adapter.addData(page.list)
                 }
@@ -379,6 +384,10 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
         }
         noticeBannerTv.text = getString(R.string.moment_notice_banner_count, unreadList.size)
         noticeBannerLayout.visibility = View.VISIBLE
+    }
+
+    private fun updateEmptyState() {
+        wkVBinding.emptyTv.visibility = if (adapter.data.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun updateTitleBar(progress: Float) {
@@ -754,6 +763,7 @@ class MomentTimelineActivity : WKBaseActivity<ActMomentTimelineLayoutBinding>() 
                 val index = adapter.data.indexOfFirst { it.postId == post.postId }
                 if (index >= 0) {
                     adapter.removeAt(index)
+                    updateEmptyState()
                 }
             }
         }
