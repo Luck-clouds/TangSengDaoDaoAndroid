@@ -34,6 +34,11 @@
         <activity android:name=".contacts.label.LabelEditActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteListActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteDetailActivity" android:exported="false" />
+        <activity android:name=".memo.MemoListActivity" android:exported="false" />
+        <activity
+            android:name=".memo.MemoEditActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".setting.SecurityPrivacyActivity" android:exported="false" />
         <activity android:name=".setting.ContactUsActivity" android:exported="false" />
         <activity
@@ -92,6 +97,7 @@
 
         <activity android:name=".search.MailListActivity" android:exported="false" />
         <activity android:name=".message.BackupRestoreMessageActivity" android:exported="false" />
+        <activity android:name=".message.export.ChatExportActivity" android:exported="false" />
         <activity android:name=".setting.AppModulesActivity" android:exported="false" />
         <activity android:name=".setting.ErrorLogsActivity" android:exported="false" />
         <activity

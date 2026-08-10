@@ -38,5 +38,8 @@ android {
 }
 dependencies {
     api project(':wkbase')
+    // WuKongIM 在运行时提供 SQLCipher；导出消息库快照仅需编译期类型。
+    compileOnly 'net.zetetic:sqlcipher-android:4.9.0'
+    compileOnly 'androidx.sqlite:sqlite:2.5.1'
 //    implementation "androidx.work:work-runtime:2.8.1"
 }

@@ -470,5 +470,32 @@
     <string name="invite_code_not_null">&#x9080;&#x8BF7;&#x7801;&#x4E0D;&#x80FD;&#x4E3A;&#x7A7A;</string>
     <string name="bind_invite_code_success">&#x9080;&#x8BF7;&#x7801;&#x7ED1;&#x5B9A;&#x6210;&#x529F;</string>
     <string name="invite_code_already_bound">&#x9080;&#x8BF7;&#x7801;&#x5DF2;&#x7ED1;&#x5B9A;&#xFF0C;&#x4E0D;&#x80FD;&#x4FEE;&#x6539;</string>
+    <string name="violation_record">违规记录</string>
+    <string name="coming_soon">暂未开放</string>
+    <string name="memo">备忘录</string>
+    <string name="memo_new">新建</string>
+    <string name="memo_empty">暂无记录</string>
+    <string name="memo_no_title">无标题</string>
+    <string name="memo_title_hint">标题</string>
+    <string name="memo_content_hint">内容</string>
+    <string name="memo_save">保存</string>
+    <string name="memo_input">请输入内容</string>
+    <string name="memo_saved">已保存</string>
+    <string name="memo_save_fail">保存失败</string>
+    <string name="memo_delete">删除</string>
+    <string name="memo_delete_confirm">删除这条记录？</string>
+    <string name="memo_delete_fail">删除失败</string>
+    <string name="memo_discard">放弃修改？</string>
+    <string name="chat_export">导出聊天记录</string>
+    <string name="chat_export_tip">导出本机聊天记录</string>
+    <string name="chat_export_files">包含聊天文件</string>
+    <string name="chat_export_warning">文件未加密，请妥善保管</string>
+    <string name="chat_export_action">导出</string>
+    <string name="chat_export_file_name">卿航IM聊天记录_%1$s.zip</string>
+    <string name="chat_export_running">正在导出</string>
+    <string name="chat_export_success">导出完成</string>
+    <string name="chat_export_partial">导出完成，%1$d 个文件缺失</string>
+    <string name="chat_export_fail">导出失败</string>
+    <string name="chat_export_no_data">暂无聊天记录</string>
 </resources>
 

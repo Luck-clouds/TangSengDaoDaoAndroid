@@ -18,6 +18,7 @@ import com.chat.uikit.R;
 import com.chat.uikit.WKUIKitApplication;
 import com.chat.uikit.databinding.ActSettingLayoutBinding;
 import com.chat.uikit.message.BackupRestoreMessageActivity;
+import com.chat.uikit.message.export.ChatExportActivity;
 import com.chat.uikit.user.service.UserModel;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannelType;
@@ -98,6 +99,8 @@ public class SettingActivity extends WKBaseActivity<ActSettingLayoutBinding> {
             intent.putExtra("handle_type", 2);
             startActivity(intent);
         });
+        SingleClickUtil.onSingleClick(wkVBinding.chatExportLayout,
+                view1 -> startActivity(new Intent(this, ChatExportActivity.class)));
         SingleClickUtil.onSingleClick(wkVBinding.thirdShareLayout, view1 -> {
             Intent intent = new Intent(this, WKWebViewActivity.class);
             intent.putExtra("url", WKApiConfig.baseWebUrl + "sdkinfo.html");

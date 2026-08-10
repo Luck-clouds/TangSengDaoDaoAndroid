@@ -26,5 +26,6 @@
 /captures
 .externalNativeBuild
 .cxx
+/.kotlin
 local.properties
 /.vscode
