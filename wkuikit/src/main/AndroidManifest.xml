@@ -35,6 +35,7 @@
         <activity android:name=".favorite.FavoriteListActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteDetailActivity" android:exported="false" />
         <activity android:name=".memo.MemoListActivity" android:exported="false" />
+        <activity android:name=".violation.ViolationRecordActivity" android:exported="false" />
         <activity
             android:name=".memo.MemoEditActivity"
             android:exported="false"

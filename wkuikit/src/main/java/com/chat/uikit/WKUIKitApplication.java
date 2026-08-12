@@ -148,6 +148,7 @@ import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
 import com.chat.uikit.user.service.UserModel;
+import com.chat.uikit.violation.ViolationRecordActivity;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelMember;
@@ -594,7 +595,11 @@ public class WKUIKitApplication {
         }));
         EndpointManager.getInstance().setMethod("personal_center_violation_record", EndpointCategory.personalCenter, 45,
                 object -> new PersonalInfoMenu(R.drawable.ic_violation_record, mContext.get().getString(R.string.violation_record),
-                        () -> WKToastUtils.getInstance().showToastNormal(mContext.get().getString(R.string.coming_soon))));
+                        () -> {
+                            Intent intent = new Intent(mContext.get(), ViolationRecordActivity.class);
+                            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                            mContext.get().startActivity(intent);
+                        }));
         EndpointManager.getInstance().setMethod("personal_center_memo", EndpointCategory.personalCenter, 42,
                 object -> new PersonalInfoMenu(R.drawable.ic_memo, mContext.get().getString(R.string.memo), () -> {
                     Intent intent = new Intent(mContext.get(), MemoListActivity.class);

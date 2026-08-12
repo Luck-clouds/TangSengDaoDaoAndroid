@@ -50,22 +50,7 @@ public class WKPermissions {
             iPermissionResult.onResult(true);
             return;
         }
-        WKDialogUtils.getInstance().showDialog(activity,
-                activity.getString(R.string.authorization_request),
-                purpose,
-                false,
-                activity.getString(R.string.cancel),
-                activity.getString(R.string.sure),
-                0,
-                Theme.colorAccount,
-                index -> {
-                    if (index == 1) {
-                        requestSystemPermissions(iPermissionResult, activity, authDesc, permissions);
-                    } else {
-                        iPermissionResult.clickResult(true);
-                        iPermissionResult.onResult(false);
-                    }
-                });
+        requestSystemPermissions(iPermissionResult, activity, authDesc, purpose, permissions);
     }
 
     public boolean hasPermissions(FragmentActivity activity, String... permissions) {
@@ -79,9 +64,15 @@ public class WKPermissions {
         return true;
     }
 
-    private void requestSystemPermissions(final IPermissionResult iPermissionResult, FragmentActivity activity, String authDesc, String... permissions) {
+    private void requestSystemPermissions(final IPermissionResult iPermissionResult,
+                                          FragmentActivity activity,
+                                          String authDesc,
+                                          CharSequence purpose,
+                                          String... permissions) {
+        PermissionNotice.show(activity, purpose);
         RxPermissions rxPermissions = new RxPermissions(activity);
         rxPermissions.request(permissions).subscribe(aBoolean -> {
+            PermissionNotice.dismiss(activity);
             if (!aBoolean) {
                 WKDialogUtils.getInstance().showDialog(activity, activity.getString(R.string.authorization_request), authDesc ,false,activity.getString(R.string.cancel), activity.getString(R.string.to_set),0, Theme.colorAccount, index -> {
                     if (index == 1) {
@@ -94,6 +85,9 @@ public class WKPermissions {
                 });
             }
             iPermissionResult.onResult(aBoolean);
+        }, throwable -> {
+            PermissionNotice.dismiss(activity);
+            iPermissionResult.onResult(false);
         });
     }
 
