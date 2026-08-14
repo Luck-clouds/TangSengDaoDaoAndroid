@@ -55,7 +55,6 @@ import com.chat.base.endpoint.entity.ChatToolBarMenu;
 import com.chat.base.endpoint.entity.ChatViewMenu;
 import com.chat.base.endpoint.entity.ChooseChatMenu;
 import com.chat.base.endpoint.entity.ChooseContactsMenu;
-import com.chat.base.endpoint.entity.CreateVideoCallMenu;
 import com.chat.base.endpoint.entity.ContactsMenu;
 import com.chat.base.endpoint.entity.DBMenu;
 import com.chat.base.endpoint.entity.LoginMenu;
@@ -126,8 +125,6 @@ import com.chat.uikit.contacts.service.FriendModel;
 import com.chat.uikit.enity.SensitiveWords;
 import com.chat.uikit.favorite.FavoriteListActivity;
 import com.chat.uikit.favorite.FavoriteModel;
-import com.chat.uikit.group.ChooseVideoCallMembersActivity;
-import com.chat.uikit.group.GroupCallSettings;
 import com.chat.uikit.memo.MemoListActivity;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
@@ -637,8 +634,13 @@ public class WKUIKitApplication {
             }
             return new PersonalInfoMenu("invite_code", R.drawable.ic_bind_invite_code, mContext.get().getString(R.string.bind_invite_code), this::showBindInviteCodeDialog);
         });
-
-        EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login), () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get())));
+        EndpointManager.getInstance().setMethod("personal_center_web_login", EndpointCategory.personalCenter, 1000, object -> {
+            if (!WKConfig.getInstance().getAppConfig().isWebLoginVisible()) {
+                return null;
+            }
+            return new PersonalInfoMenu(R.mipmap.icon_web_login, mContext.get().getString(R.string.web_login),
+                    () -> EndpointManager.getInstance().invoke("show_web_login_desc", mContext.get()));
+        });
 
         //添加通讯录
         EndpointManager.getInstance().setMethod(EndpointCategory.mailList + "_friends", EndpointCategory.mailList, 100, object -> new ContactsMenu("friend", R.mipmap.icon_new_friend, mContext.get().getString(R.string.new_friends), () -> {
@@ -1159,48 +1161,9 @@ public class WKUIKitApplication {
             return;
         }
         if (conversationContext.getChatChannelInfo().channelType != WKChannelType.PERSONAL) {
-            if (!GroupCallSettings.isEnabled(conversationContext.getChatChannelInfo(), callType)) {
-                WKToastUtils.getInstance().showToastNormal(
-                        conversationContext.getChatActivity().getString(R.string.group_call_disabled)
-                );
-                return;
-            }
-            showGroupCallModeDialog(conversationContext, callType);
             return;
         }
         EndpointManager.getInstance().invoke("wk_p2p_call", new RTCMenu(conversationContext, callType));
-    }
-
-    private void showGroupCallModeDialog(IConversationContext conversationContext, int callType) {
-        Activity activity = conversationContext.getChatActivity();
-        if (activity == null) {
-            return;
-        }
-        String[] items = {"邀请全体成员通话", "选择成员通话"};
-        new AlertDialog.Builder(activity)
-                .setItems(items, (dialog, which) -> {
-                    if (which == 0) {
-                        EndpointManager.getInstance().invoke(
-                                "create_video_call",
-                                new CreateVideoCallMenu(
-                                        activity,
-                                        conversationContext.getChatChannelInfo().channelID,
-                                        conversationContext.getChatChannelInfo().channelType,
-                                        null,
-                                        callType
-                                )
-                        );
-                    } else {
-                        Intent intent = new Intent(activity, ChooseVideoCallMembersActivity.class);
-                        intent.putExtra("channelID", conversationContext.getChatChannelInfo().channelID);
-                        intent.putExtra("channelType", conversationContext.getChatChannelInfo().channelType);
-                        intent.putExtra("isCreate", true);
-                        intent.putExtra("callType", callType);
-                        activity.startActivity(intent);
-                    }
-                })
-                .create()
-                .show();
     }
 
     private void showBindInviteCodeDialog() {

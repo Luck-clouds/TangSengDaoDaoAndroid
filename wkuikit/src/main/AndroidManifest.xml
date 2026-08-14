@@ -90,10 +90,6 @@
         <activity android:name=".user.WKSystemTeamActivity" android:exported="false" />
         <activity android:name=".group.WKSetGroupRemarkActivity" android:exported="false" />
         <activity android:name=".setting.WKSetFontSizeActivity" android:exported="false" />
-        <activity
-            android:name=".group.ChooseVideoCallMembersActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan|stateHidden" />
         <activity android:name=".setting.WKAboutActivity" android:exported="false" />
 
         <activity android:name=".search.MailListActivity" android:exported="false" />

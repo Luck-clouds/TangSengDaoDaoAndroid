@@ -65,7 +65,6 @@ public class MsgModel extends WKBaseModel {
     private MsgModel() {
 
     }
-   public List<WKChannelState> channelStatus;
     private int last_message_seq;
 
     private static class MsgModelBinder {
@@ -381,7 +380,7 @@ public class MsgModel extends WKBaseModel {
             else if (typeObject instanceof String) {
                 String type = (String) typeObject;
                 if ("rtc_notice".equals(type)) {
-                    msg.type = WKContentType.rtcNotice;
+                    msg.isDeleted = 1;
                 } else if ("rtc_record".equals(type)) {
                     msg.type = WKContentType.rtcRecord;
                 }
@@ -414,13 +413,11 @@ public class MsgModel extends WKBaseModel {
                     if (WKReader.isNotEmpty(result.conversations)) {
                         WKUIKitApplication.getInstance().isRefreshChatActivityMessage = true;
                     }
-                    channelStatus = result.channel_status;
                     iSyncConversationChatBack.onBack(result);
                     last_message_seq = 0;
                     syncCmdMsgs(0);
                     ackDeviceUUID();
                     syncReminder();
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> EndpointManager.getInstance().invoke("refresh_conversation_calling",null),300);
                 } else {
                     iSyncConversationChatBack.onBack(null);
                 }

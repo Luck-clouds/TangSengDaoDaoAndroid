@@ -28,8 +28,6 @@ public class ChannelInfoEntity {
     public int flame;
     public int flame_second;
     public int device_flag;
-    public Integer audio_call_enabled;
-    public Integer video_call_enabled;
     public Map extra;
 
 

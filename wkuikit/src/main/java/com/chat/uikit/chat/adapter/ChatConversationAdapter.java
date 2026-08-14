@@ -23,7 +23,6 @@ import com.chat.base.endpoint.EndpointManager;
 import com.chat.base.endpoint.entity.AvatarOtherViewMenu;
 import com.chat.base.endpoint.entity.ShowCommunityAvatarMenu;
 import com.chat.base.entity.PopupMenuItem;
-import com.chat.base.entity.WKChannelState;
 import com.chat.base.msgitem.WKContentType;
 import com.chat.base.msgitem.WKMsgItemViewManager;
 import com.chat.base.msgitem.WKRevokeProvider;
@@ -165,7 +164,7 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
     private String getContent(WKMsg msg) {
         String content = "";
         if (msg == null || msg.isDeleted == 1) return content;
-        if (msg.type == WKContentType.rtcNotice || msg.type == WKContentType.rtcRecord) {
+        if (msg.type == WKContentType.rtcRecord) {
             String rtcContent = getRtcPreviewContentV2(msg);
             if (!TextUtils.isEmpty(rtcContent)) {
                 return rtcContent;
@@ -218,12 +217,6 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
             String callType = payload.optString("call_type");
             String recordType = payload.optString("record_type");
             boolean isVideo = TextUtils.equals(callType, "video");
-            if (msg.type == WKContentType.rtcNotice && TextUtils.isEmpty(recordType) && payload.optBoolean("invite_all", false)) {
-                return "\u7fa4\u901a\u8bdd\u8fdb\u884c\u4e2d";
-            }
-            if (msg.type == WKContentType.rtcNotice && TextUtils.isEmpty(recordType)) {
-                return isVideo ? "\u53d1\u8d77\u89c6\u9891\u901a\u8bdd" : "\u53d1\u8d77\u8bed\u97f3\u901a\u8bdd";
-            }
             if (TextUtils.equals(recordType, "answered")) {
                 return isVideo ? "\u89c6\u9891\u901a\u8bdd\u5df2\u7ed3\u675f" : "\u8bed\u97f3\u901a\u8bdd\u5df2\u7ed3\u675f";
             }
@@ -238,7 +231,7 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
             }
             return isVideo ? "\u89c6\u9891\u901a\u8bdd" : "\u8bed\u97f3\u901a\u8bdd";
         } catch (Exception ignored) {
-            return msg.type == WKContentType.rtcNotice ? "\u53d1\u8d77\u901a\u8bdd" : "\u901a\u8bdd\u8bb0\u5f55";
+            return "\u901a\u8bdd\u8bb0\u5f55";
         }
     }
 
@@ -565,7 +558,6 @@ public class ChatConversationAdapter extends BaseQuickAdapter<ChatConversationMs
     }
 
     private void showCalling(final BaseViewHolder helper, ChatConversationMsg conversationMsg) {
-        helper.setGone(R.id.callingIv, conversationMsg.isCalling == 0);
     }
 
     public enum ItemMenu {

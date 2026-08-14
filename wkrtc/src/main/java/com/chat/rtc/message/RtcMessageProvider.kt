@@ -1,7 +1,6 @@
 package com.chat.rtc.message
 
 import android.graphics.Color
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -19,12 +18,11 @@ import com.chat.base.msgitem.WKContentType
 import com.chat.base.msgitem.WKUIChatMsgItemEntity
 import com.chat.base.views.BubbleLayout
 import com.chat.rtc.R
-import com.chat.rtc.RtcManager
 import org.json.JSONObject
 import org.telegram.ui.Components.RLottieImageView
 import java.util.Locale
 
-open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord) : WKChatBaseProvider() {
+open class RtcMessageProvider : WKChatBaseProvider() {
     override fun getChatViewItem(parentView: ViewGroup, from: WKChatIteMsgFromType): View {
         return LayoutInflater.from(context).inflate(R.layout.chat_item_rtc_message, parentView, false)
     }
@@ -49,7 +47,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val callType = payload?.optString("call_type").orEmpty()
         val recordType = payload?.optString("record_type").orEmpty()
         val isVideo = callType == "video"
-        val isOngoingNotice = isOngoingNotice(payload, recordType)
+        val isOngoingNotice = false
         val titleTextColor = when {
             isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, android.R.color.black)
@@ -67,13 +65,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
 
         iconIv.setImageResource(resolveIcon(isVideo, isSend))
         iconIv.setColorFilter(Color.BLACK)
-        titleTv.text = if (isOngoingNotice) {
-            "\u7fa4\u901a\u8bdd\u8fdb\u884c\u4e2d"
-        } else if (rtcType == WKContentType.rtcNotice && TextUtils.isEmpty(recordType)) {
-            if (isVideo) "\u53d1\u8d77\u89c6\u9891\u901a\u8bdd" else "\u53d1\u8d77\u8bed\u97f3\u901a\u8bdd"
-        } else {
-            recordText(recordType, isVideo, isSend)
-        }
+        titleTv.text = recordText(recordType, isVideo, isSend)
         titleTv.setTextColor(titleTextColor)
         subtitleTv.setTextColor(metaTextColor)
         durationTv.setTextColor(metaTextColor)
@@ -143,11 +135,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val bubbleLayout = parentView.findViewById<View>(R.id.bubbleLayout)
         addLongClick(bubbleLayout, uiChatMsgItemEntity)
         bubbleLayout.setOnClickListener {
-            if (isOngoingNotice(uiChatMsgItemEntity)) {
-                RtcManager.getInstance().openOngoingGroupCallFromMessage(uiChatMsgItemEntity.wkMsg)
-            } else {
-                restartCall(uiChatMsgItemEntity)
-            }
+            restartCall(uiChatMsgItemEntity)
         }
     }
 
@@ -163,7 +151,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         val isSend = fromType == WKChatIteMsgFromType.SEND
         val payload = runCatching { JSONObject(uiChatMsgItemEntity.wkMsg.content ?: "{}") }.getOrNull()
         val recordType = payload?.optString("record_type").orEmpty()
-        val isOngoingNotice = isOngoingNotice(payload, recordType)
+        val isOngoingNotice = false
         val color = when {
             isOngoingNotice || isSend -> Color.BLACK
             else -> ContextCompat.getColor(context, com.chat.base.R.color.color999)
@@ -174,7 +162,7 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
     }
 
     override val itemViewType: Int
-        get() = rtcType
+        get() = WKContentType.rtcRecord
 
     private fun restartCall(uiChatMsgItemEntity: WKUIChatMsgItemEntity) {
         val chatAdapter = getAdapter() as? ChatAdapter ?: return
@@ -214,25 +202,9 @@ open class RtcMessageProvider(private val rtcType: Int = WKContentType.rtcRecord
         }
     }
 
-    private fun isOngoingNotice(uiChatMsgItemEntity: WKUIChatMsgItemEntity): Boolean {
-        if (rtcType != WKContentType.rtcNotice) {
-            return false
-        }
-        val payload = runCatching { JSONObject(uiChatMsgItemEntity.wkMsg.content ?: "{}") }.getOrNull()
-        return isOngoingNotice(payload, payload?.optString("record_type").orEmpty())
-    }
-
-    private fun isOngoingNotice(payload: JSONObject?, recordType: String): Boolean {
-        return rtcType == WKContentType.rtcNotice
-                && TextUtils.isEmpty(recordType)
-                && !payload?.optString("call_id").isNullOrEmpty()
-    }
-
     private fun dp(value: Int): Int {
         return (value * context.resources.displayMetrics.density + 0.5f).toInt()
     }
 }
 
-class RtcNoticeProvider : RtcMessageProvider(WKContentType.rtcNotice)
-
-class RtcRecordProvider : RtcMessageProvider(WKContentType.rtcRecord)
+class RtcRecordProvider : RtcMessageProvider()

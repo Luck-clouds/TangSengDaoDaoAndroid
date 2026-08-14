@@ -231,10 +231,6 @@
     <string name="in_group_name">In Group Name:</string>
     <string name="group_owner">owner</string>
     <string name="group_manager">manager</string>
-    <string name="group_call_settings">Group call settings</string>
-    <string name="group_audio_call_enabled">Allow group audio calls</string>
-    <string name="group_video_call_enabled">Allow group video calls</string>
-    <string name="group_call_disabled">This group call feature has been disabled</string>
     <string name="forbidden_to_day">Lift the ban after %d days</string>
     <string name="forbidden_to_hour">Lift the ban after %d hours</string>
     <string name="forbidden_to_minute">Lift the ban after %d minutes</string>

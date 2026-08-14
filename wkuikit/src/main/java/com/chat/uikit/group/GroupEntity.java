@@ -23,8 +23,6 @@ public class GroupEntity implements Parcelable {
     public int screenshot;
     public int chat_pwd_on;
     public int allow_view_history_msg;
-    public int audio_call_enabled = 1;
-    public int video_call_enabled = 1;
     public int join_group_remind;
     public int revoke_remind;
     public String notice;
@@ -56,8 +54,6 @@ public class GroupEntity implements Parcelable {
         status = in.readInt();
         receipt = in.readInt();
         allow_view_history_msg = in.readInt();
-        audio_call_enabled = in.readInt();
-        video_call_enabled = in.readInt();
         avatar = in.readString();
     }
 
@@ -100,8 +96,6 @@ public class GroupEntity implements Parcelable {
         dest.writeInt(status);
         dest.writeInt(receipt);
         dest.writeInt(allow_view_history_msg);
-        dest.writeInt(audio_call_enabled);
-        dest.writeInt(video_call_enabled);
         dest.writeString(avatar);
     }
 }

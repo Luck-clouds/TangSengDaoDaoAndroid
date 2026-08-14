@@ -106,27 +106,6 @@ public class GroupModel extends WKBaseModel {
         });
     }
 
-    public void updateGroupCallSettings(String groupNo, int audioEnabled, int videoEnabled, final ICommonListener listener) {
-        JSONObject body = new JSONObject();
-        body.put("audio_call_enabled", audioEnabled);
-        body.put("video_call_enabled", videoEnabled);
-        request(createService(GroupService.class).updateGroupCallSettings(groupNo, body), new IRequestResultListener<>() {
-            @Override
-            public void onSuccess(CommonResponse result) {
-                if (listener != null) {
-                    listener.onResult(result.status, result.msg);
-                }
-            }
-
-            @Override
-            public void onFail(int code, String msg) {
-                if (listener != null) {
-                    listener.onResult(code, msg);
-                }
-            }
-        });
-    }
-
     /**
      * 添加群成员
      *

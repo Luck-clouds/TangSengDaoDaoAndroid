@@ -25,8 +25,6 @@ import com.chat.base.utils.LayoutHelper;
 import com.chat.base.utils.WKReader;
 import com.chat.uikit.R;
 import com.chat.uikit.databinding.ActGroupManageLayoutBinding;
-import com.chat.uikit.group.GroupCallSettings;
-import com.chat.uikit.group.GroupEntity;
 import com.chat.uikit.group.service.GroupModel;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
@@ -42,8 +40,6 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
     private String groupNo;
     private WKChannel groupChannel;
     private WKChannelMember loginMember;
-    private int audioCallEnabled = 1;
-    private int videoCallEnabled = 1;
 
     @Override
     protected ActGroupManageLayoutBinding getViewBinding() {
@@ -82,16 +78,6 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
                 updateSetting(GroupManageConstants.KEY_ALLOW_VIEW_HISTORY_MSG, checked, wkVBinding.allowViewHistorySwitchView, true);
             }
         });
-        wkVBinding.audioCallSwitchView.setOnCheckedChangeListener((compoundButton, checked) -> {
-            if (compoundButton.isPressed()) {
-                updateCallSettings(checked ? 1 : 0, videoCallEnabled, wkVBinding.audioCallSwitchView, checked);
-            }
-        });
-        wkVBinding.videoCallSwitchView.setOnCheckedChangeListener((compoundButton, checked) -> {
-            if (compoundButton.isPressed()) {
-                updateCallSettings(audioCallEnabled, checked ? 1 : 0, wkVBinding.videoCallSwitchView, checked);
-            }
-        });
         wkVBinding.blacklistLayout.setOnClickListener(v -> {
             Intent intent = new Intent(this, GroupBlacklistActivity.class);
             intent.putExtra(GroupManageConstants.EXTRA_GROUP_ID, groupNo);
@@ -121,11 +107,6 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
             groupChannel = WKIM.getInstance().getChannelManager().getChannel(groupNo, WKChannelType.GROUP);
             applySwitchData();
         });
-        GroupModel.getInstance().getGroupDetail(groupNo, (code, msg, detail) -> {
-            if (code == HttpResponseCode.success && detail != null) {
-                applyCallSettings(detail);
-            }
-        });
         if (syncMembers) {
             GroupModel.getInstance().groupMembersFullSync(groupNo, (code, msg) -> renderManagerMembers());
         }
@@ -141,12 +122,6 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
         wkVBinding.forbiddenSwitchView.setChecked(groupChannel.forbidden == 1);
         wkVBinding.forbiddenAddFriendSwitchView.setChecked(GroupManageUtils.getIntFromMap(groupChannel.remoteExtraMap, GroupManageConstants.KEY_FORBIDDEN_ADD_FRIEND) == 1);
         wkVBinding.allowViewHistorySwitchView.setChecked(GroupManageUtils.getIntFromMap(groupChannel.remoteExtraMap, GroupManageConstants.KEY_ALLOW_VIEW_HISTORY_MSG) == 1);
-        audioCallEnabled = GroupCallSettings.isEnabled(groupChannel, 0) ? 1 : 0;
-        videoCallEnabled = GroupCallSettings.isEnabled(groupChannel, 1) ? 1 : 0;
-        wkVBinding.audioCallSwitchView.setChecked(audioCallEnabled == 1);
-        wkVBinding.videoCallSwitchView.setChecked(videoCallEnabled == 1);
-        boolean canManage = loginMember != null && loginMember.role != WKChannelMemberRole.normal;
-        wkVBinding.callSettingsLayout.setVisibility(canManage ? View.VISIBLE : View.GONE);
         boolean isOwner = loginMember != null && loginMember.role == WKChannelMemberRole.admin;
         wkVBinding.transferOwnerLayout.setVisibility(isOwner ? View.VISIBLE : View.GONE);
         wkVBinding.addManagerLayout.setVisibility(View.GONE);
@@ -324,27 +299,6 @@ public class GroupManagerActivity extends WKBaseActivity<ActGroupManageLayoutBin
                     renderManagerMembers();
                 }
             });
-        });
-    }
-
-    private void applyCallSettings(GroupEntity detail) {
-        audioCallEnabled = detail.audio_call_enabled == 0 ? 0 : 1;
-        videoCallEnabled = detail.video_call_enabled == 0 ? 0 : 1;
-        GroupCallSettings.apply(groupNo, audioCallEnabled, videoCallEnabled);
-        applySwitchData();
-    }
-
-    private void updateCallSettings(int newAudioEnabled, int newVideoEnabled, SwitchView changedSwitch, boolean checked) {
-        GroupModel.getInstance().updateGroupCallSettings(groupNo, newAudioEnabled, newVideoEnabled, (code, msg) -> {
-            if (code != HttpResponseCode.success) {
-                changedSwitch.setChecked(!checked);
-                showToast(msg);
-                return;
-            }
-            audioCallEnabled = newAudioEnabled;
-            videoCallEnabled = newVideoEnabled;
-            GroupCallSettings.apply(groupNo, audioCallEnabled, videoCallEnabled);
-            applySwitchData();
         });
     }
 

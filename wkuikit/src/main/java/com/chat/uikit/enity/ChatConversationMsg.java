@@ -27,7 +27,6 @@ public class ChatConversationMsg {
     public int isTop;
     public List<ChatConversationMsg> childList;
     private final String loginUID;
-    public int isCalling = 0;
 
     public ChatConversationMsg(WKUIConversationMsg msg) {
         this.uiConversationMsg = msg;
