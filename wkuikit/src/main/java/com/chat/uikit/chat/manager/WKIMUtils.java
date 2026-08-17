@@ -266,7 +266,9 @@ public class WKIMUtils {
                 WKChannel channel = WKIM.getInstance().getChannelManager().getChannel(channelID, channelType);
                 if (channel != null && channel.mute == 0) {
                     WKMsg latestMsg = msgList.get(msgList.size() - 1);
-                    if (latestMsg.type != WKContentType.rtcNotice) {
+                    if (latestMsg.type == WKContentType.rtcNotice) {
+                        EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(latestMsg.channelID, latestMsg.channelType));
+                    } else {
                         showNotification(latestMsg, msgShowDetail, channel, playNewMsgMedia, isVibrate);
                     }
                 }
@@ -570,7 +572,7 @@ public class WKIMUtils {
             JSONObject content = new JSONObject(msg.content);
             String type = content.optString("type");
             if ("rtc_notice".equals(type)) {
-                msg.isDeleted = 1;
+                msg.type = WKContentType.rtcNotice;
             } else if ("rtc_record".equals(type)) {
                 msg.type = WKContentType.rtcRecord;
             }
@@ -842,9 +844,7 @@ public class WKIMUtils {
     private void syncRtcExtraCandidates(String channelID, byte channelType, long delayMs) {
         Runnable task = () -> {
             MsgModel.getInstance().syncExtraMsg(channelID, channelType);
-            if (channelType == WKChannelType.PERSONAL) {
-                EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelID, channelType));
-            }
+            EndpointManager.getInstance().invoke("rtc_probe_channel_state", new WKChannel(channelID, channelType));
             if (channelType != WKChannelType.PERSONAL) {
                 return;
             }

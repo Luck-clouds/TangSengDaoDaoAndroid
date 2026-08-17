@@ -194,6 +194,12 @@ public class WKCommonModel extends WKBaseModel {
             wkChannel.parentChannelType = entity.parent_channel.channel_type;
         }
         wkChannel.remoteExtraMap = entity.extra == null ? new HashMap<>() : new HashMap<>(entity.extra);
+        if (entity.audio_call_enabled != null) {
+            wkChannel.remoteExtraMap.put("audio_call_enabled", entity.audio_call_enabled);
+        }
+        if (entity.video_call_enabled != null) {
+            wkChannel.remoteExtraMap.put("video_call_enabled", entity.video_call_enabled);
+        }
         hashMap.put(WKChannelExtras.beDeleted, entity.be_deleted);
         hashMap.put(WKChannelExtras.beBlacklist, entity.be_blacklist);
         hashMap.put(WKChannelExtras.notice, entity.notice);

@@ -26,10 +26,6 @@ public class WKAPPConfig {
                 || show_register_invite_code_input_on == 1;
     }
 
-    public boolean isWebLoginVisible() {
-        return isRegisterInviteCodeInputVisible();
-    }
-
     public boolean isMutualDeleteEnabled() {
         return mutual_delete_on == null || mutual_delete_on == 1;
     }

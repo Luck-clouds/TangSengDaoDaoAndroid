@@ -36,5 +36,6 @@ public class RtcSession {
     public boolean hadMultipleLiveParticipants;
     public boolean hadRemoteParticipantJoined;
     public boolean ending;
+    public boolean inviteAll;
     public String error;
 }

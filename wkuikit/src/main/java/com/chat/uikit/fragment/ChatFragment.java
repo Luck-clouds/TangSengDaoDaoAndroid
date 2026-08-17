@@ -291,6 +291,30 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
                         }
                     }
                 }
+                case "sync_channel_state" -> {
+                    String fromUID = wkCmd.paramJsonObject.optString("from_uid");
+                    String channelId = wkCmd.paramJsonObject.optString("channel_id");
+                    int channelType = wkCmd.paramJsonObject.optInt("channel_type");
+                    if (channelId.equals(WKConfig.getInstance().getUid())) {
+                        channelId = fromUID;
+                    }
+                    String finalChannelId = channelId;
+                    byte finalChannelType = (byte) channelType;
+                    WKCommonModel.getInstance().getChannelState(channelId, (byte) channelType, channelState -> {
+                        if (channelState != null) {
+                            int isCalling = 0;
+                            if (WKReader.isNotEmpty(channelState.call_info.getCalling_participants())) {
+                                isCalling = 1;
+                            }
+                            // 使用缓存快速查找
+                            int i = findConversationIndex(finalChannelId, finalChannelType);
+                            if (i >= 0) {
+                                chatConversationAdapter.getData().get(i).isCalling = isCalling;
+                                chatConversationAdapter.notifyItemChanged(i);
+                            }
+                        }
+                    });
+                }
             }
         });
         // 监听刷新消息 - 使用缓存快速查找
@@ -509,6 +533,28 @@ public class ChatFragment extends WKBaseFragment<FragChatConversationLayoutBindi
             return 1;
         });
 
+        EndpointManager.getInstance().setMethod("refresh_conversation_calling", object -> {
+            if (WKReader.isNotEmpty(MsgModel.getInstance().channelStatus)) {
+                for (WKChannelState state : MsgModel.getInstance().channelStatus) {
+                    for (int i = 0, size = chatConversationAdapter.getData().size(); i < size; i++) {
+                        if (chatConversationAdapter.getData().get(i).uiConversationMsg != null
+                                && !TextUtils.isEmpty(chatConversationAdapter.getData().get(i).uiConversationMsg.channelID)
+                                && state.channel_id.equals(chatConversationAdapter.getData().get(i).uiConversationMsg.channelID)) {
+                            chatConversationAdapter.getData().get(i).isCalling = state.calling;
+                            chatConversationAdapter.notifyItemChanged(i);
+                        }
+                    }
+                }
+                return null;
+            }
+            for (int i = 0, size = chatConversationAdapter.getData().size(); i < size; i++) {
+                if (chatConversationAdapter.getData().get(i).isCalling == 1) {
+                    chatConversationAdapter.getData().get(i).isCalling = 0;
+                    chatConversationAdapter.notifyItemChanged(i);
+                }
+            }
+            return null;
+        });
     }
 
 

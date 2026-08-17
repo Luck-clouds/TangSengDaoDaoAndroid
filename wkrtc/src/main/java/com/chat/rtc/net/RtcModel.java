@@ -26,6 +26,12 @@ public class RtcModel extends WKBaseModel {
     public void startCall(String requestId, String channelId, byte channelType, String callType,
                           String deviceId, List<String> inviteUIDs,
                           IRequestResultListener<RtcCallResp> listener) {
+        startCall(requestId, channelId, channelType, callType, deviceId, inviteUIDs, false, listener);
+    }
+
+    public void startCall(String requestId, String channelId, byte channelType, String callType,
+                          String deviceId, List<String> inviteUIDs, boolean inviteAll,
+                          IRequestResultListener<RtcCallResp> listener) {
         JSONObject body = new JSONObject();
         body.put("request_id", requestId);
         body.put("channel_id", channelId);
@@ -65,6 +71,22 @@ public class RtcModel extends WKBaseModel {
         JSONObject body = new JSONObject();
         body.put("reason", reason);
         request(createService(RtcApiService.class).closeCall(callId, deviceId, body), listener);
+    }
+
+    public void leaveCall(String callId, String deviceId, IRequestResultListener<CommonResponse> listener) {
+        request(createService(RtcApiService.class).leaveCall(callId, deviceId), listener);
+    }
+
+    public void inviteMembers(String callId, String deviceId, List<String> uids,
+                              IRequestResultListener<CommonResponse> listener) {
+        JSONObject body = new JSONObject();
+        JSONArray uidArray = new JSONArray();
+        if (uids != null) {
+            uidArray.addAll(uids);
+        }
+        body.put("uids", uidArray);
+        Log.i(TAG, "POST rtc/calls/" + callId + "/invite body=" + body.toJSONString());
+        request(createService(RtcApiService.class).inviteMembers(callId, deviceId, body), listener);
     }
 
     public void channelState(byte channelType, String channelId,

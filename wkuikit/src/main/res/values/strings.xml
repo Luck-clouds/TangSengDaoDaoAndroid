@@ -327,6 +327,10 @@
     <string name="uikit_go_to_chat_item">定位到聊天</string>
     <string name="uikit_search_for_image">图片</string>
     <string name="group_manage">群管理</string>
+    <string name="group_call_settings">群通话设置</string>
+    <string name="group_audio_call_enabled">允许群语音通话</string>
+    <string name="group_video_call_enabled">允许群视频通话</string>
+    <string name="group_call_disabled">群管理员已关闭此通话功能</string>
     <string name="group_avatar">群头像</string>
     <string name="group_invite_confirm">群聊邀请确认</string>
     <string name="group_invite_confirm_desc">总开启后群成员邀请新成员经过你或管理员确认。</string>

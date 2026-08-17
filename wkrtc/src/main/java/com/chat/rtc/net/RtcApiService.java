@@ -32,6 +32,15 @@ public interface RtcApiService {
                                          @Header("device_id") String deviceId,
                                          @Body JSONObject body);
 
+    @POST("rtc/calls/{call_id}/leave")
+    Observable<CommonResponse> leaveCall(@Path("call_id") String callId,
+                                         @Header("device_id") String deviceId);
+
+    @POST("rtc/calls/{call_id}/invite")
+    Observable<CommonResponse> inviteMembers(@Path("call_id") String callId,
+                                             @Header("device_id") String deviceId,
+                                             @Body JSONObject body);
+
     @GET("rtc/channels/{channel_type}/{channel_id}/state")
     Observable<RtcChannelStateResp> channelState(
             @Path("channel_type") byte channelType,
