@@ -128,7 +128,6 @@ import com.chat.uikit.favorite.FavoriteListActivity;
 import com.chat.uikit.favorite.FavoriteModel;
 import com.chat.uikit.group.ChooseVideoCallMembersActivity;
 import com.chat.uikit.group.GroupCallSettings;
-import com.chat.uikit.memo.MemoListActivity;
 import com.chat.uikit.group.SavedGroupsActivity;
 import com.chat.uikit.group.WKAllMembersActivity;
 import com.chat.uikit.group.manage.GroupAvatarActivity;
@@ -148,7 +147,6 @@ import com.chat.uikit.setting.MsgNoticesSettingActivity;
 import com.chat.uikit.setting.SettingActivity;
 import com.chat.uikit.user.UserDetailActivity;
 import com.chat.uikit.user.service.UserModel;
-import com.chat.uikit.violation.ViolationRecordActivity;
 import com.xinbida.wukongim.WKIM;
 import com.xinbida.wukongim.entity.WKChannel;
 import com.xinbida.wukongim.entity.WKChannelMember;
@@ -593,19 +591,6 @@ public class WKUIKitApplication {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
             mContext.get().startActivity(intent);
         }));
-        EndpointManager.getInstance().setMethod("personal_center_violation_record", EndpointCategory.personalCenter, 45,
-                object -> new PersonalInfoMenu(R.drawable.ic_violation_record, mContext.get().getString(R.string.violation_record),
-                        () -> {
-                            Intent intent = new Intent(mContext.get(), ViolationRecordActivity.class);
-                            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-                            mContext.get().startActivity(intent);
-                        }));
-        EndpointManager.getInstance().setMethod("personal_center_memo", EndpointCategory.personalCenter, 42,
-                object -> new PersonalInfoMenu(R.drawable.ic_memo, mContext.get().getString(R.string.memo), () -> {
-                    Intent intent = new Intent(mContext.get(), MemoListActivity.class);
-                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-                    mContext.get().startActivity(intent);
-                }));
         EndpointManager.getInstance().setMethod("personal_center_security_privacy", EndpointCategory.personalCenter, 30, object -> new PersonalInfoMenu(R.mipmap.icon_security_privacy, mContext.get().getString(R.string.security_privacy), () -> {
             Intent intent = new Intent(mContext.get(), SecurityPrivacyActivity.class);
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);

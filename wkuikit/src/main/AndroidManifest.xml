@@ -34,12 +34,7 @@
         <activity android:name=".contacts.label.LabelEditActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteListActivity" android:exported="false" />
         <activity android:name=".favorite.FavoriteDetailActivity" android:exported="false" />
-        <activity android:name=".memo.MemoListActivity" android:exported="false" />
         <activity android:name=".violation.ViolationRecordActivity" android:exported="false" />
-        <activity
-            android:name=".memo.MemoEditActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".setting.SecurityPrivacyActivity" android:exported="false" />
         <activity android:name=".setting.ContactUsActivity" android:exported="false" />
         <activity
