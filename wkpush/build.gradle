@@ -28,16 +28,22 @@ android {
 
     sourceSets {
         main {
-            // 厂商回调实现保留在仓库中供以后接入华为推送时参考，
-            // 当前不参与编译，避免引入任何厂商推送 SDK。
-            java.exclude 'com/chat/push/push/**'
+            // HUAWEI 分支只编译华为回调，继续排除其他厂商实现及其 SDK 引用。
+            java.exclude 'com/chat/push/push/HonorPushMessageService.java'
+            java.exclude 'com/chat/push/push/OPPOAppPushMessageService.java'
+            java.exclude 'com/chat/push/push/OPPOPushMessageService.java'
+            java.exclude 'com/chat/push/push/VivoPushMessageReceiverImpl.java'
+            java.exclude 'com/chat/push/push/WKFirebaseMessagingService.java'
+            java.exclude 'com/chat/push/push/XiaoMiMessageReceiver.java'
         }
     }
 }
 
 dependencies {
     api project(':wkbase')
-    // 华为推送尚未配置应用信息，暂不引入；配置完成后只恢复这一项。
-    // implementation 'com.huawei.hms:push:6.1.0.300'
+    implementation 'com.huawei.agconnect:agconnect-core:1.9.6.300'
+    implementation 'com.huawei.hms:push:6.13.0.301'
+    // 缺少 HMS Core（APK）时提供官方安装/升级引导。
+    implementation 'com.huawei.hms:hmscoreinstaller:6.13.0.304'
 }
 

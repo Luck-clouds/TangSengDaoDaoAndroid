@@ -32,7 +32,7 @@
 **`wkpush`**
 
 推送模块  卿航IM集成了`华为`,`小米`,`vivo`,`oppo`,`FCM`厂商推送功能。开发者二次开发是只需要替换对应的appID和appKey即可
-- **华为** 在官方申请开发者账号并开通推送服务后，下载`agconnect-services.json`文件覆盖`app`模块下的该文件。并在`wkpush`模块的 `AndroidManifest.xml` 文件中的名为`com.huawei.hms.client.appid`的`meta-data`替换appID，`PushKeys`文件中替换`huaweiAPPID`即可
+- **华为** 在 AppGallery Connect 创建包名一致的 Android 应用、配置发布证书 SHA-256 并开通 Push Kit 后，下载 `agconnect-services.json` 放入 `app` 模块。项目会从该文件读取 APP ID，无需再在 Manifest 或 `PushKeys` 中重复填写。
 
 - **小米** 修改此模块下的`PushKeys`文件中的`xiaoMiAppID` 和 `xiaoMiAppKey`即可
 

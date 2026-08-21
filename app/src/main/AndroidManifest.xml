@@ -139,6 +139,7 @@
     <application
         android:name="com.qinghangim.app.TSApplication"
         android:allowBackup="true"
+        tools:replace="android:allowBackup"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_logo"
         android:label="@string/app_name"

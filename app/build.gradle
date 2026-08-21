@@ -6,6 +6,14 @@ plugins {
     // id 'com.google.gms.google-services'
 }
 
+// 未配置华为应用信息时仍允许本地编译；把 AppGallery Connect 下载的
+// agconnect-services.json 放入 app/ 后，构建会自动启用 AGConnect 插件。
+if (file('agconnect-services.json').exists()) {
+    apply plugin: 'com.huawei.agconnect'
+} else {
+    logger.warn('Huawei Push: app/agconnect-services.json is missing; AGConnect config generation is skipped.')
+}
+
 // 读取 local.properties 中的 applicationId
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')

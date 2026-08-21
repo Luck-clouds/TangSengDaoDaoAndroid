@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <!--
-            HUAWEI 分支后续只接入华为推送。当前尚未配置华为应用信息，
-            HuaweiHmsMessageService 与 com.huawei.hms.client.appid 暂不声明。
-        -->
+        <!-- 由应用在用户同意隐私协议后主动申请 Token，禁止 SDK 提前自动初始化。 -->
+        <meta-data
+            android:name="push_kit_auto_init_enabled"
+            android:value="false" />
+
+        <service
+            android:name="com.chat.push.push.HuaweiHmsMessageService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.huawei.push.action.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
