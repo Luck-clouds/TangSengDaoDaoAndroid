@@ -50,6 +50,50 @@
             android:textColor="@color/colorDark"
             android:textSize="16sp" />
 
+        <LinearLayout
+            android:id="@+id/forwardVoiceLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/send_chat_text_bg"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/chat_bubble_padding_lr"
+            android:paddingTop="@dimen/chat_bubble_padding_tb"
+            android:paddingEnd="@dimen/chat_bubble_padding_lr"
+            android:paddingBottom="@dimen/chat_bubble_padding_tb"
+            android:visibility="gone">
+
+            <com.chat.uikit.view.CircleProgress
+                android:id="@+id/forwardVoicePlayBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:shadowColor="@color/homeColor" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:orientation="vertical">
+
+                <com.chat.uikit.view.WaveformView
+                    android:id="@+id/forwardVoiceWaveform"
+                    android:layout_width="150dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="5dp"
+                    android:textColor="?attr/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/forwardVoiceTimeTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:textColor="@color/color999"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
         <FrameLayout
             android:id="@+id/contentLayout"
             android:layout_width="match_parent"
