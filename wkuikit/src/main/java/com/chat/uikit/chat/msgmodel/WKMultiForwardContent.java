@@ -44,6 +44,18 @@ public class WKMultiForwardContent extends WKMessageContent {
                 WKMsg msg = new WKMsg();
                 JSONObject contentJson = msgJson.optJSONObject("payload");
                 if (contentJson != null) {
+                    // Compatibility for merged voice messages produced by versions that
+                    // embedded WKVoiceContent.encodeMsg() without restoring its type field.
+                    if (!contentJson.has("type")
+                            && contentJson.has("timeTrad")
+                            && (contentJson.has("url")
+                            || contentJson.has("localPath")
+                            || contentJson.has("waveform"))) {
+                        try {
+                            contentJson.put("type", WKContentType.WK_VOICE);
+                        } catch (JSONException ignored) {
+                        }
+                    }
                     msg.content = contentJson.toString();
                     msg.baseContentMsgModel = WKIM.getInstance().getMsgManager().getMsgContentModel(contentJson);
                     if (msg.baseContentMsgModel != null) {
@@ -90,8 +102,25 @@ public class WKMultiForwardContent extends WKMessageContent {
             JSONArray jsonArray = new JSONArray();
             for (int i = 0, size = msgList.size(); i < size; i++) {
                 JSONObject json = new JSONObject();
-                if (!TextUtils.isEmpty(msgList.get(i).content)) {
-                    json.put("payload", new JSONObject(msgList.get(i).content));
+                if (msgList.get(i).baseContentMsgModel != null
+                        && msgList.get(i).baseContentMsgModel.type == WKContentType.WK_VOICE) {
+                    // Use the current voice model so a freshly uploaded URL is retained in
+                    // the merged record and the recipient can play the nested voice message.
+                    JSONObject payload = msgList.get(i).baseContentMsgModel.encodeMsg();
+                    if (payload == null) payload = new JSONObject();
+                    payload.put("type", msgList.get(i).baseContentMsgModel.type);
+                    json.put("payload", payload);
+                } else if (!TextUtils.isEmpty(msgList.get(i).content)) {
+                    JSONObject payload = new JSONObject(msgList.get(i).content);
+                    if (!payload.has("type") && msgList.get(i).baseContentMsgModel != null) {
+                        payload.put("type", msgList.get(i).baseContentMsgModel.type);
+                    }
+                    json.put("payload", payload);
+                } else if (msgList.get(i).baseContentMsgModel != null) {
+                    JSONObject payload = msgList.get(i).baseContentMsgModel.encodeMsg();
+                    if (payload == null) payload = new JSONObject();
+                    payload.put("type", msgList.get(i).baseContentMsgModel.type);
+                    json.put("payload", payload);
                 }
                 json.put("timestamp", msgList.get(i).timestamp);
                 json.put("message_id", msgList.get(i).messageID);

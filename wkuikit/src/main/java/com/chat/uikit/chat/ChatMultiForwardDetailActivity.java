@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.chat.base.base.WKBaseActivity;
+import com.chat.base.utils.WKReader;
 import com.chat.base.utils.WKTimeUtils;
 import com.chat.uikit.R;
 import com.chat.uikit.chat.adapter.ChatMultiForwardDetailAdapter;
@@ -35,7 +36,9 @@ public class ChatMultiForwardDetailActivity extends WKBaseActivity<ActCommonList
     @Override
     protected void setTitle(TextView titleTv) {
         String title;
-        if (WKMultiForwardContent.channelType == 1) {
+        if (WKMultiForwardContent != null
+                && WKMultiForwardContent.channelType == 1
+                && WKReader.isNotEmpty(WKMultiForwardContent.userList)) {
             if (WKMultiForwardContent.userList.size() > 1) {
                 StringBuilder sBuilder = new StringBuilder();
                 for (int i = 0; i < WKMultiForwardContent.userList.size(); i++) {
@@ -55,10 +58,16 @@ public class ChatMultiForwardDetailActivity extends WKBaseActivity<ActCommonList
     protected void initPresenter() {
         clientMsgNo = getIntent().getStringExtra("client_msg_no");
         WKMsg msg = WKIM.getInstance().getMsgManager().getWithClientMsgNO(clientMsgNo);
-        WKMultiForwardContent = (WKMultiForwardContent) msg.baseContentMsgModel;
-        if (WKMultiForwardContent == null) {
+        if (msg == null || !(msg.baseContentMsgModel instanceof WKMultiForwardContent)) {
             showToast("传入数据有误！");
             finish();
+            return;
+        }
+        WKMultiForwardContent = (WKMultiForwardContent) msg.baseContentMsgModel;
+        if (!WKReader.isNotEmpty(WKMultiForwardContent.msgList)) {
+            showToast("聊天记录为空！");
+            finish();
+            return;
         }
         long minTime = 0;
         long maxTime = 0;

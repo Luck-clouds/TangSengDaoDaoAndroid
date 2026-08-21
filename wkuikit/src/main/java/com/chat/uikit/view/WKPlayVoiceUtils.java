@@ -23,7 +23,7 @@ public class WKPlayVoiceUtils {
         return PlayVoiceUtilsBinder.playVoiceUtils;
     }
 
-    private List<IPlayListener> iPlayListener;
+    private final List<IPlayListener> iPlayListener = new ArrayList<>();
     private String oldPlayKey;
     public MediaPlayer mediaPlayer;
 
@@ -118,8 +118,11 @@ public class WKPlayVoiceUtils {
     };
 
     public void setPlayListener(IPlayListener iPlayListener) {
-        if (this.iPlayListener == null) this.iPlayListener = new ArrayList<>();
         this.iPlayListener.add(iPlayListener);
+    }
+
+    public void removePlayListener(IPlayListener iPlayListener) {
+        this.iPlayListener.remove(iPlayListener);
     }
 
     public interface IPlayListener {

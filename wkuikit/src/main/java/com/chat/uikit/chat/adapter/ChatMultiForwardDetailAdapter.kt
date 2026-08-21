@@ -13,6 +13,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import com.chat.base.config.WKApiConfig
@@ -27,14 +29,21 @@ import com.chat.base.entity.PopupMenuItem
 import com.chat.base.glide.GlideUtils
 import com.chat.base.msg.model.WKGifContent
 import com.chat.base.msgitem.WKContentType
+import com.chat.base.net.ud.WKDownloader
+import com.chat.base.net.ud.WKProgressManager
+import com.chat.base.ui.Theme
 import com.chat.base.ui.components.AvatarView
 import com.chat.base.utils.ImageUtils
 import com.chat.base.utils.WKImageDisplayUtils
 import com.chat.base.utils.WKDialogUtils
+import com.chat.base.utils.WKCommonUtils
 import com.chat.base.utils.WKTimeUtils
 import com.chat.base.utils.WKToastUtils
 import com.chat.uikit.R
 import com.chat.uikit.enity.ChatMultiForwardEntity
+import com.chat.uikit.view.CircleProgress
+import com.chat.uikit.view.WKPlayVoiceUtils
+import com.chat.uikit.view.WaveformView
 import com.google.android.material.snackbar.Snackbar
 import com.xinbida.wukongim.WKIM
 import com.xinbida.wukongim.entity.WKChannel
@@ -42,18 +51,67 @@ import com.xinbida.wukongim.entity.WKChannelType
 import com.xinbida.wukongim.msgmodel.WKImageContent
 import com.xinbida.wukongim.msgmodel.WKMessageContent
 import com.xinbida.wukongim.msgmodel.WKVideoContent
+import com.xinbida.wukongim.msgmodel.WKVoiceContent
 import java.io.File
+import java.util.Locale
 
 class ChatMultiForwardDetailAdapter(
     private val showDetailTime: Boolean,
     val list: List<ChatMultiForwardEntity>
 ) :
     BaseMultiItemQuickAdapter<ChatMultiForwardEntity, BaseViewHolder>() {
+    private data class VoiceBinding(
+        val waveformView: WaveformView,
+        val playButton: CircleProgress
+    )
+
+    private val voiceBindings = mutableMapOf<String, VoiceBinding>()
+    private var voiceListenerRegistered = false
+    private val voicePlayListener = object : WKPlayVoiceUtils.IPlayListener {
+        override fun onCompletion(key: String) {
+            voiceBindings[key]?.let {
+                it.waveformView.setProgress(0f)
+                it.playButton.setPlay()
+            }
+        }
+
+        override fun onProgress(key: String, pg: Float) {
+            voiceBindings[key]?.let {
+                it.waveformView.setProgress(pg)
+                it.playButton.setPause()
+            }
+        }
+
+        override fun onStop(key: String) {
+            voiceBindings[key]?.let {
+                it.waveformView.setProgress(0f)
+                it.playButton.setPlay()
+            }
+        }
+    }
+
     init {
         addItemType(0, R.layout.item_chat_multi_froward_content)
         addItemType(1, R.layout.item_chat_multi_froward_time)
         addItemType(2, R.layout.item_chat_multi_froward_view)
         setList(list)
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        if (!voiceListenerRegistered) {
+            WKPlayVoiceUtils.getInstance().setPlayListener(voicePlayListener)
+            voiceListenerRegistered = true
+        }
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        if (voiceListenerRegistered) {
+            WKPlayVoiceUtils.getInstance().removePlayListener(voicePlayListener)
+            voiceListenerRegistered = false
+        }
+        voiceBindings.clear()
+        super.onDetachedFromRecyclerView(recyclerView)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -101,8 +159,13 @@ class ChatMultiForwardDetailAdapter(
                         item.msg.fromUID
                     )
                             && !TextUtils.isEmpty(data[holder.bindingAdapterPosition - 1].msg.fromUID)
-                            && item.msg.fromUID == data[holder.bindingAdapterPosition - 1].msg.fromUID)
+                             && item.msg.fromUID == data[holder.bindingAdapterPosition - 1].msg.fromUID)
                 avatarView.visibility = if (isGone) View.INVISIBLE else View.VISIBLE
+                holder.getView<TextView>(R.id.contentTv).apply {
+                    setOnClickListener(null)
+                    setOnLongClickListener(null)
+                }
+                holder.setGone(R.id.forwardVoiceLayout, true)
                 when (item.msg.baseContentMsgModel.type) {
                     WKContentType.WK_IMAGE -> {
                         holder.setGone(R.id.progressView, true)
@@ -203,6 +266,57 @@ class ChatMultiForwardDetailAdapter(
                             }
                     }
 
+                    WKContentType.WK_VOICE -> {
+                        val voiceContent = item.msg.baseContentMsgModel as WKVoiceContent
+                        val playKey = getVoicePlayKey(voiceContent, item.msg.messageID)
+                        val playButton = holder.getView<CircleProgress>(R.id.forwardVoicePlayBtn)
+                        val waveformView = holder.getView<WaveformView>(R.id.forwardVoiceWaveform)
+                        val duration = voiceContent.timeTrad.coerceAtLeast(0)
+                        holder.setText(
+                            R.id.forwardVoiceTimeTv,
+                            String.format(
+                                Locale.getDefault(),
+                                "%02d:%02d",
+                                duration / 60,
+                                duration % 60
+                            )
+                        )
+                        playButton.setProgressColor(Theme.colorAccount)
+                        playButton.setShadowColor(ContextCompat.getColor(context, R.color.homeColor))
+                        playButton.setBindId(playKey)
+                        waveformView.setBind(playKey)
+                        waveformView.isFresh = false
+                        waveformView.setProgress(0f)
+                        waveformView.setWaveform(
+                            if (!TextUtils.isEmpty(voiceContent.waveform)) {
+                                runCatching {
+                                    WKCommonUtils.getInstance().base64Decode(voiceContent.waveform)
+                                }.getOrDefault(byteArrayOf())
+                            } else {
+                                byteArrayOf()
+                            }
+                        )
+                        voiceBindings.entries.removeAll { it.value.playButton === playButton }
+                        voiceBindings[playKey] = VoiceBinding(waveformView, playButton)
+                        if (WKPlayVoiceUtils.getInstance().isPlaying
+                            && WKPlayVoiceUtils.getInstance().oldPlayKey == playKey
+                        ) {
+                            playButton.setPause()
+                        } else {
+                            playButton.setPlay()
+                        }
+                        playButton.setOnClickListener {
+                            playVoice(voiceContent, playKey, playButton)
+                        }
+                        holder.setGone(R.id.contentTv, true)
+                        holder.setGone(R.id.forwardVoiceLayout, false)
+                        holder.setGone(R.id.contentLayout, true)
+                        holder.setGone(R.id.gifIv, true)
+                        holder.setGone(R.id.imageView, true)
+                        holder.setGone(R.id.progressView, true)
+                        holder.setGone(R.id.playIv, true)
+                    }
+
                     WKContentType.WK_GIF,
                     WKContentType.WK_VECTOR_STICKER,
                     WKContentType.WK_EMOJI_STICKER -> {
@@ -268,6 +382,71 @@ class ChatMultiForwardDetailAdapter(
                     }
                 }
             }
+        }
+    }
+
+    private fun getVoicePlayKey(voiceContent: WKVoiceContent, messageID: String?): String {
+        return "multi_forward_voice_" + if (!messageID.isNullOrEmpty()) {
+            messageID
+        } else {
+            voiceContent.url.hashCode().toString()
+        }
+    }
+
+    private fun playVoice(
+        voiceContent: WKVoiceContent,
+        playKey: String,
+        playButton: CircleProgress
+    ) {
+        val localFile = if (!TextUtils.isEmpty(voiceContent.localPath)) {
+            File(voiceContent.localPath)
+        } else null
+        if (localFile?.exists() == true) {
+            toggleVoice(localFile.absolutePath, playKey)
+            return
+        }
+        if (TextUtils.isEmpty(voiceContent.url)) {
+            WKToastUtils.getInstance().showToastNormal(context.getString(R.string.voice_download_fail))
+            return
+        }
+        val voiceDir = File(context.cacheDir, "multi_forward_voice")
+        if (!voiceDir.exists()) voiceDir.mkdirs()
+        val voiceFile = File(voiceDir, "${voiceContent.url.hashCode()}.amr")
+        if (voiceFile.exists()) {
+            voiceContent.localPath = voiceFile.absolutePath
+            toggleVoice(voiceFile.absolutePath, playKey)
+            return
+        }
+        WKDownloader.instance.download(
+            WKApiConfig.getShowUrl(voiceContent.url),
+            voiceFile.absolutePath,
+            object : WKProgressManager.IProgress {
+                override fun onProgress(tag: Any?, progress: Int) {
+                    playButton.enableLoading(progress)
+                }
+
+                override fun onSuccess(tag: Any?, path: String?) {
+                    val downloadedPath = path ?: voiceFile.absolutePath
+                    voiceContent.localPath = downloadedPath
+                    toggleVoice(downloadedPath, playKey)
+                }
+
+                override fun onFail(tag: Any?, msg: String?) {
+                    WKToastUtils.getInstance()
+                        .showToastNormal(context.getString(R.string.voice_download_fail))
+                }
+            })
+    }
+
+    private fun toggleVoice(path: String, playKey: String) {
+        val player = WKPlayVoiceUtils.getInstance()
+        if (player.isPlaying && player.oldPlayKey == playKey) {
+            player.onPause()
+        } else if (player.mediaPlayer != null && player.oldPlayKey == playKey) {
+            player.playVoice(path, playKey)
+        } else {
+            player.stopPlay()
+            player.playVoice(path, playKey)
         }
     }
 

@@ -2201,6 +2201,7 @@ class ChatPanelManager(
                                     if ((chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_TEXT
                                                 ) || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_IMAGE
                                                 ) || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_GIF)
+                                                || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_VOICE)
                                                 || (chatAdapter.getItem(i).wkMsg.type == WKContentType.WK_FILE)
                                       ) list.add(chatAdapter.getItem(i).wkMsg.baseContentMsgModel) else {
                                         val textContent =
@@ -2223,7 +2224,7 @@ class ChatPanelManager(
                                                         for (index in list.indices) {
                                                             val option = WKSendOptions()
                                                             option.setting.receipt =
-                                                                iConversationContext.chatChannelInfo.receipt
+                                                                mChannel.receipt
                                                             sendMsgEntityList.add(
                                                                 SendMsgEntity(
                                                                     list[index], mChannel,
