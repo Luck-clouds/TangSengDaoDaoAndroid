@@ -402,6 +402,12 @@
     <string name="contact_phone_value">电话：%1$s</string>
     <string name="contact_reload">重新加载</string>
     <string name="contact_copied">已复制</string>
+    <string name="contact_other_methods">其他联系方式</string>
+    <string name="contact_email_label">电子邮箱</string>
+    <string name="contact_phone_label">联系电话</string>
+    <string name="contact_send_email">发送邮件</string>
+    <string name="contact_dial_phone">拨打</string>
+    <string name="contact_empty">暂无可用的联系方式</string>
     <string name="security_search_desc">可以通过以下方式搜索好友</string>
     <string name="security_search_by_phone">允许手机号搜索</string>
     <string name="security_search_by_short">允许短号搜索</string>

@@ -8,6 +8,8 @@ public class WKAPPConfig {
     // 旧服务端缺少该字段时保持允许截屏，避免升级客户端后意外全局锁屏。
     public int global_screenshot_on = 1;
     public String contact_wecom_qrcode;
+    public String contact_wecom_title;
+    public String contact_wecom_tips;
     public String contact_email;
     public String contact_phone;
     public int phone_search_off;

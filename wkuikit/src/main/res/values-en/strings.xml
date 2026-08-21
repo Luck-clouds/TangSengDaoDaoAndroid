@@ -363,6 +363,12 @@
     <string name="contact_phone_value">Phone: %1$s</string>
     <string name="contact_reload">Reload</string>
     <string name="contact_copied">Copied</string>
+    <string name="contact_other_methods">Other ways to contact us</string>
+    <string name="contact_email_label">Email</string>
+    <string name="contact_phone_label">Phone</string>
+    <string name="contact_send_email">Email us</string>
+    <string name="contact_dial_phone">Call</string>
+    <string name="contact_empty">No contact information available</string>
     <string name="security_search_desc">Friends can be found in the following ways</string>
     <string name="security_search_by_phone">Allow search by phone</string>
     <string name="security_search_by_short">Allow search by short number</string>
