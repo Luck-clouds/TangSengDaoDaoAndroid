@@ -36,6 +36,8 @@ import java.util.Collections;
  */
 public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding> {
     private String qrCodeUrl = "";
+    private String wecomTitle = "";
+    private String wecomTips = "";
     private String email = "";
     private String phone = "";
 
@@ -52,19 +54,35 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
     @Override
     protected void initPresenter() {
         WKAPPConfig config = WKConfig.getInstance().getAppConfig();
-        qrCodeUrl = WKApiConfig.getShowUrl(trim(config.contact_wecom_qrcode));
+        String qrCode = trim(config.contact_wecom_qrcode);
+        qrCodeUrl = TextUtils.isEmpty(qrCode) ? "" : WKApiConfig.getShowUrl(qrCode);
+        wecomTitle = trim(config.contact_wecom_title);
+        wecomTips = trim(config.contact_wecom_tips);
         email = trim(config.contact_email);
         phone = trim(config.contact_phone);
     }
 
     @Override
     protected void initView() {
-        wkVBinding.wecomLayout.setVisibility(TextUtils.isEmpty(qrCodeUrl) ? View.GONE : View.VISIBLE);
+        boolean hasQrCode = !TextUtils.isEmpty(qrCodeUrl);
+        boolean hasWecom = hasQrCode || !TextUtils.isEmpty(wecomTitle) || !TextUtils.isEmpty(wecomTips);
+        boolean hasOtherContact = !TextUtils.isEmpty(email) || !TextUtils.isEmpty(phone);
+        wkVBinding.wecomLayout.setVisibility(hasWecom ? View.VISIBLE : View.GONE);
+        wkVBinding.wecomTitleTv.setVisibility(TextUtils.isEmpty(wecomTitle) ? View.GONE : View.VISIBLE);
+        wkVBinding.wecomTitleTv.setText(wecomTitle);
+        wkVBinding.wecomTipsTv.setVisibility(TextUtils.isEmpty(wecomTips) ? View.GONE : View.VISIBLE);
+        wkVBinding.wecomTipsTv.setText(wecomTips);
+        wkVBinding.qrCodeContainer.setVisibility(hasQrCode ? View.VISIBLE : View.GONE);
         wkVBinding.emailLayout.setVisibility(TextUtils.isEmpty(email) ? View.GONE : View.VISIBLE);
         wkVBinding.phoneLayout.setVisibility(TextUtils.isEmpty(phone) ? View.GONE : View.VISIBLE);
-        wkVBinding.emailTv.setText(getString(R.string.contact_email_value, email));
-        wkVBinding.phoneTv.setText(getString(R.string.contact_phone_value, phone));
-        if (!TextUtils.isEmpty(qrCodeUrl)) {
+        wkVBinding.contactMethodsTitle.setVisibility(hasOtherContact ? View.VISIBLE : View.GONE);
+        wkVBinding.emptyTv.setVisibility(hasWecom || hasOtherContact ? View.GONE : View.VISIBLE);
+        wkVBinding.emailTv.setText(email);
+        wkVBinding.phoneTv.setText(phone);
+        wkVBinding.qrCodeIv.setContentDescription(
+                !TextUtils.isEmpty(wecomTitle) ? wecomTitle : wecomTips
+        );
+        if (hasQrCode) {
             loadQrCode();
         }
     }
@@ -151,6 +169,8 @@ public class ContactUsActivity extends WKBaseActivity<ActContactUsLayoutBinding>
 
     public static boolean hasContact(WKAPPConfig config) {
         return config != null && (!TextUtils.isEmpty(trim(config.contact_wecom_qrcode))
+                || !TextUtils.isEmpty(trim(config.contact_wecom_title))
+                || !TextUtils.isEmpty(trim(config.contact_wecom_tips))
                 || !TextUtils.isEmpty(trim(config.contact_email))
                 || !TextUtils.isEmpty(trim(config.contact_phone)));
     }
