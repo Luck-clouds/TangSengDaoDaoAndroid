@@ -35,6 +35,7 @@ import com.chat.flagship.WKFlagshipApplication
 import com.chat.login.WKLoginApplication
 import com.chat.moments.WKMomentsApplication
 import com.chat.push.WKPushApplication
+import com.chat.push.debug.PushDebugLogger
 import com.chat.rtc.WKRTCApplication
 import com.chat.scan.WKScanApplication
 import com.chat.sticker.WKStickerApplication
@@ -157,10 +158,16 @@ class TSApplication : MultiDexApplication() {
 
     @Synchronized
     fun initPushAfterNotificationAllowed() {
-        if (pushInitialized || !NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+        if (pushInitialized) {
+            PushDebugLogger.info("跳过华为推送初始化：已经初始化")
+            return
+        }
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            PushDebugLogger.warn("跳过华为推送初始化：系统通知权限未开启")
             return
         }
         pushInitialized = true
+        PushDebugLogger.info("通知权限已开启，进入华为推送初始化")
         WKPushApplication.getInstance().init(getAppPackageName(), this)
     }
 

@@ -11,6 +11,7 @@ import com.chat.base.net.HttpResponseCode;
 import com.chat.base.net.ICommonListener;
 import com.chat.base.net.IRequestResultListener;
 import com.chat.base.net.entity.CommonResponse;
+import com.chat.push.debug.PushDebugLogger;
 
 /**
  * 2020-03-08 22:28
@@ -39,6 +40,7 @@ public class PushModel extends WKBaseModel {
      */
     public void registerDeviceToken(String token, String bundle_id) {
         if (!WKConstants.isLogin()) {
+            PushDebugLogger.warn("业务 Token 上报取消：登录状态已失效");
             return;
         }
 
@@ -47,14 +49,20 @@ public class PushModel extends WKBaseModel {
         httpParams.put("device_token", token);
         httpParams.put("device_type", HUAWEI_DEVICE_TYPE);
         httpParams.put("bundle_id", bundle_id);
+        PushDebugLogger.info("调用 user/device_token：token="
+                + PushDebugLogger.maskToken(token) + "，device_type=" + HUAWEI_DEVICE_TYPE
+                + "，bundle_id=" + bundle_id);
         request(createService(PushService.class).registerAppToken(httpParams), new IRequestResultListener<CommonResponse>() {
             @Override
             public void onSuccess(CommonResponse result) {
                 Log.e("注册push", result.status + "");
+                PushDebugLogger.info("user/device_token 响应成功：status=" + result.status
+                        + "，msg=" + result.msg);
             }
 
             @Override
             public void onFail(int code, String msg) {
+                PushDebugLogger.warn("user/device_token 请求失败：code=" + code + "，msg=" + msg);
             }
         });
 
@@ -76,17 +84,21 @@ public class PushModel extends WKBaseModel {
         // 传给异步请求，避免拦截器稍后读取到空 token 导致注销失败。
         String token = WKConfig.getInstance().getToken();
         if (TextUtils.isEmpty(token)) {
+            PushDebugLogger.info("解绑 Token 跳过：登录 Token 已为空");
             iCommonListener.onResult(HttpResponseCode.success, "");
             return;
         }
         request(createService(PushService.class).unRegisterAppToken(token), new IRequestResultListener<CommonResponse>() {
             @Override
             public void onSuccess(CommonResponse result) {
+                PushDebugLogger.info("解绑推送 Token 响应：status=" + result.status
+                        + "，msg=" + result.msg);
                 iCommonListener.onResult(result.status, result.msg);
             }
 
             @Override
             public void onFail(int code, String msg) {
+                PushDebugLogger.warn("解绑推送 Token 请求失败：code=" + code + "，msg=" + msg);
                 iCommonListener.onResult(code, msg);
             }
         });
