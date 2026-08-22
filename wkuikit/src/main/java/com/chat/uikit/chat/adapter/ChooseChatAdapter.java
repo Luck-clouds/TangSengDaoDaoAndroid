@@ -24,8 +24,15 @@ import java.util.List;
  * 选择会话适配器
  */
 public class ChooseChatAdapter extends BaseQuickAdapter<ChooseChatActivity.ChooseChatEntity, BaseViewHolder> {
+    private boolean multiSelectMode;
+
     public ChooseChatAdapter(@Nullable List<ChooseChatActivity.ChooseChatEntity> data) {
         super(R.layout.item_choose_chat_layout, data);
+    }
+
+    public void setMultiSelectMode(boolean multiSelectMode) {
+        this.multiSelectMode = multiSelectMode;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -49,7 +56,7 @@ public class ChooseChatAdapter extends BaseQuickAdapter<ChooseChatActivity.Choos
         checkBox.setBorderColor(ContextCompat.getColor(getContext(), R.color.layoutColor));
         checkBox.setSize(24);
         checkBox.setColor(Theme.colorAccount, ContextCompat.getColor(getContext(), R.color.white));
-        checkBox.setVisibility(View.VISIBLE);
+        checkBox.setVisibility(multiSelectMode ? View.VISIBLE : View.GONE);
         checkBox.setChecked(item.isCheck, true);
         AvatarView avatarView = helper.getView(R.id.avatarView);
         if (item.uiConveursationMsg.getWkChannel() != null) {
@@ -62,7 +69,7 @@ public class ChooseChatAdapter extends BaseQuickAdapter<ChooseChatActivity.Choos
             if (item.isForbidden || item.isBan) {
                 helper.setGone(R.id.checkbox, true);
             } else {
-                helper.setGone(R.id.checkbox, false);
+                helper.setGone(R.id.checkbox, !multiSelectMode);
             }
             helper.setGone(R.id.fullStaffingTv, !item.isForbidden);
         } else {
@@ -70,7 +77,7 @@ public class ChooseChatAdapter extends BaseQuickAdapter<ChooseChatActivity.Choos
             avatarView.showAvatar(item.uiConveursationMsg.channelID, item.uiConveursationMsg.channelType);
             WKIM.getInstance().getChannelManager().fetchChannelInfo(item.uiConveursationMsg.channelID, item.uiConveursationMsg.channelType);
             helper.setGone(R.id.fullStaffingTv, true);
-            helper.setGone(R.id.checkbox, false);
+            helper.setGone(R.id.checkbox, !multiSelectMode);
         }
 
     }

@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.chat.base.base.WKBaseActivity;
 import com.chat.base.config.WKConfig;
 import com.chat.base.msgitem.WKChannelMemberRole;
+import com.chat.base.ui.Theme;
 import com.chat.base.utils.SoftKeyboardUtils;
 import com.chat.base.utils.WKReader;
 import com.chat.uikit.WKUIKitApplication;
@@ -41,6 +42,7 @@ import java.util.Locale;
 public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBinding> {
     ChooseChatAdapter chooseChatAdapter;
     Button rightBtn;
+    TextView selectAllTv;
     private boolean isChoose;
     List<ChooseChatEntity> allList;
 
@@ -65,34 +67,40 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
         super.rightButtonClick();
 
         List<WKUIConversationMsg> selectedList = new ArrayList<>();
-        for (int i = 0, size = chooseChatAdapter.getData().size(); i < size; i++) {
-            if (chooseChatAdapter.getData().get(i).isCheck)
-                selectedList.add(chooseChatAdapter.getData().get(i).uiConveursationMsg);
+        // 必须从完整会话列表收集，保证搜索前后的多选结果不会丢失。
+        for (int i = 0, size = allList.size(); i < size; i++) {
+            if (allList.get(i).isCheck)
+                selectedList.add(allList.get(i).uiConveursationMsg);
         }
         List<WKChannel> list = new ArrayList<>();
         if (WKReader.isNotEmpty(selectedList)) {
             for (int i = 0; i < selectedList.size(); i++) {
                 list.add(selectedList.get(i).getWkChannel());
             }
-            if (isChoose) {
-                if (WKUIKitApplication.getInstance().getMessageContentList() != null) {
-                    WKUIKitApplication.getInstance().showChatConfirmDialog(this, list, WKUIKitApplication.getInstance().getMessageContentList(), new WKUIKitApplication.IShowChatConfirm() {
-                        @Override
-                        public void onBack(@NonNull List<WKChannel> list, @NonNull List<WKMessageContent> messageContentList) {
-                            WKUIKitApplication.getInstance().sendChooseChatBack(list);
-                            finish();
-                        }
-                    });
-                } else {
-                    WKUIKitApplication.getInstance().sendChooseChatBack(list);
-                    finish();
-                }
+            submitChannels(list);
+        }
+    }
+
+    private void submitChannels(List<WKChannel> list) {
+        if (!WKReader.isNotEmpty(list)) return;
+        if (isChoose) {
+            if (WKUIKitApplication.getInstance().getMessageContentList() != null) {
+                WKUIKitApplication.getInstance().showChatConfirmDialog(this, list, WKUIKitApplication.getInstance().getMessageContentList(), new WKUIKitApplication.IShowChatConfirm() {
+                    @Override
+                    public void onBack(@NonNull List<WKChannel> list, @NonNull List<WKMessageContent> messageContentList) {
+                        WKUIKitApplication.getInstance().sendChooseChatBack(list);
+                        finish();
+                    }
+                });
             } else {
-                Intent intent = new Intent();
-                intent.putParcelableArrayListExtra("list", (ArrayList<? extends Parcelable>) list);
-                setResult(RESULT_OK, intent);
+                WKUIKitApplication.getInstance().sendChooseChatBack(list);
                 finish();
             }
+        } else {
+            Intent intent = new Intent();
+            intent.putParcelableArrayListExtra("list", (ArrayList<? extends Parcelable>) list);
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
 
@@ -104,6 +112,7 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
     @Override
     protected void initView() {
         chooseChatAdapter = new ChooseChatAdapter(new ArrayList<>());
+        chooseChatAdapter.setMultiSelectMode(true);
         initAdapter(wkVBinding.recyclerView, chooseChatAdapter);
         chooseChatAdapter.addHeaderView(getHeader());
     }
@@ -121,32 +130,10 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
                 boolean isSelect = !chooseChatEntity.isBan && !chooseChatEntity.isForbidden;
                 if (isSelect) {
                     chooseChatEntity.isCheck = !chooseChatEntity.isCheck;
-                    int selectCount = 0;
-                    for (int i = 0, size = allList.size(); i < size; i++) {
-                        if (allList.get(i).isCheck)
-                            selectCount++;
-                    }
-                    if (chooseChatEntity.isCheck && selectCount == 10) {
-                        chooseChatEntity.isCheck = false;
-                        showSingleBtnDialog(String.format(getString(R.string.max_select_count_chat), 9));
-                        adapter.notifyItemChanged(position + adapter.getHeaderLayoutCount());
-                        return;
-                    }
                     adapter.notifyItemChanged(position + adapter.getHeaderLayoutCount(),chooseChatEntity);
 
 
-                    int count = 0;
-                    for (int i = 0, size = allList.size(); i < size; i++) {
-                        if (allList.get(i).isCheck)
-                            count++;
-                    }
-                    if (count > 0) {
-                        rightBtn.setVisibility(View.VISIBLE);
-                        rightBtn.setText(String.format("%s(%s)", getString(R.string.sure), count));
-                    } else {
-                        rightBtn.setText(R.string.sure);
-                        rightBtn.setVisibility(View.INVISIBLE);
-                    }
+                    updateSelectedCount();
                 }
             }
 
@@ -178,9 +165,43 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
         });
     }
 
+    private void updateSelectedCount() {
+        int count = 0;
+        for (int i = 0, size = allList.size(); i < size; i++) {
+            if (allList.get(i).isCheck) count++;
+        }
+        if (count > 0) {
+            rightBtn.setVisibility(View.VISIBLE);
+            rightBtn.setText(String.format("%s(%s)", getString(R.string.sure), count));
+        } else {
+            rightBtn.setText(R.string.sure);
+            rightBtn.setVisibility(View.INVISIBLE);
+        }
+        updateSelectAllButtonState();
+    }
+
+    private boolean areAllCurrentItemsSelected() {
+        boolean hasSelectableItem = false;
+        List<ChooseChatEntity> currentList = chooseChatAdapter.getData();
+        for (int i = 0, size = currentList.size(); i < size; i++) {
+            ChooseChatEntity entity = currentList.get(i);
+            if (entity.isBan || entity.isForbidden) continue;
+            hasSelectableItem = true;
+            if (!entity.isCheck) return false;
+        }
+        return hasSelectableItem;
+    }
+
+    private void updateSelectAllButtonState() {
+        if (selectAllTv == null) return;
+        selectAllTv.setText(areAllCurrentItemsSelected()
+                ? R.string.chat_cancel_select : R.string.chat_select_all);
+    }
+
     private void searchUser(String content) {
         if (TextUtils.isEmpty(content)) {
             chooseChatAdapter.setList(allList);
+            updateSelectAllButtonState();
             return;
         }
         List<ChooseChatEntity> tempList = new ArrayList<>();
@@ -193,6 +214,7 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
             }
         }
         chooseChatAdapter.setList(tempList);
+        updateSelectAllButtonState();
     }
 
     @Override
@@ -239,6 +261,20 @@ public class ChooseChatActivity extends WKBaseActivity<ActChooseChatLayoutBindin
     private View getHeader() {
         View view = LayoutInflater.from(this).inflate(R.layout.choose_chat_header_layout, wkVBinding.recyclerView, false);
         View headerView = view.findViewById(R.id.createTv);
+        selectAllTv = view.findViewById(R.id.multiSelectTv);
+        selectAllTv.setTextColor(Theme.colorAccount);
+        selectAllTv.setOnClickListener(v -> {
+            boolean shouldClear = areAllCurrentItemsSelected();
+            List<ChooseChatEntity> currentList = chooseChatAdapter.getData();
+            for (int i = 0, size = currentList.size(); i < size; i++) {
+                ChooseChatEntity entity = currentList.get(i);
+                if (!entity.isBan && !entity.isForbidden) {
+                    entity.isCheck = !shouldClear;
+                }
+            }
+            chooseChatAdapter.setMultiSelectMode(true);
+            updateSelectedCount();
+        });
         headerView.setOnClickListener(view1 -> {
             Intent intent = new Intent(this, ChooseContactsActivity.class);
             if (WKUIKitApplication.getInstance().getMessageContentList() != null)
