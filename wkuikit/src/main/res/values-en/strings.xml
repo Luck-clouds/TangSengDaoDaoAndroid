@@ -131,6 +131,8 @@
     <string name="send_to">Send to：</string>
     <string name="create_new_chat">New Chat</string>
     <string name="lately_chat">Recent chat</string>
+    <string name="chat_select_all">Select all</string>
+    <string name="chat_cancel_select">Cancel</string>
     <string name="request_add_frined">Request to add friends</string>
     <string name="item_forward_count">[One-by-One Forward]%d messages total</string>
     <string name="cannot_reply_msg">Unable to reply to messages in mute</string>
