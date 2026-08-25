@@ -233,6 +233,8 @@ class TSApplication : MultiDexApplication() {
             override fun onFront() {
                 appInForeground = true
                 if (!TextUtils.isEmpty(WKConfig.getInstance().token)) {
+                    WKUIKitApplication.getInstance().clearMessageNotification()
+                    WKUIKitApplication.getInstance().refreshMessageBadge()
                     WKCommonModel.getInstance().getAppConfig(null)
                     if (WKBaseApplication.getInstance().disconnect) {
                         Handler(Looper.getMainLooper()).postDelayed({
@@ -249,6 +251,7 @@ class TSApplication : MultiDexApplication() {
 
             override fun onBack() {
                 appInForeground = false
+                WKUIKitApplication.getInstance().syncMessageBadge()
                 val result = EndpointManager.getInstance().invoke("rtc_is_calling", null)
                 var isCalling = false
                 if (result != null) {

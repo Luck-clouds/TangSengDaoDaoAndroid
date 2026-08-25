@@ -99,6 +99,7 @@ public class WKPushApplication {
     public void init(String pushBundleID, final Context context) {
         this.pushBundleID = pushBundleID;
         this.mContext = new WeakReference<>(context);
+        MessageBadgeController.getInstance().init(context);
         addListener();
         initPush();
         EndpointManager.getInstance().setMethod("", EndpointCategory.loginMenus, object -> new LoginMenu(this::initPush));
@@ -107,6 +108,7 @@ public class WKPushApplication {
     public void registerNotificationDialog(String pushBundleID, final Context context) {
         this.pushBundleID = pushBundleID;
         this.mContext = new WeakReference<>(context);
+        MessageBadgeController.getInstance().init(context);
         addListener();
     }
 
@@ -235,7 +237,7 @@ public class WKPushApplication {
         });
         //注销推送
         EndpointManager.getInstance().setMethod("wk_logout", object -> {
-            OsUtils.setBadge(WKBaseApplication.getInstance().getContext(), 0);
+            MessageBadgeController.getInstance().clearForLogout();
             // 后端解绑使用退出前快照的登录 token；失败不阻塞正常退出。
             PushModel.getInstance().unRegisterDeviceToken((code, msg) -> {
                 if (code != HttpResponseCode.success) {
@@ -249,8 +251,16 @@ public class WKPushApplication {
         //设置桌面红点数量
         EndpointManager.getInstance().setMethod("push_update_device_badge", object -> {
             int num = (int) object;
-            PushModel.getInstance().registerBadge(num);
-            OsUtils.setBadge(WKBaseApplication.getInstance().getContext(), num);
+            MessageBadgeController.getInstance().sync(num);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("push_refresh_device_badge", object -> {
+            int num = (int) object;
+            MessageBadgeController.getInstance().refresh(num);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("push_clear_message_notification", object -> {
+            MessageBadgeController.getInstance().clearMessageNotification();
             return null;
         });
     }

@@ -2,8 +2,6 @@ package com.chat.uikit;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -124,8 +122,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
                 WKDialogUtils.getInstance().showNewVersionDialog(TabActivity.this, version);
             }
         });
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
+        WKUIKitApplication.getInstance().clearMessageNotification();
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_chat).setVisible(false);
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_my).setVisible(false);
 //        wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_workplace).setVisible(false);
@@ -315,7 +312,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
     }
 
     public void setMsgCount(int number) {
-        WKUIKitApplication.getInstance().totalMsgCount = number;
+        WKUIKitApplication.getInstance().setTotalMessageCount(number);
         if (number > 0) {
             msgCounterView.setCount(number, true);
             msgCounterView.setVisibility(View.VISIBLE);
