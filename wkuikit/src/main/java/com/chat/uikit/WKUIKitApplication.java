@@ -471,8 +471,25 @@ public class WKUIKitApplication {
         }
     }
 
-    public void stopConn() {
+    public void setTotalMessageCount(int unreadCount) {
+        totalMsgCount = Math.max(0, unreadCount);
+        syncMessageBadge();
+    }
+
+    public void syncMessageBadge() {
         EndpointManager.getInstance().invoke("push_update_device_badge", totalMsgCount);
+    }
+
+    public void refreshMessageBadge() {
+        EndpointManager.getInstance().invoke("push_refresh_device_badge", totalMsgCount);
+    }
+
+    public void clearMessageNotification() {
+        EndpointManager.getInstance().invoke("push_clear_message_notification", null);
+    }
+
+    public void stopConn() {
+        syncMessageBadge();
         WKIM.getInstance().getConnectionManager().disconnect(false);
     }
 

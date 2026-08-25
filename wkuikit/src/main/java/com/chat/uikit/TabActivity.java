@@ -2,8 +2,6 @@ package com.chat.uikit;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -141,8 +139,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
         wkVBinding.vp.setAdapter(new WKFragmentStateAdapter(this, fragments));
         // HUAWEI 分支不启用应用内自更新。恢复时还需同步恢复
         // REQUEST_INSTALL_PACKAGES 权限及其 Manifest 合并规则。
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
+        WKUIKitApplication.getInstance().clearMessageNotification();
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_chat).setVisible(false);
         wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_my).setVisible(false);
 //        wkVBinding.bottomNavigation.getOrCreateBadge(R.id.i_workplace).setVisible(false);
@@ -267,7 +264,7 @@ public class TabActivity extends WKBaseActivity<ActTabMainBinding> {
     }
 
     public void setMsgCount(int number) {
-        WKUIKitApplication.getInstance().totalMsgCount = number;
+        WKUIKitApplication.getInstance().setTotalMessageCount(number);
         if (number > 0) {
             msgCounterView.setCount(number, true);
             msgCounterView.setVisibility(View.VISIBLE);

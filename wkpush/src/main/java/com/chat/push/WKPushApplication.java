@@ -57,6 +57,7 @@ public class WKPushApplication {
     public void init(String pushBundleID, final Context context) {
         this.pushBundleID = pushBundleID;
         this.mContext = new WeakReference<>(context);
+        MessageBadgeController.getInstance().init(context);
         PushDebugLogger.info("初始化华为推送，package=" + pushBundleID
                 + "，已登录=" + WKConstants.isLogin());
         addListener();
@@ -66,6 +67,7 @@ public class WKPushApplication {
     public void registerNotificationDialog(String pushBundleID, final Context context) {
         this.pushBundleID = pushBundleID;
         this.mContext = new WeakReference<>(context);
+        MessageBadgeController.getInstance().init(context);
         PushDebugLogger.info("华为推送通知设置入口已注册，package=" + pushBundleID);
         addListener();
     }
@@ -277,7 +279,7 @@ public class WKPushApplication {
         //注销推送
         EndpointManager.getInstance().setMethod("wk_logout", object -> {
             PushDebugLogger.info("收到退出登录事件，开始解绑推送 Token");
-            OsUtils.setBadge(WKBaseApplication.getInstance().getContext(), 0);
+            MessageBadgeController.getInstance().clearForLogout();
             // 后端解绑使用退出前快照的登录 token；失败不阻塞正常退出。
             PushModel.getInstance().unRegisterDeviceToken((code, msg) -> {
                 if (code != HttpResponseCode.success) {
@@ -304,8 +306,16 @@ public class WKPushApplication {
         //设置桌面红点数量
         EndpointManager.getInstance().setMethod("push_update_device_badge", object -> {
             int num = (int) object;
-            PushModel.getInstance().registerBadge(num);
-            OsUtils.setBadge(WKBaseApplication.getInstance().getContext(), num);
+            MessageBadgeController.getInstance().sync(num);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("push_refresh_device_badge", object -> {
+            int num = (int) object;
+            MessageBadgeController.getInstance().refresh(num);
+            return null;
+        });
+        EndpointManager.getInstance().setMethod("push_clear_message_notification", object -> {
+            MessageBadgeController.getInstance().clearMessageNotification();
             return null;
         });
     }
